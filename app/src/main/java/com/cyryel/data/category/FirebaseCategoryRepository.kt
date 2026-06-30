@@ -23,10 +23,10 @@ class FirebaseCategoryRepository @Inject constructor(
                     id = doc.id,
                     name = data["name"] as? String ?: data["nombre"] as? String ?: "",
                     icon = data["icon"] as? String ?: "",
-                    imageUrl = data["imageUrl"] as? String ?: data["foto"] as? String ?: "",
+                    imageUrl = data["imageUrl"] as? String ?: data["foto"] as? String ?: data["imagen"] as? String ?: data["url"] as? String ?: "",
                     orden = (data["orden"] as? Long)?.toInt() ?: 0,
                     isActive = data["isActive"] as? Boolean ?: true,
-                    colorStart = data["colorStart"] as? String ?: "",
+                    colorStart = data["colorStart"] as? String ?: data["color"] as? String ?: "",
                     colorEnd = data["colorEnd"] as? String ?: ""
                 )
             }.filterNotNull()

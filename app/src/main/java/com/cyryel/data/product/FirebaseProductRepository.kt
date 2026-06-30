@@ -18,13 +18,12 @@ class FirebaseProductRepository @Inject constructor(
     override suspend fun getRandomProducts(limit: Int): Result<List<Product>> {
         return try {
             val snapshot = firestore.collection("products")
-                .whereEqualTo("isActive", true)
                 .limit(30)
                 .get()
                 .await()
             val all = snapshot.documents.map { document ->
                 productFromDocument(document)
-            }.filter { it.nombre.isNotBlank() }
+            }.filter { it.nombre.isNotBlank() && it.isActive }
 
             val cacheTimestamp = System.currentTimeMillis()
             if (all.isNotEmpty()) {
@@ -66,12 +65,12 @@ class FirebaseProductRepository @Inject constructor(
         return try {
             val snapshot = firestore.collection("products")
                 .whereEqualTo("categoria", category)
-                .whereEqualTo("isActive", true)
                 .orderBy("nombre")
                 .limit(limit.toLong())
                 .get()
                 .await()
             val products = snapshot.documents.map { productFromDocument(it) }
+                .filter { it.isActive }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
@@ -91,10 +90,10 @@ class FirebaseProductRepository @Inject constructor(
                     id = doc.id,
                     name = data["name"] as? String ?: data["nombre"] as? String ?: "",
                     icon = data["icon"] as? String ?: "",
-                    imageUrl = data["imageUrl"] as? String ?: data["foto"] as? String ?: "",
+                    imageUrl = data["imageUrl"] as? String ?: data["foto"] as? String ?: data["imagen"] as? String ?: data["url"] as? String ?: "",
                     orden = (data["orden"] as? Long)?.toInt() ?: 0,
                     isActive = data["isActive"] as? Boolean ?: true,
-                    colorStart = data["colorStart"] as? String ?: "",
+                    colorStart = data["colorStart"] as? String ?: data["color"] as? String ?: "",
                     colorEnd = data["colorEnd"] as? String ?: ""
                 )
             }.filterNotNull()

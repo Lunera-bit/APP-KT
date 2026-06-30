@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -46,7 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,13 +61,13 @@ import coil.compose.AsyncImage
 import com.cyryel.R
 import com.cyryel.data.category.Category
 import com.cyryel.data.product.Product
+import com.cyryel.data.promotion.Promotion
 import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.cart.CartViewModel
 import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
-import com.cyryel.ui.theme.AzulReyClaro
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -148,36 +144,34 @@ fun MainScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                         Text(
-                            text = "Mas stock • Mejor precio",
+                            text = "Mas stock \u2022 Mejor precio",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                         )
                     }
                     Spacer(Modifier.weight(1f))
-                    if (onNavigateToCart != {}) {
-                        val cartCount = cartState.items.sumOf { it.quantity }
-                        IconButton(onClick = onNavigateToCart) {
-                            BadgedBox(
-                                badge = {
-                                    if (cartCount > 0) {
-                                        Badge(
-                                            containerColor = MaterialTheme.colorScheme.error
-                                        ) {
-                                            Text(
-                                                text = if (cartCount > 99) "99+" else cartCount.toString(),
-                                                color = MaterialTheme.colorScheme.onError,
-                                                fontSize = 11.sp
-                                            )
-                                        }
+                    val cartCount = cartState.items.sumOf { it.quantity }
+                    IconButton(onClick = onNavigateToCart) {
+                        BadgedBox(
+                            badge = {
+                                if (cartCount > 0) {
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ) {
+                                        Text(
+                                            text = if (cartCount > 99) "99+" else cartCount.toString(),
+                                            color = MaterialTheme.colorScheme.onError,
+                                            fontSize = 11.sp
+                                        )
                                     }
                                 }
-                            ) {
-                                Icon(
-                                    Icons.Filled.ShoppingCart,
-                                    contentDescription = "Carrito",
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
                             }
+                        ) {
+                            Icon(
+                                Icons.Filled.ShoppingCart,
+                                contentDescription = "Carrito",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
                     IconButton(onClick = onNavigateToNotifications) {
@@ -244,7 +238,6 @@ fun MainScreen(
             0 -> InicioTab(
                 modifier = Modifier.padding(innerPadding),
                 homeState = homeState,
-                onRefresh = homeViewModel::loadData,
                 cartViewModel = cartViewModel,
                 onProductClick = onNavigateToProduct,
                 onCategoryClick = onNavigateToCategory
@@ -270,7 +263,6 @@ fun MainScreen(
 private fun InicioTab(
     modifier: Modifier = Modifier,
     homeState: HomeUiState,
-    onRefresh: () -> Unit,
     cartViewModel: CartViewModel,
     onProductClick: (String) -> Unit,
     onCategoryClick: (String) -> Unit
@@ -288,9 +280,9 @@ private fun InicioTab(
         else -> {
             Column(
                 modifier = modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 PromocionesSection(homeState.promotions)
@@ -310,7 +302,7 @@ private fun InicioTab(
 }
 
 @Composable
-private fun PromocionesSection(promotions: List<com.cyryel.data.promotion.Promotion>) {
+private fun PromocionesSection(promotions: List<Promotion>) {
     Text(
         text = "Promociones",
         style = MaterialTheme.typography.titleMedium,
@@ -360,32 +352,41 @@ private fun PedidoRapidoSection(
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(Modifier.height(12.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(horizontal = 2.dp)
-            ) {
-                items(products, key = { it.id }) { product ->
-                    QuickProductCard(
-                        product = product,
-                        onAddToCart = onAddToCart,
-                        onProductClick = onProductClick
+            if (products.isEmpty()) {
+                Text(
+                    text = "No hay productos disponibles",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(horizontal = 2.dp)
+                ) {
+                    items(products, key = { it.id }) { product ->
+                        QuickProductCard(
+                            product = product,
+                            onAddToCart = onAddToCart,
+                            onProductClick = onProductClick
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = { products.forEach(onAddToCart) },
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AmarilloVibrante,
+                        contentColor = AzulRey
+                    )
+                ) {
+                    Text(
+                        text = "Agregar todo",
+                        fontWeight = FontWeight.Bold
                     )
                 }
-            }
-            Spacer(Modifier.height(12.dp))
-            Button(
-                onClick = { products.forEach(onAddToCart) },
-                modifier = Modifier.fillMaxWidth().height(44.dp),
-                shape = RoundedCornerShape(22.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AmarilloVibrante,
-                    contentColor = AzulRey
-                )
-            ) {
-                Text(
-                    text = "Agregar todo",
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }
@@ -459,45 +460,69 @@ private fun CategoriasSection(
         fontWeight = FontWeight.Bold,
         color = AzulRey
     )
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier.fillMaxWidth().height(categories.size.let { ((it + 1) / 2) * 120 + 8 }.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(2.dp)
-    ) {
-        items(categories, key = { it.id }) { category ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp)
-                    .clickable { onCategoryClick(category.name) },
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (category.colorStart.isNotBlank())
-                        parseHexColor(category.colorStart)
-                    else AzulReyClaro
-                )
+    if (categories.isEmpty()) {
+        Text(
+            text = "No hay categorias disponibles",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    } else {
+        categories.chunked(2).forEach { rowCats ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(12.dp),
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    Text(
-                        text = category.name,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                rowCats.forEach { category ->
+                    CategoryCard(
+                        category = category,
+                        onClick = { onCategoryClick(category.name) },
+                        modifier = Modifier.weight(1f)
                     )
-                    if (category.imageUrl.isNotBlank()) {
-                        AsyncImage(
-                            model = category.imageUrl,
-                            contentDescription = null,
-                            modifier = Modifier.align(Alignment.BottomEnd).size(60.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
                 }
+                if (rowCats.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun CategoryCard(
+    category: Category,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(110.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (category.colorStart.isNotBlank())
+                parseHexColor(category.colorStart)
+            else AzulRey
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.align(Alignment.BottomStart)
+            )
+            if (category.imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = category.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(60.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
         }
     }
