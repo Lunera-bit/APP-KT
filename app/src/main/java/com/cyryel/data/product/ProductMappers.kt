@@ -18,6 +18,7 @@ fun Product.toEntity(cachedAt: Long): ProductEntity {
         variantes = variantes,
         points = points,
         pointsToRedeem = pointsToRedeem,
+        updatedAt = updatedAt,
         cachedAt = cachedAt
     )
 }
@@ -37,6 +38,7 @@ fun ProductEntity.toDomain(): Product {
         keywords = keywords,
         variantes = variantes,
         points = points,
-        pointsToRedeem = pointsToRedeem
+        pointsToRedeem = pointsToRedeem,
+        updatedAt = updatedAt
     )
 }

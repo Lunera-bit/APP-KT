@@ -20,5 +20,6 @@ data class ProductEntity(
     val variantes: List<ProductVariant>,
     val points: Int,
     val pointsToRedeem: Int,
+    val updatedAt: Long,
     val cachedAt: Long
 )

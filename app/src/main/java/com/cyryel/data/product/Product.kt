@@ -14,5 +14,6 @@ data class Product(
     val keywords: List<String> = emptyList(),
     val variantes: List<ProductVariant> = emptyList(),
     val points: Int = 0,
-    val pointsToRedeem: Int = 0
+    val pointsToRedeem: Int = 0,
+    val updatedAt: Long = 0L
 )

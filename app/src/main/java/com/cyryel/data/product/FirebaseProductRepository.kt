@@ -2,6 +2,7 @@ package com.cyryel.data.product
 
 import com.cyryel.data.category.Category
 import com.cyryel.data.local.ProductDao
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -118,7 +119,8 @@ class FirebaseProductRepository @Inject constructor(
             keywords = parseKeywords(document.get("keywords")),
             variantes = parseVariantes(document.get("variantes")),
             points = (document.getLong("points") ?: 0L).toInt(),
-            pointsToRedeem = (document.getLong("pointsToRedeem") ?: 0L).toInt()
+            pointsToRedeem = (document.getLong("pointsToRedeem") ?: 0L).toInt(),
+            updatedAt = document.getTimestamp("updatedAt")?.toDate()?.time ?: 0L
         )
     }
 
