@@ -68,6 +68,7 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.Blanco
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -211,7 +212,7 @@ fun MainScreen(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface
+                containerColor = AzulRey
             ) {
                 tabs.forEachIndexed { index, tab ->
                     NavigationBarItem(
@@ -226,8 +227,10 @@ fun MainScreen(
                         label = { Text(tab.label) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = AmarilloVibrante,
-                            selectedTextColor = AzulRey,
-                            indicatorColor = AzulRey.copy(alpha = 0.1f)
+                            selectedTextColor = Blanco,
+                            unselectedIconColor = Blanco.copy(alpha = 0.6f),
+                            unselectedTextColor = Blanco.copy(alpha = 0.6f),
+                            indicatorColor = AmarilloVibrante.copy(alpha = 0.3f)
                         )
                     )
                 }
@@ -409,14 +412,12 @@ private fun QuickProductCard(
             modifier = Modifier.padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (product.foto.isNotBlank()) {
-                AsyncImage(
-                    model = product.foto,
-                    contentDescription = product.nombre,
-                    modifier = Modifier.size(80.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
+            AsyncImage(
+                model = product.foto.ifBlank { R.drawable.ic_placeholder_image },
+                contentDescription = product.nombre,
+                modifier = Modifier.size(80.dp),
+                contentScale = ContentScale.Fit
+            )
             Text(
                 text = product.nombre,
                 style = MaterialTheme.typography.bodySmall,
@@ -506,24 +507,27 @@ private fun CategoryCard(
             else AzulRey
         )
     ) {
-        Box(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-            Text(
-                text = category.name,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.align(Alignment.BottomStart)
-            )
+        Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
             if (category.imageUrl.isNotBlank()) {
                 AsyncImage(
                     model = category.imageUrl,
                     contentDescription = null,
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(60.dp),
+                        .align(Alignment.Center)
+                        .size(56.dp),
                     contentScale = ContentScale.Fit
                 )
             }
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 4.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }
