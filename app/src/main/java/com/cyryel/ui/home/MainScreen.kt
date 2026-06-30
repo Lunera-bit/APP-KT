@@ -68,7 +68,6 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
-import com.cyryel.ui.theme.Blanco
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -212,7 +211,7 @@ fun MainScreen(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = AzulRey
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 tabs.forEachIndexed { index, tab ->
                     NavigationBarItem(
@@ -227,10 +226,8 @@ fun MainScreen(
                         label = { Text(tab.label) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = AmarilloVibrante,
-                            selectedTextColor = Blanco,
-                            unselectedIconColor = Blanco.copy(alpha = 0.6f),
-                            unselectedTextColor = Blanco.copy(alpha = 0.6f),
-                            indicatorColor = AmarilloVibrante.copy(alpha = 0.3f)
+                            selectedTextColor = AzulRey,
+                            indicatorColor = AzulRey.copy(alpha = 0.1f)
                         )
                     )
                 }
