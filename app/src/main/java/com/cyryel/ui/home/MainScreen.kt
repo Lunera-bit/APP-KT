@@ -71,6 +71,7 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.AzulReyClaro
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -154,7 +155,7 @@ fun MainScreen(
                     }
                     Spacer(Modifier.weight(1f))
                     if (onNavigateToCart != {}) {
-                        val cartCount = cartState.items.sumOf { it.cantidad }
+                        val cartCount = cartState.items.sumOf { it.quantity }
                         IconButton(onClick = onNavigateToCart) {
                             BadgedBox(
                                 badge = {
