@@ -16,13 +16,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,14 +32,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.cyryel.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +65,7 @@ fun ProductDetailScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(uiState.product?.nombre ?: "Producto") },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atras")
@@ -66,7 +73,6 @@ fun ProductDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
@@ -114,16 +120,14 @@ fun ProductDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (product.foto.isNotBlank()) {
-                        AsyncImage(
-                            model = product.foto,
-                            contentDescription = product.nombre,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(250.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
+                    AsyncImage(
+                        model = if (product.foto.isNotBlank()) product.foto else R.drawable.general_img_portrait,
+                        contentDescription = product.nombre,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp),
+                        contentScale = ContentScale.Fit
+                    )
 
                     Text(
                         text = product.nombre,
@@ -157,22 +161,44 @@ fun ProductDetailScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        var expanded by remember { mutableStateOf(false) }
+                        val selectedIndex = uiState.selectedVariantIndex
+                        val selectedLabel = if (selectedIndex >= 0) {
+                            val v = product.variantes[selectedIndex]
+                            "${v.nombre} - S/ ${"%.2f".format(v.precio)}"
+                        } else {
+                            "Seleccionar presentacion"
+                        }
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded }
                         ) {
-                            product.variantes.forEachIndexed { index, variant ->
-                                FilterChip(
-                                    selected = uiState.selectedVariantIndex == index,
-                                    onClick = { viewModel.selectVariant(index) },
-                                    label = {
-                                        Text(
-                                            "${variant.nombre} - S/ ${"%.2f".format(variant.precio)}"
-                                        )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                            OutlinedTextField(
+                                value = selectedLabel,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                product.variantes.forEachIndexed { index, variant ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                "${variant.nombre} - S/ ${"%.2f".format(variant.precio)}"
+                                            )
+                                        },
+                                        onClick = {
+                                            viewModel.selectVariant(index)
+                                            expanded = false
+                                        }
                                     )
-                                )
+                                }
                             }
                         }
                     }
@@ -191,6 +217,7 @@ fun ProductDetailScreen(
                                 text = "Cantidad",
                                 style = MaterialTheme.typography.titleSmall
                             )
+                            val isVariantSelected = uiState.selectedVariantIndex >= 0
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -198,7 +225,7 @@ fun ProductDetailScreen(
                             ) {
                                 OutlinedButton(
                                     onClick = viewModel::decreaseQuantity,
-                                    enabled = uiState.quantity > 1
+                                    enabled = !isVariantSelected && uiState.quantity > 1
                                 ) {
                                     Text("-")
                                 }
@@ -206,14 +233,22 @@ fun ProductDetailScreen(
                                     text = "${uiState.quantity}",
                                     style = MaterialTheme.typography.titleLarge,
                                     modifier = Modifier.width(40.dp),
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    textAlign = TextAlign.Center
                                 )
                                 OutlinedButton(
                                     onClick = viewModel::increaseQuantity,
-                                    enabled = uiState.quantity < uiState.displayStock
+                                    enabled = !isVariantSelected && uiState.quantity < uiState.displayStock
                                 ) {
                                     Text("+")
                                 }
+                            }
+                            if (isVariantSelected) {
+                                Text(
+                                    text = "Cantidad fija al seleccionar presentacion",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
                             }
                         }
                     }

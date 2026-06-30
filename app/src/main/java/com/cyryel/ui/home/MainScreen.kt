@@ -495,7 +495,7 @@ private fun CategoryCard(
 ) {
     Card(
         modifier = modifier
-            .height(110.dp)
+            .height(150.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -511,7 +511,7 @@ private fun CategoryCard(
                     contentDescription = null,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(56.dp),
+                        .size(90.dp),
                     contentScale = ContentScale.Fit
                 )
             }
