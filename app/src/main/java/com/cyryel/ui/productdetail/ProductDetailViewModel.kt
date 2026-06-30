@@ -46,7 +46,12 @@ class ProductDetailViewModel @Inject constructor(
     }
 
     fun selectVariant(index: Int) {
-        _uiState.update { it.copy(selectedVariantIndex = index, quantity = 1) }
+        val quantity = if (index >= 0) {
+            _uiState.value.product?.variantes?.get(index)?.cantidad?.toInt() ?: 1
+        } else {
+            1
+        }
+        _uiState.update { it.copy(selectedVariantIndex = index, quantity = quantity) }
     }
 
     fun increaseQuantity() {
