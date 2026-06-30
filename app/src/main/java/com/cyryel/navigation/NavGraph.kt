@@ -11,10 +11,9 @@ import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.categoryproducts.CategoryProductsScreen
 import com.cyryel.ui.checkout.CheckoutScreen
 import com.cyryel.ui.home.MainScreen
+import com.cyryel.ui.notifications.NotificationScreen
 import com.cyryel.ui.orders.OrderDetailScreen
-import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.productdetail.ProductDetailScreen
-import com.cyryel.ui.promotions.PromotionsScreen
 import com.cyryel.ui.search.SearchScreen
 import com.cyryel.ui.settings.SettingsScreen
 
@@ -25,10 +24,9 @@ object Routes {
     const val CHECKOUT = "checkout"
     const val ORDER_DETAIL = "order/{orderId}"
     const val CATEGORY_PRODUCTS = "category/{categoryName}"
-    const val PROMOTIONS = "promotions"
-    const val PROFILE = "profile"
     const val SETTINGS = "settings"
     const val SEARCH = "search"
+    const val NOTIFICATIONS = "notifications"
     const val BILLETERA_OFFERS = "billetera/offers"
     const val BILLETERA_HISTORIAL = "billetera/historial"
 
@@ -60,20 +58,11 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onNavigateToProduct = { productId ->
                     navController.navigate(Routes.productDetail(productId))
                 },
-                onNavigateToCheckout = {
-                    navController.navigate(Routes.CHECKOUT)
-                },
                 onNavigateToOrderDetail = { orderId ->
                     navController.navigate(Routes.orderDetail(orderId))
                 },
                 onNavigateToCategory = { categoryName ->
                     navController.navigate(Routes.categoryProducts(categoryName))
-                },
-                onNavigateToPromotions = {
-                    navController.navigate(Routes.PROMOTIONS)
-                },
-                onNavigateToProfile = {
-                    navController.navigate(Routes.PROFILE)
                 },
                 onNavigateToSettings = {
                     navController.navigate(Routes.SETTINGS)
@@ -87,10 +76,11 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onNavigateToHistorial = {
                     navController.navigate(Routes.BILLETERA_HISTORIAL)
                 },
-                onSignOut = {
-                    navController.navigate(Routes.AUTH) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                onNavigateToNotifications = {
+                    navController.navigate(Routes.NOTIFICATIONS)
+                },
+                onNavigateToCart = {
+                    navController.navigate(Routes.CHECKOUT)
                 }
             )
         }
@@ -143,21 +133,6 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
             )
         }
 
-        composable(Routes.PROMOTIONS) {
-            PromotionsScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Routes.PROFILE) {
-            com.cyryel.ui.profile.ProfileScreen(
-                onBack = { navController.popBackStack() },
-                onNavigateToSettings = {
-                    navController.navigate(Routes.SETTINGS)
-                }
-            )
-        }
-
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() }
@@ -170,6 +145,12 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onProductClick = { productId ->
                     navController.navigate(Routes.productDetail(productId))
                 }
+            )
+        }
+
+        composable(Routes.NOTIFICATIONS) {
+            NotificationScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

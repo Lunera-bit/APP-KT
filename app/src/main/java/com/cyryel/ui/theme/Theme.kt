@@ -1,30 +1,30 @@
 package com.cyryel.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val LightColors = lightColorScheme(
-    primary = BrandBlue,
-    secondary = AccentOrange,
-    background = BackgroundGray
-)
-
-private val DarkColors = darkColorScheme(
-    primary = BrandBlueDark,
-    secondary = AccentOrange
+    primary = AzulRey,
+    onPrimary = Blanco,
+    primaryContainer = AzulReyClaro,
+    secondary = AmarilloVibrante,
+    onSecondary = AzulRey,
+    background = Blanco,
+    onBackground = AzulOscuroTexto,
+    surface = Blanco,
+    onSurface = AzulOscuroTexto,
+    surfaceVariant = GrisClaro,
+    onSurfaceVariant = GrisTexto,
+    error = RojoBadge
 )
 
 @Composable
 fun TiendaCyryelTheme(
-    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColors else LightColors
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = LightColors,
         typography = Typography,
         content = content
     )

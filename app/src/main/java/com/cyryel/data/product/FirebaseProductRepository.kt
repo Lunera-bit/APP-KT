@@ -27,8 +27,10 @@ class FirebaseProductRepository @Inject constructor(
             }.filter { it.nombre.isNotBlank() }
 
             val cacheTimestamp = System.currentTimeMillis()
-            productDao.upsertAll(all.map { it.toEntity(cacheTimestamp) })
-            productDao.deleteAllExcept(all.map { it.id })
+            if (all.isNotEmpty()) {
+                productDao.upsertAll(all.map { it.toEntity(cacheTimestamp) })
+                productDao.deleteAllExcept(all.map { it.id })
+            }
 
             val sampled = if (all.size <= limit) all else all.shuffled().take(limit)
             Result.success(sampled)
