@@ -423,7 +423,7 @@ private fun QuickProductCard(
     Card(
         modifier = Modifier
             .width(140.dp)
-            .height(180.dp)
+            .height(155.dp)
             .clickable { onProductClick(product.id) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
