@@ -1,6 +1,10 @@
 package com.cyryel.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -33,6 +37,23 @@ object Routes {
     fun productDetail(id: String) = "product/$id"
     fun orderDetail(id: String) = "order/$id"
     fun categoryProducts(name: String) = "category/$name"
+}
+
+/**
+ * Prevents rapid multiple invocations of [onBack] (e.g. double-tapping the back arrow)
+ * by disabling the callback after the first call.
+ * Resets automatically when the composable is removed from the composition
+ * (i.e. when navigation completes and the screen is popped).
+ */
+@Composable
+private fun rememberBackHandler(onBack: () -> Unit): () -> Unit {
+    var enabled by remember { mutableStateOf(true) }
+    return {
+        if (enabled) {
+            enabled = false
+            onBack()
+        }
+    }
 }
 
 @Composable
@@ -92,14 +113,14 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
             ProductDetailScreen(
                 productId = productId,
-                onBack = { navController.popBackStack() },
-                onAddToCart = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() },
+                onAddToCart = rememberBackHandler { navController.popBackStack() }
             )
         }
 
         composable(Routes.CHECKOUT) {
             CheckoutScreen(
-                onBack = { navController.popBackStack() },
+                onBack = rememberBackHandler { navController.popBackStack() },
                 onOrderCreated = { orderId ->
                     navController.navigate(Routes.orderDetail(orderId)) {
                         popUpTo(Routes.MAIN)
@@ -115,7 +136,7 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             OrderDetailScreen(
                 orderId = orderId,
-                onBack = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
 
@@ -126,7 +147,7 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
             val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
             CategoryProductsScreen(
                 categoryName = categoryName,
-                onBack = { navController.popBackStack() },
+                onBack = rememberBackHandler { navController.popBackStack() },
                 onProductClick = { productId ->
                     navController.navigate(Routes.productDetail(productId))
                 }
@@ -135,13 +156,13 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
 
         composable(Routes.SETTINGS) {
             SettingsScreen(
-                onBack = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
 
         composable(Routes.SEARCH) {
             SearchScreen(
-                onBack = { navController.popBackStack() },
+                onBack = rememberBackHandler { navController.popBackStack() },
                 onProductClick = { productId ->
                     navController.navigate(Routes.productDetail(productId))
                 }
@@ -150,19 +171,19 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
 
         composable(Routes.NOTIFICATIONS) {
             NotificationScreen(
-                onBack = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
 
         composable(Routes.BILLETERA_OFFERS) {
             com.cyryel.ui.billetera.OffersListScreen(
-                onBack = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
 
         composable(Routes.BILLETERA_HISTORIAL) {
             com.cyryel.ui.billetera.PointsHistoryScreen(
-                onBack = { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
     }

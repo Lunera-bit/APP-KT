@@ -21,7 +21,8 @@ data class HomeUiState(
     val categories: List<Category> = emptyList(),
     val promotions: List<Promotion> = emptyList(),
     val isLoading: Boolean = true,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val agregarTodoUsado: Boolean = false
 )
 
 @HiltViewModel
@@ -38,6 +39,10 @@ class HomeViewModel @Inject constructor(
         loadData()
     }
 
+    fun marcarAgregarTodoUsado() {
+        _uiState.update { it.copy(agregarTodoUsado = true) }
+    }
+
     fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -49,12 +54,13 @@ class HomeViewModel @Inject constructor(
             val products = productsResult.getOrDefault(emptyList())
             val categories = categoriesResult.getOrDefault(emptyList())
             val promotions = promotionsResult.getOrDefault(emptyList())
+            val inStockProducts = products.filter { it.stock > 0 }
 
             if (productsResult.isFailure) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        quickProducts = products.take(6),
+                        quickProducts = inStockProducts.take(6),
                         categories = categories,
                         promotions = promotions,
                         errorMessage = productsResult.exceptionOrNull()?.localizedMessage
@@ -64,7 +70,7 @@ class HomeViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        quickProducts = products.take(6),
+                        quickProducts = inStockProducts.take(6),
                         categories = categories,
                         promotions = promotions,
                         errorMessage = null

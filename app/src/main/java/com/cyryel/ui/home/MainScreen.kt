@@ -68,6 +68,8 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -99,6 +101,7 @@ fun MainScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val tabs = listOf(
         Tab("Inicio", R.drawable.ic_home),
@@ -239,6 +242,11 @@ fun MainScreen(
                 modifier = Modifier.padding(innerPadding),
                 homeState = homeState,
                 cartViewModel = cartViewModel,
+                onAgregarTodo = {
+                    homeViewModel.marcarAgregarTodoUsado()
+                    homeState.quickProducts.forEach(cartViewModel::addProduct)
+                    Toast.makeText(context, "Productos agregados al carrito", Toast.LENGTH_SHORT).show()
+                },
                 onProductClick = onNavigateToProduct,
                 onCategoryClick = onNavigateToCategory
             )
@@ -264,6 +272,7 @@ private fun InicioTab(
     modifier: Modifier = Modifier,
     homeState: HomeUiState,
     cartViewModel: CartViewModel,
+    onAgregarTodo: () -> Unit,
     onProductClick: (String) -> Unit,
     onCategoryClick: (String) -> Unit
 ) {
@@ -288,7 +297,8 @@ private fun InicioTab(
                 PromocionesSection(homeState.promotions)
                 PedidoRapidoSection(
                     products = homeState.quickProducts,
-                    onAddToCart = cartViewModel::addProduct,
+                    agregarTodoUsado = homeState.agregarTodoUsado,
+                    onAgregarTodo = onAgregarTodo,
                     onProductClick = onProductClick
                 )
                 CategoriasSection(
@@ -336,7 +346,8 @@ private fun PromocionesSection(promotions: List<Promotion>) {
 @Composable
 private fun PedidoRapidoSection(
     products: List<Product>,
-    onAddToCart: (Product) -> Unit,
+    agregarTodoUsado: Boolean,
+    onAgregarTodo: () -> Unit,
     onProductClick: (String) -> Unit
 ) {
     Card(
@@ -367,14 +378,14 @@ private fun PedidoRapidoSection(
                     items(products, key = { it.id }) { product ->
                         QuickProductCard(
                             product = product,
-                            onAddToCart = onAddToCart,
                             onProductClick = onProductClick
                         )
                     }
                 }
                 Spacer(Modifier.height(12.dp))
                 Button(
-                    onClick = { products.forEach(onAddToCart) },
+                    onClick = onAgregarTodo,
+                    enabled = !agregarTodoUsado,
                     modifier = Modifier.fillMaxWidth().height(44.dp),
                     shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -383,7 +394,7 @@ private fun PedidoRapidoSection(
                     )
                 ) {
                     Text(
-                        text = "Agregar todo",
+                        text = if (agregarTodoUsado) "Agregado" else "Agregar todo",
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -395,52 +406,60 @@ private fun PedidoRapidoSection(
 @Composable
 private fun QuickProductCard(
     product: Product,
-    onAddToCart: (Product) -> Unit,
     onProductClick: (String) -> Unit
 ) {
+    val outOfStock = product.stock <= 0
     Card(
         modifier = Modifier
             .width(140.dp)
+            .height(180.dp)
             .clickable { onProductClick(product.id) },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = product.foto.ifBlank { R.drawable.ic_placeholder_image },
-                contentDescription = product.nombre,
-                modifier = Modifier.size(80.dp),
-                contentScale = ContentScale.Fit
-            )
-            Text(
-                text = product.nombre,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                color = AzulRey
-            )
-            Text(
-                text = "S/ ${"%.2f".format(product.precio)}",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = AzulRey
-            )
-            Spacer(Modifier.height(4.dp))
-            Button(
-                onClick = { onAddToCart(product) },
-                modifier = Modifier.fillMaxWidth().height(32.dp),
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Box(modifier = Modifier.size(80.dp)) {
+                    AsyncImage(
+                        model = product.foto.ifBlank { R.drawable.ic_placeholder_image },
+                        contentDescription = product.nombre,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    if (outOfStock) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Gray.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Sin stock",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Agregar",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary
+                    text = product.nombre,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = AzulRey
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "S/ ${"%.2f".format(product.precio)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulRey
                 )
             }
         }

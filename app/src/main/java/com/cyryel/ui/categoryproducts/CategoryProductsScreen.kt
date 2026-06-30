@@ -1,16 +1,23 @@
 package com.cyryel.ui.categoryproducts
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.BorderStroke
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -27,11 +34,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -75,7 +85,7 @@ fun CategoryProductsScreen(
                 Row(
                     modifier = Modifier.fillMaxSize().padding(innerPadding),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     CircularProgressIndicator()
                 }
@@ -84,7 +94,7 @@ fun CategoryProductsScreen(
             uiState.errorMessage != null -> {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
-                    horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = uiState.errorMessage ?: "", color = MaterialTheme.colorScheme.error)
@@ -95,12 +105,15 @@ fun CategoryProductsScreen(
             }
 
             else -> {
-                LazyColumn(
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(0.dp)
                 ) {
                     items(uiState.products, key = { it.id }) { product ->
-                        ProductItem(product = product, onClick = { onProductClick(product.id) })
+                        ProductGridItem(product = product, onClick = { onProductClick(product.id) })
                     }
                 }
             }
@@ -109,39 +122,61 @@ fun CategoryProductsScreen(
 }
 
 @Composable
-private fun ProductItem(
+private fun ProductGridItem(
     product: Product,
     onClick: () -> Unit
 ) {
+    val outOfStock = product.stock <= 0
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f)),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(modifier = Modifier.padding(8.dp)) {
-            if (product.foto.isNotBlank()) {
-                AsyncImage(
-                    model = product.foto,
-                    contentDescription = product.nombre,
-                    modifier = Modifier.height(80.dp).padding(end = 12.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
+        Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .padding(top = 4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = product.foto.ifBlank { com.cyryel.R.drawable.ic_placeholder_image },
+                        contentDescription = product.nombre,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    if (outOfStock) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Gray.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Sin stock",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
                 Text(
                     text = product.nombre,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "S/ ${"%.2f".format(product.precio)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Stock: ${product.stock} ${product.unidad}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

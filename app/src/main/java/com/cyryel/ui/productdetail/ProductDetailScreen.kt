@@ -48,10 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.widget.Toast
 import coil.compose.AsyncImage
 import com.cyryel.R
 import com.cyryel.ui.theme.AzulRey
@@ -66,6 +68,7 @@ fun ProductDetailScreen(
     viewModel: ProductDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(productId) {
         viewModel.loadProduct(productId)
@@ -94,6 +97,7 @@ fun ProductDetailScreen(
                     onAddToCart = {
                         viewModel.addToCart()
                         onAddToCart()
+                        Toast.makeText(context, "Producto agregado al carrito", Toast.LENGTH_SHORT).show()
                     },
                     enabled = uiState.displayStock > 0
                 )
