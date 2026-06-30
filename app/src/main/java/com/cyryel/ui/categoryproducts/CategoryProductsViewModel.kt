@@ -20,12 +20,19 @@ class CategoryProductsViewModel @Inject constructor(
     val uiState: StateFlow<CategoryProductsUiState> = _uiState.asStateFlow()
 
     fun loadCategory(categoryName: String) {
+        if (_uiState.value.categoryName == categoryName && _uiState.value.products.isNotEmpty()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, categoryName = categoryName, errorMessage = null) }
-            val result = productRepository.getProductsByCategory(categoryName)
+            val result = productRepository.getProductsByCategoryPaged(categoryName)
             if (result.isSuccess) {
+                val page = result.getOrNull()!!
                 _uiState.update {
-                    it.copy(isLoading = false, products = result.getOrDefault(emptyList()))
+                    it.copy(
+                        isLoading = false,
+                        products = page.products,
+                        lastDocId = page.lastDocId,
+                        hasMore = page.lastDocId != null
+                    )
                 }
             } else {
                 _uiState.update {
@@ -34,6 +41,31 @@ class CategoryProductsViewModel @Inject constructor(
                         errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Error al cargar productos"
                     )
                 }
+            }
+        }
+    }
+
+    fun loadMore() {
+        val state = _uiState.value
+        if (state.isLoadingMore || !state.hasMore) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            val result = productRepository.getProductsByCategoryPaged(
+                category = state.categoryName,
+                startAfter = state.lastDocId
+            )
+            if (result.isSuccess) {
+                val page = result.getOrNull()!!
+                _uiState.update {
+                    it.copy(
+                        isLoadingMore = false,
+                        products = it.products + page.products,
+                        lastDocId = page.lastDocId,
+                        hasMore = page.lastDocId != null
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isLoadingMore = false) }
             }
         }
     }

@@ -20,6 +20,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -237,32 +241,38 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        when (selectedTab) {
-            0 -> InicioTab(
-                modifier = Modifier.padding(innerPadding),
-                homeState = homeState,
-                cartViewModel = cartViewModel,
-                onAgregarTodo = {
-                    homeViewModel.marcarAgregarTodoUsado()
-                    homeState.quickProducts.forEach(cartViewModel::addProduct)
-                    Toast.makeText(context, "Productos agregados al carrito", Toast.LENGTH_SHORT).show()
-                },
-                onProductClick = onNavigateToProduct,
-                onCategoryClick = onNavigateToCategory
-            )
-            1 -> PedidosTab(
-                modifier = Modifier.padding(innerPadding),
-                onOrderClick = onNavigateToOrderDetail
-            )
-            2 -> BilleteraTab(
-                modifier = Modifier.padding(innerPadding),
-                onNavigateToOffers = onNavigateToOffers,
-                onNavigateToHistorial = onNavigateToHistorial
-            )
-            3 -> PerfilTab(
-                modifier = Modifier.padding(innerPadding),
-                onNavigateToSettings = onNavigateToSettings
-            )
+        AnimatedContent(
+            targetState = selectedTab,
+            transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(250)) },
+            label = "tab_content"
+        ) { tab ->
+            when (tab) {
+                0 -> InicioTab(
+                    modifier = Modifier.padding(innerPadding),
+                    homeState = homeState,
+                    cartViewModel = cartViewModel,
+                    onAgregarTodo = {
+                        homeViewModel.marcarAgregarTodoUsado()
+                        homeState.quickProducts.forEach(cartViewModel::addProduct)
+                        Toast.makeText(context, "Productos agregados al carrito", Toast.LENGTH_SHORT).show()
+                    },
+                    onProductClick = onNavigateToProduct,
+                    onCategoryClick = onNavigateToCategory
+                )
+                1 -> PedidosTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onOrderClick = onNavigateToOrderDetail
+                )
+                2 -> BilleteraTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onNavigateToOffers = onNavigateToOffers,
+                    onNavigateToHistorial = onNavigateToHistorial
+                )
+                3 -> PerfilTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onNavigateToSettings = onNavigateToSettings
+                )
+            }
         }
     }
 }

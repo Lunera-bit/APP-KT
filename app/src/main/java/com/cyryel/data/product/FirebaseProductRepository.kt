@@ -78,6 +78,34 @@ class FirebaseProductRepository @Inject constructor(
         }
     }
 
+    override suspend fun getProductsByCategoryPaged(
+        category: String,
+        limit: Int,
+        startAfter: String?
+    ): Result<ProductPage> {
+        return try {
+            var query = firestore.collection("products")
+                .whereEqualTo("categoria", category)
+                .orderBy("nombre")
+                .limit(limit.toLong())
+
+            if (startAfter != null) {
+                val lastDoc = firestore.collection("products").document(startAfter).get().await()
+                if (lastDoc.exists()) {
+                    query = query.startAfter(lastDoc)
+                }
+            }
+
+            val snapshot = query.get().await()
+            val products = snapshot.documents.map { productFromDocument(it) }
+                .filter { it.isActive }
+            val newLastDocId = snapshot.documents.lastOrNull()?.id
+            Result.success(ProductPage(products, newLastDocId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getCategories(): Result<List<Category>> {
         return try {
             val snapshot = firestore.collection("categories")
