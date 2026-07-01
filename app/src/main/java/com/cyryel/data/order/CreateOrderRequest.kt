@@ -11,6 +11,9 @@ data class CreateOrderRequest(
     val recipientName: String,
     val phone: String,
     val notes: String,
+    val reference: String = "",
+    val documentType: String = "dni",
+    val documentNumber: String = "",
     val shipping: Double = 0.0,
     val deliveryMethod: String = "domicilio",
     val fcmToken: String = ""

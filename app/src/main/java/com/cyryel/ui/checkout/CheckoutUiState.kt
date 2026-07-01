@@ -7,7 +7,9 @@ enum class CheckoutStep(val step: Int, val title: String) {
     DELIVERY(1, "Direccion de entrega"),
     CONTACT(2, "Informacion de contacto"),
     PAYMENT(3, "Metodo de pago"),
-    CONFIRM(4, "Confirmar")
+    CONFIRM(4, "Confirmar");
+
+    fun previous(): CheckoutStep = entries[(ordinal - 1).coerceAtLeast(0)]
 }
 
 data class CheckoutUiState(
@@ -20,9 +22,12 @@ data class CheckoutUiState(
     val recipientName: String = "",
     val phone: String = "",
     val notes: String = "",
+    val documentType: String = "dni",
+    val documentNumber: String = "",
     val paymentMethod: String = "contra_entrega",
     val fieldErrors: Map<String, String> = emptyMap(),
     val isPlacingOrder: Boolean = false,
+    val isLoadingProfile: Boolean = true,
     val orderCreatedMessage: String? = null,
     val orderId: String = "",
     val errorMessage: String? = null

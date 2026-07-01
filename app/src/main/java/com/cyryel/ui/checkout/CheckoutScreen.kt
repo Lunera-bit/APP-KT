@@ -34,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -160,10 +161,14 @@ fun CheckoutScreen(
                                 recipientName = uiState.recipientName,
                                 phone = uiState.phone,
                                 notes = uiState.notes,
+                                documentType = uiState.documentType,
+                                documentNumber = uiState.documentNumber,
                                 fieldErrors = uiState.fieldErrors,
                                 onRecipientChange = viewModel::onRecipientChange,
                                 onPhoneChange = viewModel::onPhoneChange,
-                                onNotesChange = viewModel::onNotesChange
+                                onNotesChange = viewModel::onNotesChange,
+                                onDocumentTypeChange = viewModel::onDocumentTypeChange,
+                                onDocumentNumberChange = viewModel::onDocumentNumberChange
                             )
                             CheckoutStep.PAYMENT -> StepPayment(
                                 paymentMethod = uiState.paymentMethod,
@@ -178,6 +183,8 @@ fun CheckoutScreen(
                                 recipientName = uiState.recipientName,
                                 phone = uiState.phone,
                                 notes = uiState.notes,
+                                documentType = uiState.documentType,
+                                documentNumber = uiState.documentNumber,
                                 paymentMethod = uiState.paymentMethod
                             )
                         }
@@ -204,6 +211,7 @@ fun CheckoutScreen(
                         CheckoutStep.CONFIRM -> uiState.canProceedFromStep4
                     },
                     onNext = viewModel::nextStep,
+                    onBack = { viewModel.goToStep(uiState.currentStep.previous()) },
                     onPlaceOrder = viewModel::placeOrder
                 )
             }
@@ -289,8 +297,10 @@ private fun BottomNavigationBar(
     isPlacingOrder: Boolean,
     canProceed: Boolean,
     onNext: () -> Unit,
-    onPlaceOrder: () -> Unit
+    onPlaceOrder: () -> Unit,
+    onBack: () -> Unit = {}
 ) {
+    val isFirstStep = currentStep == CheckoutStep.REVIEW
     val isLastStep = currentStep == CheckoutStep.CONFIRM
     val buttonLabel = if (isLastStep) {
         if (isPlacingOrder) "Creando pedido..." else "Confirmar pedido"
@@ -307,37 +317,58 @@ private fun BottomNavigationBar(
             )
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Button(
-            onClick = if (isLastStep) onPlaceOrder else onNext,
-            enabled = canProceed && !isPlacingOrder,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (isLastStep) Color(0xFF2E7D32) else AzulRey,
-                contentColor = Color.White
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (isPlacingOrder) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    color = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            } else {
-                Text(
-                    text = buttonLabel,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-                if (!isLastStep) {
-                    Spacer(Modifier.width(6.dp))
+            if (!isFirstStep) {
+                OutlinedButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .height(50.dp),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
+                    Spacer(Modifier.width(4.dp))
+                    Text("Atras", fontWeight = FontWeight.Medium)
+                }
+            }
+            Button(
+                onClick = if (isLastStep) onPlaceOrder else onNext,
+                enabled = canProceed && !isPlacingOrder,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(50.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isLastStep) Color(0xFF2E7D32) else AzulRey,
+                    contentColor = Color.White
+                )
+            ) {
+                if (isPlacingOrder) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        color = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Text(
+                        text = buttonLabel,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    if (!isLastStep) {
+                        Spacer(Modifier.width(6.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
             }
         }
@@ -362,46 +393,33 @@ private fun StepReview(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         items.forEach { item ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AsyncImage(
-                        model = if (item.product.foto.isNotBlank()) item.product.foto else R.drawable.ic_placeholder_image,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = item.productName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "S/ ${"%.2f".format(item.price)} x ${item.quantity}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "S/ ${"%.2f".format(item.subtotal)}",
+                        text = item.productName,
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = AzulRey
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "S/ ${"%.2f".format(item.price)} x ${item.quantity}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Text(
+                    text = "S/ ${"%.2f".format(item.subtotal)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulRey
+                )
             }
         }
         Card(
@@ -586,10 +604,14 @@ private fun StepContact(
     recipientName: String,
     phone: String,
     notes: String,
+    documentType: String,
+    documentNumber: String,
     fieldErrors: Map<String, String>,
     onRecipientChange: (String) -> Unit,
     onPhoneChange: (String) -> Unit,
-    onNotesChange: (String) -> Unit
+    onNotesChange: (String) -> Unit,
+    onDocumentTypeChange: (String) -> Unit,
+    onDocumentNumberChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -614,13 +636,49 @@ private fun StepContact(
         )
         OutlinedTextField(
             value = phone,
-            onValueChange = onPhoneChange,
+            onValueChange = { onPhoneChange(it.filter { c -> c.isDigit() }.take(9)) },
             label = { Text("Telefono (9 digitos)") },
             isError = fieldErrors.containsKey("phone"),
             supportingText = fieldErrors["phone"]?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             prefix = { Text("+51 ") }
+        )
+        Text(
+            text = "Documento de identidad",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            DocumentTypeCard(
+                selected = documentType == "dni",
+                title = "DNI",
+                onClick = { onDocumentTypeChange("dni") },
+                modifier = Modifier.weight(1f)
+            )
+            DocumentTypeCard(
+                selected = documentType == "ruc",
+                title = "RUC",
+                onClick = { onDocumentTypeChange("ruc") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        OutlinedTextField(
+            value = documentNumber,
+            onValueChange = {
+                val maxLen = if (documentType == "dni") 8 else 11
+                onDocumentNumberChange(it.filter { c -> c.isDigit() }.take(maxLen))
+            },
+            label = { Text(if (documentType == "dni") "Numero de DNI" else "Numero de RUC") },
+            placeholder = { Text(if (documentType == "dni") "8 digitos" else "11 digitos") },
+            isError = fieldErrors.containsKey("documentNumber"),
+            supportingText = fieldErrors["documentNumber"]?.let { { Text(it) } },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
         OutlinedTextField(
             value = notes,
@@ -630,6 +688,49 @@ private fun StepContact(
             minLines = 2,
             maxLines = 4
         )
+    }
+}
+
+@Composable
+private fun DocumentTypeCard(
+    selected: Boolean,
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = if (selected) AzulRey else MaterialTheme.colorScheme.outlineVariant
+    val bgColor = if (selected) AzulRey.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface
+
+    OutlinedCard(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, borderColor),
+        colors = CardDefaults.outlinedCardColors(containerColor = bgColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = AzulRey,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                color = if (selected) AzulRey else MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
@@ -759,6 +860,8 @@ private fun StepConfirm(
     recipientName: String,
     phone: String,
     notes: String,
+    documentType: String,
+    documentNumber: String,
     paymentMethod: String
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -832,6 +935,7 @@ private fun StepConfirm(
             content = {
                 InfoRow("Receptor", recipientName)
                 InfoRow("Telefono", phone)
+                InfoRow(documentType.uppercase(), documentNumber)
                 if (notes.isNotBlank()) InfoRow("Notas", notes)
             }
         )

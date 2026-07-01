@@ -49,9 +49,9 @@ class FirebaseOrderRepository @Inject constructor(
                     "city" to request.city,
                     "recipientName" to request.recipientName,
                     "phone" to request.phone,
-                    "reference" to "",
-                    "documentType" to "dni",
-                    "documentNumber" to "",
+                    "reference" to request.reference,
+                    "documentType" to request.documentType,
+                    "documentNumber" to request.documentNumber,
                     "latitude" to 0.0,
                     "longitude" to 0.0
                 ),

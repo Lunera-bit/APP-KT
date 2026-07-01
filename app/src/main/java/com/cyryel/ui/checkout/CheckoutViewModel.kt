@@ -6,6 +6,7 @@ import com.cyryel.data.auth.AuthRepository
 import com.cyryel.data.cart.CartManager
 import com.cyryel.data.order.CreateOrderRequest
 import com.cyryel.data.order.OrderRepository
+import com.cyryel.data.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,16 +19,41 @@ import javax.inject.Inject
 class CheckoutViewModel @Inject constructor(
     private val cartManager: CartManager,
     private val orderRepository: OrderRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
     val uiState: StateFlow<CheckoutUiState> = _uiState.asStateFlow()
 
     init {
+        loadUserProfile()
         viewModelScope.launch {
             cartManager.items.collect { items ->
                 _uiState.update { it.copy(items = items) }
+            }
+        }
+    }
+
+    private fun loadUserProfile() {
+        val userId = authRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            val result = userRepository.getUser(userId)
+            result.onSuccess { user ->
+                _uiState.update {
+                    it.copy(
+                        recipientName = user.name,
+                        phone = user.phone,
+                        documentNumber = if (user.ruc.isNotBlank()) user.ruc else user.documentNumber,
+                        documentType = if (user.ruc.isNotBlank()) "ruc" else "dni",
+                        street = user.addresses.firstOrNull()?.street ?: "",
+                        city = user.addresses.firstOrNull()?.city ?: "",
+                        isLoadingProfile = false
+                    )
+                }
+            }
+            result.onFailure {
+                _uiState.update { it.copy(isLoadingProfile = false) }
             }
         }
     }
@@ -65,6 +91,15 @@ class CheckoutViewModel @Inject constructor(
                     errors["phone"] = "Ingresa el telefono"
                 } else if (!state.phone.matches(Regex("^9\\d{8}$"))) {
                     errors["phone"] = "Telefono debe ser 9 digitos empezando con 9"
+                }
+                if (state.documentType == "dni") {
+                    if (state.documentNumber.length != 8) {
+                        errors["documentNumber"] = "DNI debe tener 8 digitos"
+                    }
+                } else {
+                    if (state.documentNumber.length != 11) {
+                        errors["documentNumber"] = "RUC debe tener 11 digitos"
+                    }
                 }
                 if (errors.isNotEmpty()) {
                     _uiState.update { it.copy(fieldErrors = errors) }
@@ -113,7 +148,18 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun onPhoneChange(value: String) {
-        _uiState.update { it.copy(phone = value, fieldErrors = it.fieldErrors - "phone", errorMessage = null) }
+        val filtered = value.filter { it.isDigit() }.take(9)
+        _uiState.update { it.copy(phone = filtered, fieldErrors = it.fieldErrors - "phone", errorMessage = null) }
+    }
+
+    fun onDocumentTypeChange(value: String) {
+        _uiState.update { it.copy(documentType = value, documentNumber = "", fieldErrors = it.fieldErrors - "documentNumber", errorMessage = null) }
+    }
+
+    fun onDocumentNumberChange(value: String) {
+        val maxLen = if (_uiState.value.documentType == "dni") 8 else 11
+        val filtered = value.filter { it.isDigit() }.take(maxLen)
+        _uiState.update { it.copy(documentNumber = filtered, fieldErrors = it.fieldErrors - "documentNumber", errorMessage = null) }
     }
 
     fun onNotesChange(value: String) {
@@ -151,9 +197,12 @@ class CheckoutViewModel @Inject constructor(
                     items = state.items,
                     street = state.street,
                     city = state.city,
+                    reference = state.reference,
                     recipientName = state.recipientName,
                     phone = state.phone,
                     notes = state.notes,
+                    documentType = state.documentType,
+                    documentNumber = state.documentNumber,
                     shipping = 0.0,
                     deliveryMethod = state.deliveryMethod,
                     fcmToken = fcmToken

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -126,6 +127,7 @@ fun CartScreen(
                         price = item.price,
                         quantity = item.quantity,
                         subtotal = item.subtotal,
+                        hasVariants = item.product.variantes.isNotEmpty(),
                         onIncrease = { viewModel.addProduct(item.product) },
                         onDecrease = { viewModel.decreaseProduct(item.productId) },
                         onRemove = { viewModel.removeProduct(item.productId) }
@@ -153,6 +155,7 @@ private fun CartBottomBar(
                 color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
             )
+            .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         Row(
@@ -200,6 +203,7 @@ private fun CartItemCard(
     price: Double,
     quantity: Int,
     subtotal: Double,
+    hasVariants: Boolean = false,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
     onRemove: () -> Unit
@@ -258,7 +262,8 @@ private fun CartItemCard(
                     QuantitySelector(
                         quantity = quantity,
                         onIncrease = onIncrease,
-                        onDecrease = onDecrease
+                        onDecrease = onDecrease,
+                        hasVariants = hasVariants
                     )
                     Text(
                         text = "S/ ${"%.2f".format(subtotal)}",
@@ -288,7 +293,8 @@ private fun CartItemCard(
 private fun QuantitySelector(
     quantity: Int,
     onIncrease: () -> Unit,
-    onDecrease: () -> Unit
+    onDecrease: () -> Unit,
+    hasVariants: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -296,16 +302,18 @@ private fun QuantitySelector(
     ) {
         IconButton(
             onClick = onDecrease,
+            enabled = !hasVariants && quantity > 1,
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(AzulRey.copy(alpha = 0.1f)),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = AzulRey)
+                .background(if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) else AzulRey.copy(alpha = 0.1f)),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey)
         ) {
-            Icon(
-                Icons.Filled.Close,
-                contentDescription = "Disminuir",
-                modifier = Modifier.size(16.dp)
+            Text(
+                text = "-",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey
             )
         }
         Text(
@@ -314,15 +322,16 @@ private fun QuantitySelector(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.width(32.dp),
             textAlign = TextAlign.Center,
-            color = AzulRey
+            color = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else AzulRey
         )
         IconButton(
             onClick = onIncrease,
+            enabled = !hasVariants,
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(AzulRey),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = Color.White)
+                .background(if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f) else AzulRey),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else Color.White)
         ) {
             Icon(
                 Icons.Filled.Add,
