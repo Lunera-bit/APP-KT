@@ -15,8 +15,11 @@ class CartManager @Inject constructor() {
     val items: StateFlow<List<CartItem>> = _items.asStateFlow()
 
     fun addProduct(product: Product) {
+        if (product.stock <= 0) return
         _items.update { current ->
             val existing = current.find { it.productId == product.id }
+            val currentQty = (existing?.quantity ?: 0) + 1
+            if (currentQty > product.stock) return@update current
             if (existing == null) {
                 current + CartItem(
                     productId = product.id,

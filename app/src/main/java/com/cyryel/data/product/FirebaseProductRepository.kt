@@ -24,7 +24,7 @@ class FirebaseProductRepository @Inject constructor(
                 .await()
             val all = snapshot.documents.map { document ->
                 productFromDocument(document)
-            }.filter { it.nombre.isNotBlank() && it.isActive }
+            }.filter { it.nombre.isNotBlank() && it.isActive && it.stock > 0 }
 
             val cacheTimestamp = System.currentTimeMillis()
             if (all.isNotEmpty()) {
@@ -37,7 +37,7 @@ class FirebaseProductRepository @Inject constructor(
         } catch (exception: Exception) {
             val cached = productDao.getAllProducts()
                 .map { it.toDomain() }
-                .filter { it.isActive }
+                .filter { it.isActive && it.stock > 0 }
 
             if (cached.isNotEmpty()) {
                 val sampled = if (cached.size <= limit) cached else cached.shuffled().take(limit)
