@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -29,8 +31,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -240,6 +242,8 @@ fun ProductDetailScreen(
                         }
                     }
 
+                    val isVariantSelected = uiState.selectedVariantIndex >= 0
+                    val pack = uiState.forcedPackSize
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -254,40 +258,83 @@ fun ProductDetailScreen(
                                 text = "Cantidad",
                                 style = MaterialTheme.typography.titleSmall
                             )
-                            val isVariantSelected = uiState.selectedVariantIndex >= 0
+                            val minQty = if (pack != null) pack else 1
+                            val decEnabled = !isVariantSelected && uiState.quantity > minQty
+                            val incEnabled = !isVariantSelected && uiState.quantity < uiState.displayStock
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.padding(top = 8.dp)
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
                             ) {
-                                OutlinedButton(
+                                IconButton(
                                     onClick = viewModel::decreaseQuantity,
-                                    enabled = !isVariantSelected && uiState.quantity > 1
+                                    enabled = decEnabled,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(if (decEnabled) AzulRey else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)),
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        contentColor = if (decEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                    )
                                 ) {
-                                    Text("-")
+                                    Text(
+                                        text = "-",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
+                                Spacer(Modifier.width(12.dp))
                                 Text(
                                     text = "${uiState.quantity}",
                                     style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
                                     modifier = Modifier.width(40.dp),
                                     textAlign = TextAlign.Center
                                 )
-                                OutlinedButton(
+                                Spacer(Modifier.width(12.dp))
+                                IconButton(
                                     onClick = viewModel::increaseQuantity,
-                                    enabled = !isVariantSelected && uiState.quantity < uiState.displayStock
+                                    enabled = incEnabled,
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(if (incEnabled) AzulRey else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f)),
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        contentColor = if (incEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                    )
                                 ) {
-                                    Text("+")
+                                    Text(
+                                        text = "+",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
                             }
-                            if (isVariantSelected) {
-                                Text(
-                                    text = "Cantidad fija al seleccionar presentacion",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
                         }
+                    }
+                    if (isVariantSelected) {
+                        Text(
+                            text = "Cantidad fija al seleccionar presentacion",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    if (pack != null) {
+                        Text(
+                            text = "Solo se puede agregar en múltiplos de $pack unidades",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
 
                     Spacer(Modifier.height(80.dp))

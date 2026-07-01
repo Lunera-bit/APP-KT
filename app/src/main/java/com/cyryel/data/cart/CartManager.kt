@@ -14,10 +14,11 @@ class CartManager @Inject constructor() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items: StateFlow<List<CartItem>> = _items.asStateFlow()
 
-    fun addProduct(product: Product) {
+    fun addProduct(product: Product, variantName: String? = null, variantPrice: Double? = null) {
         if (product.stock <= 0) return
+        val price = variantPrice ?: product.precio
         _items.update { current ->
-            val existing = current.find { it.productId == product.id }
+            val existing = current.find { it.productId == product.id && it.variantName == variantName }
             val currentQty = (existing?.quantity ?: 0) + 1
             if (currentQty > product.stock) return@update current
             if (existing == null) {
@@ -25,13 +26,14 @@ class CartManager @Inject constructor() {
                     productId = product.id,
                     productName = product.nombre,
                     quantity = 1,
-                    price = product.precio,
-                    subtotal = product.precio,
-                    product = product
+                    price = price,
+                    subtotal = price,
+                    product = product,
+                    variantName = variantName
                 )
             } else {
                 current.map { item ->
-                    if (item.productId == product.id) {
+                    if (item.productId == product.id && item.variantName == variantName) {
                         val qty = item.quantity + 1
                         item.copy(
                             quantity = qty,
@@ -45,10 +47,10 @@ class CartManager @Inject constructor() {
         }
     }
 
-    fun decreaseProduct(productId: String) {
+    fun decreaseProduct(productId: String, variantName: String? = null) {
         _items.update { current ->
             current.mapNotNull { item ->
-                if (item.productId != productId) {
+                if (item.productId != productId || item.variantName != variantName) {
                     item
                 } else {
                     val qty = item.quantity - 1
@@ -62,8 +64,10 @@ class CartManager @Inject constructor() {
         }
     }
 
-    fun removeProduct(productId: String) {
-        _items.update { current -> current.filterNot { it.productId == productId } }
+    fun removeProduct(productId: String, variantName: String? = null) {
+        _items.update { current ->
+            current.filterNot { it.productId == productId && it.variantName == variantName }
+        }
     }
 
     fun clear() {

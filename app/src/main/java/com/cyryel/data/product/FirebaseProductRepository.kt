@@ -1,5 +1,6 @@
 package com.cyryel.data.product
 
+import com.cyryel.data.ForcedPackConfig
 import com.cyryel.data.category.Category
 import com.cyryel.data.local.ProductDao
 import com.google.firebase.Timestamp
@@ -24,7 +25,7 @@ class FirebaseProductRepository @Inject constructor(
                 .await()
             val all = snapshot.documents.map { document ->
                 productFromDocument(document)
-            }.filter { it.nombre.isNotBlank() && it.isActive && it.stock > 0 }
+            }.filter { it.nombre.isNotBlank() && it.isActive && it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
 
             val cacheTimestamp = System.currentTimeMillis()
             if (all.isNotEmpty()) {
@@ -37,7 +38,7 @@ class FirebaseProductRepository @Inject constructor(
         } catch (exception: Exception) {
             val cached = productDao.getAllProducts()
                 .map { it.toDomain() }
-                .filter { it.isActive && it.stock > 0 }
+                .filter { it.isActive && it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
 
             if (cached.isNotEmpty()) {
                 val sampled = if (cached.size <= limit) cached else cached.shuffled().take(limit)

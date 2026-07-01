@@ -2,6 +2,7 @@ package com.cyryel.ui.productdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyryel.data.ForcedPackConfig
 import com.cyryel.data.cart.CartManager
 import com.cyryel.data.product.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,12 +27,20 @@ class ProductDetailViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val result = productRepository.getProductById(productId)
             if (result.isSuccess) {
+                val product = result.getOrNull()
+                val forcedPackSize = product?.let(ForcedPackConfig::getPackSize)
+                val initialQty = if (forcedPackSize != null) {
+                    val maxStock = product?.let { maxOf(0, it.stock - 4) } ?: 0
+                    val raw = maxOf(forcedPackSize, 1)
+                    if (raw <= maxStock) raw else forcedPackSize
+                } else 1
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        product = result.getOrNull(),
-                        quantity = 1,
-                        selectedVariantIndex = -1
+                        product = product,
+                        quantity = initialQty,
+                        selectedVariantIndex = -1,
+                        forcedPackSize = forcedPackSize
                     )
                 }
             } else {
@@ -57,14 +66,26 @@ class ProductDetailViewModel @Inject constructor(
     fun increaseQuantity() {
         val state = _uiState.value
         val maxStock = state.displayStock
-        if (state.quantity < maxStock) {
+        val pack = state.forcedPackSize
+        if (pack != null) {
+            val next = state.quantity + pack
+            if (next <= maxStock) {
+                _uiState.update { it.copy(quantity = next) }
+            }
+        } else if (state.quantity < maxStock) {
             _uiState.update { it.copy(quantity = it.quantity + 1) }
         }
     }
 
     fun decreaseQuantity() {
         val state = _uiState.value
-        if (state.quantity > 1) {
+        val pack = state.forcedPackSize
+        if (pack != null) {
+            val next = state.quantity - pack
+            if (next >= pack) {
+                _uiState.update { it.copy(quantity = next) }
+            }
+        } else if (state.quantity > 1) {
             _uiState.update { it.copy(quantity = it.quantity - 1) }
         }
     }
@@ -72,9 +93,23 @@ class ProductDetailViewModel @Inject constructor(
     fun addToCart(): Boolean {
         val state = _uiState.value
         val product = state.product ?: return false
+
+        val pack = state.forcedPackSize
+        if (pack != null) {
+            if (state.quantity < pack || state.quantity % pack != 0) return false
+        }
+
+        val variantName: String? = if (state.selectedVariantIndex >= 0) {
+            product.variantes[state.selectedVariantIndex].nombre
+        } else null
+        val variantPrice: Double? = if (state.selectedVariantIndex >= 0) {
+            product.variantes[state.selectedVariantIndex].precio
+        } else null
         repeat(state.quantity) {
-            cartManager.addProduct(product)
+            cartManager.addProduct(product, variantName, variantPrice)
         }
         return true
     }
+
+
 }

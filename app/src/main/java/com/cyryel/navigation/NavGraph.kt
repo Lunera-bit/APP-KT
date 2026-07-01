@@ -116,7 +116,7 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
             ProductDetailScreen(
                 productId = productId,
                 onBack = rememberBackHandler { navController.popBackStack() },
-                onAddToCart = rememberBackHandler { navController.popBackStack() }
+                onAddToCart = {}
             )
         }
 

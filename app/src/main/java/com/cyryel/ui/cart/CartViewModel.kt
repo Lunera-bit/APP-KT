@@ -28,16 +28,16 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun addProduct(product: Product) {
-        cartManager.addProduct(product)
+    fun addProduct(product: Product, variantName: String? = null, variantPrice: Double? = null) {
+        cartManager.addProduct(product, variantName, variantPrice)
     }
 
-    fun decreaseProduct(productId: String) {
-        cartManager.decreaseProduct(productId)
+    fun decreaseProduct(productId: String, variantName: String? = null) {
+        cartManager.decreaseProduct(productId, variantName)
     }
 
-    fun removeProduct(productId: String) {
-        cartManager.removeProduct(productId)
+    fun removeProduct(productId: String, variantName: String? = null) {
+        cartManager.removeProduct(productId, variantName)
     }
 
     fun clearCart() {

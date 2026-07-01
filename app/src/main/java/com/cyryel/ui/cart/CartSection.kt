@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.cyryel.data.ForcedPackConfig
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
@@ -122,7 +123,8 @@ fun CartScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                items(uiState.items, key = { it.productId }) { item ->
+                items(uiState.items, key = { "${it.productId}|${it.variantName.orEmpty()}" }) { item ->
+                    val forcedPackSize = ForcedPackConfig.getPackSize(item.product)
                     CartItemCard(
                         imageUrl = item.product.foto,
                         name = item.productName,
@@ -130,11 +132,12 @@ fun CartScreen(
                         quantity = item.quantity,
                         subtotal = item.subtotal,
                         hasVariants = item.variantName != null,
+                        forcedPackSize = forcedPackSize,
                         productId = item.productId,
                         onProductClick = onProductClick,
-                        onIncrease = { viewModel.addProduct(item.product) },
-                        onDecrease = { viewModel.decreaseProduct(item.productId) },
-                        onRemove = { viewModel.removeProduct(item.productId) }
+                        onIncrease = { viewModel.addProduct(item.product, item.variantName) },
+                        onDecrease = { viewModel.decreaseProduct(item.productId, item.variantName) },
+                        onRemove = { viewModel.removeProduct(item.productId, item.variantName) }
                     )
                 }
                 item {
@@ -208,6 +211,7 @@ private fun CartItemCard(
     quantity: Int,
     subtotal: Double,
     hasVariants: Boolean = false,
+    forcedPackSize: Int? = null,
     productId: String = "",
     onProductClick: (String) -> Unit = {},
     onIncrease: () -> Unit,
@@ -271,7 +275,8 @@ private fun CartItemCard(
                         quantity = quantity,
                         onIncrease = onIncrease,
                         onDecrease = onDecrease,
-                        hasVariants = hasVariants
+                        hasVariants = hasVariants,
+                        forcedPackSize = forcedPackSize
                     )
                     Text(
                         text = "S/ ${"%.2f".format(subtotal)}",
@@ -302,26 +307,28 @@ private fun QuantitySelector(
     quantity: Int,
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
-    hasVariants: Boolean = false
+    hasVariants: Boolean = false,
+    forcedPackSize: Int? = null
 ) {
+    val isLocked = hasVariants || forcedPackSize != null
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         IconButton(
             onClick = onDecrease,
-            enabled = !hasVariants && quantity > 1,
+            enabled = !isLocked && quantity > 1,
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) else AzulRey.copy(alpha = 0.1f)),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey)
+                .background(if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) else AzulRey.copy(alpha = 0.1f)),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey)
         ) {
             Text(
                 text = "-",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey
+                color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey
             )
         }
         Text(
@@ -330,16 +337,16 @@ private fun QuantitySelector(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.width(32.dp),
             textAlign = TextAlign.Center,
-            color = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else AzulRey
+            color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else AzulRey
         )
         IconButton(
             onClick = onIncrease,
-            enabled = !hasVariants,
+            enabled = !isLocked,
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f) else AzulRey),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = if (hasVariants) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else Color.White)
+                .background(if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f) else AzulRey),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else Color.White)
         ) {
             Icon(
                 Icons.Filled.Add,

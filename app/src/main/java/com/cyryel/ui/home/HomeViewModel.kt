@@ -2,6 +2,7 @@ package com.cyryel.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyryel.data.ForcedPackConfig
 import com.cyryel.data.category.Category
 import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.product.Product
@@ -54,7 +55,7 @@ class HomeViewModel @Inject constructor(
             val products = productsResult.getOrDefault(emptyList())
             val categories = categoriesResult.getOrDefault(emptyList())
             val promotions = promotionsResult.getOrDefault(emptyList())
-            val inStockProducts = products.filter { it.stock > 0 }
+            val inStockProducts = products.filter { it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
 
             if (productsResult.isFailure) {
                 _uiState.update {
