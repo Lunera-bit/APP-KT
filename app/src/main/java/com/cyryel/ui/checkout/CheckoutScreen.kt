@@ -5,6 +5,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import android.content.Context
+import android.location.Geocoder
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +43,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,13 +55,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,9 +76,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.google.android.gms.location.LocationServices
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.MapView
+import com.mapbox.maps.plugin.annotation.annotations
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
@@ -470,6 +492,26 @@ private fun StepDelivery(
     onCityChange: (String) -> Unit,
     onReferenceChange: (String) -> Unit
 ) {
+    var latitude by remember { mutableDoubleStateOf(0.0) }
+    var longitude by remember { mutableDoubleStateOf(0.0) }
+    var hasLocation by remember { mutableStateOf(false) }
+    var locationGranted by remember { mutableStateOf(false) }
+    var requestingLocation by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val locationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        locationGranted = granted
+        if (granted) {
+            requestingLocation = true
+        }
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = "Tipo de entrega",
@@ -499,11 +541,112 @@ private fun StepDelivery(
             )
         }
         if (deliveryMethod == "domicilio") {
-            Text(
-                text = "Direccion de entrega",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
-            )
+            val styleUri = "mapbox://styles/hola231341/cmjlpavo0006q01s58z376ig8"
+            Box(modifier = Modifier.fillMaxWidth()) {
+                var mapView by remember { mutableStateOf<MapView?>(null) }
+
+                AndroidView(
+                    factory = { ctx ->
+                        MapView(ctx).apply {
+                            mapboxMap.loadStyleUri(styleUri)
+                            setOnTouchListener { _, event ->
+                                if (event.action == android.view.MotionEvent.ACTION_UP) {
+                                    val screenPoint = com.mapbox.maps.ScreenCoordinate(
+                                        event.x.toDouble(), event.y.toDouble()
+                                    )
+                                    val point = mapboxMap.coordinateForPixel(screenPoint)
+                                    latitude = point.latitude()
+                                    longitude = point.longitude()
+                                    hasLocation = true
+                                    reverseGeocodeAddress(
+                                        context, point.latitude(), point.longitude(),
+                                        onAddressFound = { addr, cty ->
+                                            if (addr != null) onStreetChange(addr)
+                                            if (cty != null) onCityChange(cty)
+                                        }
+                                    )
+                                    true
+                                } else false
+                            }
+                            mapView = this
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(250.dp),
+                    update = { view ->
+                        if (hasLocation) {
+                            view.mapboxMap.setCamera(
+                                CameraOptions.Builder()
+                                    .center(Point.fromLngLat(longitude, latitude))
+                                    .zoom(14.0)
+                                    .pitch(0.0)
+                                    .build()
+                            )
+                            view.annotations.createPointAnnotationManager().apply {
+                                deleteAll()
+                                create(
+                                    PointAnnotationOptions()
+                                        .withPoint(Point.fromLngLat(longitude, latitude))
+                                        .withIconImage("marker-15")
+                                )
+                            }
+                        }
+                    }
+                )
+
+                DisposableEffect(Unit) {
+                    onDispose {
+                        mapView?.onStop()
+                        mapView?.onDestroy()
+                    }
+                }
+
+                if (requestingLocation) {
+                    LaunchedEffect(Unit) {
+                        if (locationGranted) {
+                            locationClient.lastLocation.addOnSuccessListener { loc ->
+                                if (loc != null) {
+                                    latitude = loc.latitude
+                                    longitude = loc.longitude
+                                    hasLocation = true
+                                    reverseGeocodeAddress(
+                                        context, loc.latitude, loc.longitude,
+                                        onAddressFound = { addr, cty ->
+                                            if (addr != null) onStreetChange(addr)
+                                            if (cty != null) onCityChange(cty)
+                                        }
+                                    )
+                                }
+                                requestingLocation = false
+                            }
+                        }
+                    }
+                }
+
+                FloatingActionButton(
+                    onClick = {
+                        if (locationGranted) {
+                            requestingLocation = true
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .size(40.dp),
+                    containerColor = AzulRey,
+                    contentColor = Color.White
+                ) {
+                    Text(
+                        text = "⌖",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            }
+
             OutlinedTextField(
                 value = street,
                 onValueChange = onStreetChange,
@@ -555,6 +698,33 @@ private fun StepDelivery(
                 }
             }
         }
+    }
+}
+
+private fun reverseGeocodeAddress(
+    context: Context,
+    lat: Double,
+    lng: Double,
+    onAddressFound: (String?, String?) -> Unit
+) {
+    try {
+        val geocoder = Geocoder(context)
+        val addresses = geocoder.getFromLocation(lat, lng, 1)
+        if (!addresses.isNullOrEmpty()) {
+            val addr = addresses[0]
+            val street = listOfNotNull(
+                addr.thoroughfare,
+                addr.subThoroughfare
+            ).joinToString(" ").ifBlank {
+                addr.getAddressLine(0)
+            }
+            val city = addr.locality ?: addr.subAdminArea ?: addr.adminArea
+            onAddressFound(street, city)
+        } else {
+            onAddressFound(null, null)
+        }
+    } catch (_: Exception) {
+        onAddressFound(null, null)
     }
 }
 
