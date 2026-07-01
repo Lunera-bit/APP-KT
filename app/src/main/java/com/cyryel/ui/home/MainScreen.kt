@@ -118,7 +118,8 @@ fun MainScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            Column(
+            if (selectedTab == 0) {
+                Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.primary)
@@ -215,6 +216,7 @@ fun MainScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
             }
         },
         bottomBar = {

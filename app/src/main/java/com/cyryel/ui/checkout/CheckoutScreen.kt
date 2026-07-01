@@ -28,8 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,9 +69,9 @@ import com.cyryel.ui.theme.AzulRey
 
 private val stepIcons = listOf(
     Icons.Filled.ShoppingCart,
-    Icons.Filled.LocalShipping,
+    Icons.Filled.Home,
     Icons.Filled.Person,
-    Icons.Filled.Payments,
+    Icons.Filled.Check,
     Icons.Filled.Check
 )
 
@@ -457,7 +456,7 @@ private fun StepDelivery(
         ) {
             DeliveryMethodCard(
                 selected = deliveryMethod == "domicilio",
-                icon = Icons.Filled.LocalShipping,
+                icon = Icons.Filled.Home,
                 title = "Delivery",
                 description = "Recibe en tu domicilio",
                 onClick = { onDeliveryMethodChange("domicilio") },
@@ -653,14 +652,14 @@ private fun StepPayment(
         )
         PaymentOptionCard(
             selected = paymentMethod == "contra_entrega",
-            icon = Icons.Filled.Payments,
+            icon = Icons.Filled.ShoppingCart,
             title = "Pago contra entrega",
             description = "Paga en efectivo al recibir tu pedido",
             onClick = { onPaymentMethodChange("contra_entrega") }
         )
         PaymentOptionCard(
             selected = paymentMethod == "codigo",
-            icon = Icons.Filled.Payments,
+            icon = Icons.Filled.Home,
             title = "Pago por codigo",
             description = "Genera un codigo de pago y pagalo en cualquier agente",
             onClick = { onPaymentMethodChange("codigo") }
