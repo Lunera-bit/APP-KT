@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -57,6 +58,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -642,7 +644,8 @@ private fun StepContact(
             supportingText = fieldErrors["phone"]?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            prefix = { Text("+51 ") }
+            prefix = { Text("+51 ") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         Text(
             text = "Documento de identidad",
@@ -678,7 +681,8 @@ private fun StepContact(
             isError = fieldErrors.containsKey("documentNumber"),
             supportingText = fieldErrors["documentNumber"]?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         OutlinedTextField(
             value = notes,

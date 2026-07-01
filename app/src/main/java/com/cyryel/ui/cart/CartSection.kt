@@ -1,6 +1,7 @@
 package com.cyryel.ui.cart
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ import com.cyryel.ui.theme.AzulRey
 fun CartScreen(
     onBack: () -> Unit,
     onCheckout: () -> Unit,
+    onProductClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: CartViewModel = hiltViewModel()
 ) {
@@ -127,7 +129,9 @@ fun CartScreen(
                         price = item.price,
                         quantity = item.quantity,
                         subtotal = item.subtotal,
-                        hasVariants = item.product.variantes.isNotEmpty(),
+                        hasVariants = item.variantName != null,
+                        productId = item.productId,
+                        onProductClick = onProductClick,
                         onIncrease = { viewModel.addProduct(item.product) },
                         onDecrease = { viewModel.decreaseProduct(item.productId) },
                         onRemove = { viewModel.removeProduct(item.productId) }
@@ -204,12 +208,16 @@ private fun CartItemCard(
     quantity: Int,
     subtotal: Double,
     hasVariants: Boolean = false,
+    productId: String = "",
+    onProductClick: (String) -> Unit = {},
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
     onRemove: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onProductClick(productId) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
