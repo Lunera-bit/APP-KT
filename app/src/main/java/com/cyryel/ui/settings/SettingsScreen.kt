@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -72,10 +73,13 @@ fun SettingsScreen(
             }
 
             Button(
-                onClick = { /* TODO: contact support */ },
-                modifier = Modifier.fillMaxWidth()
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
             ) {
-                Text("Soporte")
+                Text("Cerrar sesion", color = MaterialTheme.colorScheme.onError)
             }
         }
     }

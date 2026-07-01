@@ -39,6 +39,10 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(password = newPassword, errorMessage = null) }
     }
 
+    fun onTermsAcceptedChange(accepted: Boolean) {
+        _uiState.update { it.copy(termsAccepted = accepted, errorMessage = null) }
+    }
+
     fun signIn() {
         val currentState = _uiState.value
         if (currentState.email.isBlank() || currentState.password.isBlank()) {
@@ -76,6 +80,28 @@ class AuthViewModel @Inject constructor(
                         isAuthenticated = false,
                         errorMessage = message
                     )
+                }
+            }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            val result = authRepository.signInWithGoogle(idToken)
+
+            if (result.isSuccess) {
+                _uiState.update {
+                    it.copy(isLoading = false, isAuthenticated = true, errorMessage = null)
+                }
+                authRepository.getCurrentUserId()?.let { uid ->
+                    authRepository.saveFcmToken(uid)
+                }
+            } else {
+                val message = result.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar sesion con Google"
+                _uiState.update {
+                    it.copy(isLoading = false, isAuthenticated = false, errorMessage = message)
                 }
             }
         }

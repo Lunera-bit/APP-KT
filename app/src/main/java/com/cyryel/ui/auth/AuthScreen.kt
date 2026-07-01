@@ -1,29 +1,41 @@
 package com.cyryel.ui.auth
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.PermissionChecker
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
 @Composable
 fun AuthRoute(
@@ -37,6 +49,30 @@ fun AuthRoute(
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { }
+
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(com.cyryel.R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            try {
+                val account = GoogleSignIn.getSignedInAccountFromIntent(data).result
+                account?.idToken?.let { token ->
+                    viewModel.signInWithGoogle(token)
+                }
+            } catch (e: ApiException) {
+                // Google sign-in failed
+            }
+        }
+    }
 
     LaunchedEffect(uiState.isAuthenticated) {
         if (uiState.isAuthenticated) {
@@ -60,9 +96,10 @@ fun AuthRoute(
         LoginScreen(
             modifier = modifier,
             uiState = uiState,
-            onEmailChange = viewModel::onEmailChange,
-            onPasswordChange = viewModel::onPasswordChange,
-            onSignIn = viewModel::signIn
+            onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
+            onGoogleSignInClick = {
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+            }
         )
     }
 }
@@ -70,9 +107,8 @@ fun AuthRoute(
 @Composable
 private fun LoginScreen(
     uiState: AuthUiState,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onSignIn: () -> Unit,
+    onTermsAcceptedChange: (Boolean) -> Unit,
+    onGoogleSignInClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -82,54 +118,80 @@ private fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Iniciar sesion",
-            style = MaterialTheme.typography.headlineMedium
+            text = "CYRYEL STORE",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
         )
 
-        OutlinedTextField(
-            value = uiState.email,
-            onValueChange = onEmailChange,
-            label = { Text("Correo") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            singleLine = true
-        )
-
-        OutlinedTextField(
-            value = uiState.password,
-            onValueChange = onPasswordChange,
-            label = { Text("Contrasena") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
-            singleLine = true
+        Text(
+            text = "Inicia sesion para continuar",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
         )
 
         if (uiState.errorMessage != null) {
             Text(
                 text = uiState.errorMessage,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 32.dp)
+        ) {
+            Checkbox(
+                checked = uiState.termsAccepted,
+                onCheckedChange = onTermsAcceptedChange
+            )
+            val uriHandler = LocalUriHandler.current
+            val annotatedString = buildAnnotatedString {
+                append("Acepto los ")
+                pushStringAnnotation("terms", "https://lunera-bit.github.io/CYRYEL/terms-and-conditions.html")
+                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                    append("Terminos y Condiciones")
+                }
+                pop()
+                append(" y la ")
+                pushStringAnnotation("privacy", "https://lunera-bit.github.io/CYRYEL/privacy-policy.html")
+                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                    append("Politica de Privacidad")
+                }
+                pop()
+            }
+            ClickableText(
+                text = annotatedString,
+                onClick = { offset ->
+                    annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.let {
+                        uriHandler.openUri(it.item)
+                    }
+                },
+                style = MaterialTheme.typography.bodyMedium
             )
         }
 
         Button(
-            onClick = onSignIn,
-            enabled = !uiState.isLoading,
+            onClick = onGoogleSignInClick,
+            enabled = uiState.termsAccepted && !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp)
+                .padding(top = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(vertical = 2.dp),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text("Entrar")
-            }
+            Text(
+                text = "Continuar con Google",
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

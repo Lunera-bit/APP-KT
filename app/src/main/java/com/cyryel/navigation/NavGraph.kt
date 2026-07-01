@@ -20,7 +20,9 @@ import com.cyryel.ui.notifications.NotificationScreen
 import com.cyryel.ui.orders.OrderDetailScreen
 import com.cyryel.ui.productdetail.ProductDetailScreen
 import com.cyryel.ui.search.SearchScreen
+import com.cyryel.ui.auth.AuthViewModel
 import com.cyryel.ui.settings.SettingsScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 
 object Routes {
     const val AUTH = "auth"
@@ -169,8 +171,15 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
         }
 
         composable(Routes.SETTINGS) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             SettingsScreen(
-                onBack = rememberBackHandler { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() },
+                onLogout = {
+                    authViewModel.signOut()
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(Routes.MAIN) { inclusive = true }
+                    }
+                }
             )
         }
 

@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Geocoder
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -76,7 +78,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -91,6 +95,9 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+
+private const val STORE_LATITUDE = -11.56544559
+private const val STORE_LONGITUDE = -77.27104991
 
 private val stepIcons = listOf(
     Icons.Filled.ShoppingCart,
@@ -492,9 +499,9 @@ private fun StepDelivery(
     onCityChange: (String) -> Unit,
     onReferenceChange: (String) -> Unit
 ) {
-    var latitude by remember { mutableDoubleStateOf(0.0) }
-    var longitude by remember { mutableDoubleStateOf(0.0) }
-    var hasLocation by remember { mutableStateOf(false) }
+    var latitude by remember { mutableDoubleStateOf(STORE_LATITUDE) }
+    var longitude by remember { mutableDoubleStateOf(STORE_LONGITUDE) }
+    var placedMarker by remember { mutableStateOf(false) }
     var locationGranted by remember { mutableStateOf(false) }
     var requestingLocation by remember { mutableStateOf(false) }
 
@@ -544,11 +551,22 @@ private fun StepDelivery(
             val styleUri = "mapbox://styles/hola231341/cmjlpavo0006q01s58z376ig8"
             Box(modifier = Modifier.fillMaxWidth()) {
                 var mapView by remember { mutableStateOf<MapView?>(null) }
+                var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
 
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
-                            mapboxMap.loadStyleUri(styleUri)
+                            mapboxMap.loadStyleUri(styleUri) { style ->
+                                val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
+                                style.addImage("pin-icon", pinBitmap)
+                            }
+                            mapboxMap.setCamera(
+                                CameraOptions.Builder()
+                                    .center(Point.fromLngLat(STORE_LONGITUDE, STORE_LATITUDE))
+                                    .zoom(14.0)
+                                    .pitch(0.0)
+                                    .build()
+                            )
                             setOnTouchListener { _, event ->
                                 if (event.action == android.view.MotionEvent.ACTION_UP) {
                                     val screenPoint = com.mapbox.maps.ScreenCoordinate(
@@ -557,7 +575,20 @@ private fun StepDelivery(
                                     val point = mapboxMap.coordinateForPixel(screenPoint)
                                     latitude = point.latitude()
                                     longitude = point.longitude()
-                                    hasLocation = true
+                                    placedMarker = true
+                                    mapboxMap.setCamera(
+                                        CameraOptions.Builder()
+                                            .center(Point.fromLngLat(point.longitude(), point.latitude()))
+                                            .zoom(14.0)
+                                            .pitch(0.0)
+                                            .build()
+                                    )
+                                    annotationManager?.deleteAll()
+                                    annotationManager?.create(
+                                        PointAnnotationOptions()
+                                            .withPoint(Point.fromLngLat(point.longitude(), point.latitude()))
+                                            .withIconImage("pin-icon")
+                                    )
                                     reverseGeocodeAddress(
                                         context, point.latitude(), point.longitude(),
                                         onAddressFound = { addr, cty ->
@@ -565,35 +596,52 @@ private fun StepDelivery(
                                             if (cty != null) onCityChange(cty)
                                         }
                                     )
-                                    true
-                                } else false
+                                }
+                                false
                             }
+                            annotationManager = annotations.createPointAnnotationManager()
                             mapView = this
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(250.dp),
-                    update = { view ->
-                        if (hasLocation) {
-                            view.mapboxMap.setCamera(
-                                CameraOptions.Builder()
-                                    .center(Point.fromLngLat(longitude, latitude))
-                                    .zoom(14.0)
-                                    .pitch(0.0)
-                                    .build()
-                            )
-                            view.annotations.createPointAnnotationManager().apply {
-                                deleteAll()
-                                create(
-                                    PointAnnotationOptions()
-                                        .withPoint(Point.fromLngLat(longitude, latitude))
-                                        .withIconImage("marker-15")
-                                )
-                            }
-                        }
-                    }
+                    update = { }
                 )
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    FloatingActionButton(
+                        onClick = {
+                            mapView?.mapboxMap?.let { map ->
+                                val currentZoom = map.cameraState.zoom
+                                map.setCamera(CameraOptions.Builder().zoom(currentZoom + 1).build())
+                            }
+                        },
+                        modifier = Modifier.size(36.dp),
+                        containerColor = AzulRey,
+                        contentColor = Color.White
+                    ) {
+                        Text("+", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                    FloatingActionButton(
+                        onClick = {
+                            mapView?.mapboxMap?.let { map ->
+                                val currentZoom = map.cameraState.zoom
+                                map.setCamera(CameraOptions.Builder().zoom(currentZoom - 1).build())
+                            }
+                        },
+                        modifier = Modifier.size(36.dp),
+                        containerColor = AzulRey,
+                        contentColor = Color.White
+                    ) {
+                        Text("-", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    }
+                }
 
                 DisposableEffect(Unit) {
                     onDispose {
@@ -609,7 +657,20 @@ private fun StepDelivery(
                                 if (loc != null) {
                                     latitude = loc.latitude
                                     longitude = loc.longitude
-                                    hasLocation = true
+                                    placedMarker = true
+                                    mapView?.mapboxMap?.setCamera(
+                                        CameraOptions.Builder()
+                                            .center(Point.fromLngLat(loc.longitude, loc.latitude))
+                                            .zoom(14.0)
+                                            .pitch(0.0)
+                                            .build()
+                                    )
+                                    annotationManager?.deleteAll()
+                                    annotationManager?.create(
+                                        PointAnnotationOptions()
+                                            .withPoint(Point.fromLngLat(loc.longitude, loc.latitude))
+                                            .withIconImage("pin-icon")
+                                    )
                                     reverseGeocodeAddress(
                                         context, loc.latitude, loc.longitude,
                                         onAddressFound = { addr, cty ->
@@ -1249,4 +1310,15 @@ private fun OrderCreatedContent(
             Text("Volver al inicio")
         }
     }
+}
+
+private fun vectorToBitmap(context: Context, drawableRes: Int): Bitmap {
+    val drawable = AppCompatResources.getDrawable(context, drawableRes)!!
+    val bitmap = Bitmap.createBitmap(
+        drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+    )
+    val canvas = Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bitmap
 }
