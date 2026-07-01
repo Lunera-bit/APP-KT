@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.cyryel.ui.auth.AuthRoute
 import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.categoryproducts.CategoryProductsScreen
+import com.cyryel.ui.cart.CartScreen
 import com.cyryel.ui.checkout.CheckoutScreen
 import com.cyryel.ui.home.MainScreen
 import com.cyryel.ui.notifications.NotificationScreen
@@ -25,6 +26,7 @@ object Routes {
     const val AUTH = "auth"
     const val MAIN = "main"
     const val PRODUCT_DETAIL = "product/{productId}"
+    const val CART = "cart"
     const val CHECKOUT = "checkout"
     const val ORDER_DETAIL = "order/{orderId}"
     const val CATEGORY_PRODUCTS = "category/{categoryName}"
@@ -101,7 +103,7 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                     navController.navigate(Routes.NOTIFICATIONS)
                 },
                 onNavigateToCart = {
-                    navController.navigate(Routes.CHECKOUT)
+                    navController.navigate(Routes.CART)
                 }
             )
         }
@@ -115,6 +117,15 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 productId = productId,
                 onBack = rememberBackHandler { navController.popBackStack() },
                 onAddToCart = rememberBackHandler { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.CART) {
+            CartScreen(
+                onBack = rememberBackHandler { navController.popBackStack() },
+                onCheckout = {
+                    navController.navigate(Routes.CHECKOUT)
+                }
             )
         }
 
