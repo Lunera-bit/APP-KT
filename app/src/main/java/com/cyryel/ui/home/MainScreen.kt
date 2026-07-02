@@ -172,7 +172,7 @@ fun MainScreen(
                             badge = {
                                 if (cartCount > 0) {
                                     Badge(
-                                        modifier = Modifier.offset(x = (-2).dp, y = 2.dp),
+                                        modifier = Modifier.offset(x = (-10).dp, y = 2.dp),
                                         containerColor = MaterialTheme.colorScheme.error
                                     ) {
                                         Text(
