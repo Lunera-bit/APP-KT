@@ -59,6 +59,9 @@ class AuthViewModel @Inject constructor(
             )
 
             if (result.isSuccess) {
+                authRepository.getCurrentUserId()?.let { uid ->
+                    authRepository.saveFcmToken(uid)
+                }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -66,11 +69,6 @@ class AuthViewModel @Inject constructor(
                         password = "",
                         errorMessage = null
                     )
-                }
-                viewModelScope.launch {
-                    authRepository.getCurrentUserId()?.let { uid ->
-                        authRepository.saveFcmToken(uid)
-                    }
                 }
             } else {
                 val message = result.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar sesion"
@@ -92,11 +90,11 @@ class AuthViewModel @Inject constructor(
             val result = authRepository.signInWithGoogle(idToken)
 
             if (result.isSuccess) {
-                _uiState.update {
-                    it.copy(isLoading = false, isAuthenticated = true, errorMessage = null)
-                }
                 authRepository.getCurrentUserId()?.let { uid ->
                     authRepository.saveFcmToken(uid)
+                }
+                _uiState.update {
+                    it.copy(isLoading = false, isAuthenticated = true, errorMessage = null)
                 }
             } else {
                 val message = result.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar sesion con Google"
