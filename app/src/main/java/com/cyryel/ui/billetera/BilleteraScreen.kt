@@ -75,7 +75,7 @@ fun BilleteraScreen(
                 LottieAnimation(
                     composition = moneyComposition,
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(180.dp)
                         .align(Alignment.CenterHorizontally),
                     iterations = Int.MAX_VALUE
                 )
