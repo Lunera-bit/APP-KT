@@ -145,7 +145,7 @@ fun OrderDetailScreen(
                                     Column {
                                         Text(item.productName, style = MaterialTheme.typography.bodyMedium)
                                         Text(
-                                            text = "x${item.quantity} @ S/ ${"%.2f".format(item.price)}",
+                                            text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )

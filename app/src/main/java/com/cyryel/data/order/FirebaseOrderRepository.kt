@@ -37,11 +37,11 @@ class FirebaseOrderRepository @Inject constructor(
                 "subtotal" to subtotal,
                 "shipping" to request.shipping,
                 "pointsUsed" to 0,
-                "pointsDiscount" to 0,
+                "pointsDiscount" to 0.0,
                 "total" to total,
                 "status" to "pendiente",
-                "paymentMethod" to "contra_entrega",
-                "paymentStatus" to "completado",
+                "paymentMethod" to request.paymentMethod,
+                "paymentStatus" to if (request.paymentMethod == "codigo") "pendiente" else "completado",
                 "deliveryMethod" to request.deliveryMethod,
                 "notes" to request.notes,
                 "deliveryAddress" to mapOf(
@@ -52,8 +52,8 @@ class FirebaseOrderRepository @Inject constructor(
                     "reference" to request.reference,
                     "documentType" to request.documentType,
                     "documentNumber" to request.documentNumber,
-                    "latitude" to 0.0,
-                    "longitude" to 0.0
+                    "latitude" to request.latitude,
+                    "longitude" to request.longitude
                 ),
                 "customerContact" to mapOf(
                     "name" to request.recipientName,

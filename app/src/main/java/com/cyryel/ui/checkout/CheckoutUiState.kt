@@ -18,6 +18,8 @@ data class CheckoutUiState(
     val deliveryMethod: String = "domicilio",
     val street: String = "",
     val city: String = "",
+    val latitude: Double = -11.56544559,
+    val longitude: Double = -77.27104991,
     val reference: String = "",
     val recipientName: String = "",
     val phone: String = "",

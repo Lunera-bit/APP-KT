@@ -16,5 +16,8 @@ data class CreateOrderRequest(
     val documentNumber: String = "",
     val shipping: Double = 0.0,
     val deliveryMethod: String = "domicilio",
+    val paymentMethod: String = "contra_entrega",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
     val fcmToken: String = ""
 )

@@ -205,6 +205,9 @@ class CheckoutViewModel @Inject constructor(
                     documentNumber = state.documentNumber,
                     shipping = 0.0,
                     deliveryMethod = state.deliveryMethod,
+                    paymentMethod = state.paymentMethod,
+                    latitude = state.latitude,
+                    longitude = state.longitude,
                     fcmToken = fcmToken
                 )
             )

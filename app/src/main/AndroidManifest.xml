@@ -17,6 +17,12 @@
         <meta-data
             android:name="com.mapbox.android.ACCESS_TOKEN"
             android:value="${MAPBOX_ACCESS_TOKEN}" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification_icon" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notificationColor" />
         <service
             android:name="com.cyryel.CyryelMessagingService"
             android:exported="false">

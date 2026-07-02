@@ -1,14 +1,27 @@
 package com.cyryel.ui.checkout
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import kotlin.random.Random
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Geocoder
+import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.foundation.Canvas
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,7 +80,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -92,6 +108,9 @@ import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
@@ -147,7 +166,8 @@ fun CheckoutScreen(
                     } else {
                         onBack()
                     }
-                }
+                },
+                onGoHome = onBack
             )
         } else {
             Column(
@@ -1033,8 +1053,101 @@ private fun StepPayment(
                 }
             }
         }
+        if (paymentMethod == "codigo") {
+            val context = LocalContext.current
+            val accounts = listOf(
+                BankAccount("Yape", "999 999 999"),
+                BankAccount("Plin", "999 999 999"),
+                BankAccount("BCP", "191-99999999-0-99", "CCI: 002-191-199999999099-99"),
+                BankAccount("Interbank", "999-999999999-9", "CCI: 003-999-999999999999-99")
+            )
+            Text(
+                text = "Selecciona una cuenta para transferir",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            accounts.forEach { account ->
+                OutlinedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = account.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AzulRey
+                            )
+                            Text(
+                                text = account.number,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            if (account.cci != null) {
+                                Text(
+                                    text = account.cci,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val text = buildString {
+                                    append(account.number)
+                                    if (account.cci != null) append("\n${account.cci}")
+                                }
+                                clipboard.setPrimaryClip(ClipData.newPlainText(account.name, text))
+                                Toast.makeText(context, "✓ Copiado: ${account.name}", Toast.LENGTH_SHORT).show()
+                            },
+                            border = BorderStroke(1.dp, AzulRey)
+                        ) {
+                            Text("Copiar", color = AzulRey, fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = AmarilloVibrante.copy(alpha = 0.15f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = AzulRey,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Luego de transferir, envianos el comprobante por WhatsApp para confirmar tu pedido.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }
+
+private data class BankAccount(
+    val name: String,
+    val number: String,
+    val cci: String? = null
+)
 
 @Composable
 private fun PaymentOptionCard(
@@ -1253,61 +1366,154 @@ private fun HorizontalDivider(modifier: Modifier = Modifier) {
 private fun OrderCreatedContent(
     modifier: Modifier = Modifier,
     uiState: CheckoutUiState,
-    onViewOrder: () -> Unit
+    onViewOrder: () -> Unit,
+    onGoHome: () -> Unit = onViewOrder
 ) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
+    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("success_check.json"))
+    val textAlpha = remember { Animatable(0f) }
+    val buttonsAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        textAlpha.animateTo(1f, animationSpec = tween(600))
+        buttonsAlpha.animateTo(1f, animationSpec = tween(400))
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        ConfettiEffect()
+
+        Column(
             modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF2E7D32)),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                Icons.Filled.Check,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
+            LottieAnimation(
+                composition = composition,
+                modifier = Modifier.size(140.dp),
+                iterations = 1
             )
-        }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            text = uiState.orderCreatedMessage ?: "Pedido creado",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = AzulRey,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = "Gracias por tu compra. Te notificaremos cuando tu pedido sea procesado.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        Spacer(Modifier.height(24.dp))
-        Button(
-            onClick = onViewOrder,
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AzulRey,
-                contentColor = Color.White
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Ver mi pedido", fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = uiState.orderCreatedMessage ?: "Pedido creado",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = AzulRey,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
+            )
+
+            if (uiState.orderId.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Nro. pedido: ${uiState.orderId}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = AzulRey.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = "Gracias por tu compra. Te notificaremos cuando tu pedido sea procesado.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick = onViewOrder,
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AzulRey,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(alpha = buttonsAlpha.value)
+            ) {
+                Text("Ver mi pedido", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(Modifier.height(8.dp))
+
         OutlinedButton(
-            onClick = onViewOrder,
+            onClick = onGoHome,
             shape = RoundedCornerShape(14.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer(alpha = buttonsAlpha.value)
         ) {
             Text("Volver al inicio")
+        }
+        }
+    }
+}
+
+private data class ConfettiParticle(
+    val startX: Float,
+    val startY: Float,
+    val size: Float,
+    val color: Color,
+    val speed: Float,
+    val sway: Float,
+    val swaySpeed: Float
+)
+
+@Composable
+private fun ConfettiEffect(modifier: Modifier = Modifier) {
+    val particles = remember {
+        (0 until 100).map {
+            ConfettiParticle(
+                startX = Random.nextFloat(),
+                startY = Random.nextFloat(),
+                size = Random.nextFloat() * 16f + 6f,
+                color = Color(
+                    red = Random.nextFloat(),
+                    green = Random.nextFloat(),
+                    blue = Random.nextFloat(),
+                    alpha = 1f
+                ),
+                speed = Random.nextFloat() * 0.4f + 0.2f,
+                sway = Random.nextFloat() * 80f + 30f,
+                swaySpeed = Random.nextFloat() * 2f + 0.5f
+            )
+        }
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "confetti")
+    val time by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "time"
+    )
+
+    Canvas(modifier = modifier.fillMaxSize()) {
+        val w = size.width
+        val h = size.height
+        particles.forEach { p ->
+            val raw = (time * p.speed + p.startY * 1000f) % 1000f / 1000f
+            val y = raw * h * 1.2f - h * 0.1f
+            val angle = (raw * p.swaySpeed * kotlin.math.PI * 3f).toFloat()
+            val x = p.startX * w + kotlin.math.sin(angle.toDouble()).toFloat() * p.sway
+            val alpha = if (raw > 0.9f) (1f - raw) * 10f else 1f
+            drawRect(
+                color = p.color.copy(alpha = alpha),
+                topLeft = Offset(x, y),
+                size = Size(p.size, p.size * 0.6f)
+            )
         }
     }
 }

@@ -101,6 +101,7 @@ dependencies {
     implementation("com.mapbox.maps:android-ndk27:11.25.0")
     implementation("com.mapbox.extension:maps-compose-ndk27:11.25.0")
 
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")

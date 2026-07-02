@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- fondo circular existente -->
+    <item>
+        <drawable android:drawable="@drawable/ic_notification_bg_primary" />
+    </item>
+
+    <!-- foreground: usa los PNG que generaste en drawable-*/ic_stat_4081896.png -->
+    <item android:gravity="center">
+        <bitmap android:src="@drawable/ic_stat_4081896" android:antialias="true" />
+    </item>
+</layer-list>
