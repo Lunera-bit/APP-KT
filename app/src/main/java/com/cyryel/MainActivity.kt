@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import com.cyryel.navigation.AppNavGraph
+import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.TiendaCyryelTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,6 +21,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        window.statusBarColor = android.graphics.Color.parseColor("#1A3A6B")
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
         setContent {
             TiendaCyryelTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { _ ->

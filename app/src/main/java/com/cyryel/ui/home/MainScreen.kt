@@ -52,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -164,12 +165,14 @@ fun MainScreen(
                     }
                     Spacer(Modifier.weight(1f))
                     val cartCount = cartState.items.sumOf { it.quantity }
-                    Box(modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onNavigateToCart)) {
+                    val cartInteractionSource = remember { MutableInteractionSource() }
+                    val cartPressed by cartInteractionSource.collectIsPressedAsState()
+                    Box(modifier = Modifier.clickable(interactionSource = cartInteractionSource, indication = null, onClick = onNavigateToCart)) {
                         BadgedBox(
                             badge = {
                                 if (cartCount > 0) {
                                     Badge(
-                                        modifier = Modifier.offset(x = (-8).dp, y = (-4).dp),
+                                        modifier = Modifier.offset(x = (-2).dp, y = 2.dp),
                                         containerColor = MaterialTheme.colorScheme.error
                                     ) {
                                         Text(
@@ -184,16 +187,18 @@ fun MainScreen(
                             Icon(
                                 Icons.Filled.ShoppingCart,
                                 contentDescription = "Carrito",
-                                tint = MaterialTheme.colorScheme.onPrimary,
+                                tint = if (cartPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
-                    Box(modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onNavigateToNotifications)) {
+                    val notifInteractionSource = remember { MutableInteractionSource() }
+                    val notifPressed by notifInteractionSource.collectIsPressedAsState()
+                    Box(modifier = Modifier.clickable(interactionSource = notifInteractionSource, indication = null, onClick = onNavigateToNotifications)) {
                         Icon(
                             Icons.Filled.Notifications,
                             contentDescription = "Notificaciones",
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            tint = if (notifPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.padding(8.dp)
                         )
                     }
