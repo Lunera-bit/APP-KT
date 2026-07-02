@@ -114,6 +114,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.util.openWhatsAppWithOrder
 
 private const val STORE_LATITUDE = -11.56544559
 private const val STORE_LONGITUDE = -77.27104991
@@ -223,6 +224,7 @@ fun CheckoutScreen(
                             )
                             CheckoutStep.PAYMENT -> StepPayment(
                                 paymentMethod = uiState.paymentMethod,
+                                subtotal = uiState.subtotal,
                                 onPaymentMethodChange = viewModel::onPaymentMethodChange
                             )
                             CheckoutStep.CONFIRM -> StepConfirm(
@@ -999,6 +1001,7 @@ private fun DocumentTypeCard(
 @Composable
 private fun StepPayment(
     paymentMethod: String,
+    subtotal: Double,
     onPaymentMethodChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1056,10 +1059,10 @@ private fun StepPayment(
         if (paymentMethod == "codigo") {
             val context = LocalContext.current
             val accounts = listOf(
-                BankAccount("Yape", "999 999 999"),
-                BankAccount("Plin", "999 999 999"),
-                BankAccount("BCP", "191-99999999-0-99", "CCI: 002-191-199999999099-99"),
-                BankAccount("Interbank", "999-999999999-9", "CCI: 003-999-999999999999-99")
+                BankAccount("BBVA", "0011-0264-0200275841"),
+                BankAccount("BCP", "2957127650060"),
+                BankAccount("InterBank", "00229500712765006041"),
+                BankAccount("Yape / Plin", "925510147")
             )
             Text(
                 text = "Selecciona una cuenta para transferir",
@@ -1089,22 +1092,11 @@ private fun StepPayment(
                                 text = account.number,
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            if (account.cci != null) {
-                                Text(
-                                    text = account.cci,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
                         OutlinedButton(
                             onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val text = buildString {
-                                    append(account.number)
-                                    if (account.cci != null) append("\n${account.cci}")
-                                }
-                                clipboard.setPrimaryClip(ClipData.newPlainText(account.name, text))
+                                clipboard.setPrimaryClip(ClipData.newPlainText(account.name, account.number))
                                 context.showToast("✓  Copiado: ${account.name}")
                             },
                             border = BorderStroke(1.dp, AzulRey)
@@ -1112,6 +1104,26 @@ private fun StepPayment(
                             Text("Copiar", color = AzulRey, fontWeight = FontWeight.Medium)
                         }
                     }
+                }
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                )
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "Titular: CYRYEL Eirl",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Monto a pagar: S/ ${"%.2f".format(subtotal)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AzulRey,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             Spacer(Modifier.height(4.dp))
@@ -1145,8 +1157,7 @@ private fun StepPayment(
 
 private data class BankAccount(
     val name: String,
-    val number: String,
-    val cci: String? = null
+    val number: String
 )
 
 @Composable
@@ -1369,13 +1380,23 @@ private fun OrderCreatedContent(
     onViewOrder: () -> Unit,
     onGoHome: () -> Unit = onViewOrder
 ) {
+    val context = LocalContext.current
     val composition by rememberLottieComposition(LottieCompositionSpec.Asset("success_check.json"))
     val textAlpha = remember { Animatable(0f) }
     val buttonsAlpha = remember { Animatable(0f) }
+    var whatsAppOpened by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         textAlpha.animateTo(1f, animationSpec = tween(600))
         buttonsAlpha.animateTo(1f, animationSpec = tween(400))
+    }
+
+    LaunchedEffect(uiState.orderId) {
+        if (uiState.orderId.isNotBlank() && !whatsAppOpened) {
+            kotlinx.coroutines.delay(1500)
+            openWhatsAppWithOrder(context, uiState)
+            whatsAppOpened = true
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -1430,6 +1451,22 @@ private fun OrderCreatedContent(
             Spacer(Modifier.height(24.dp))
 
             Button(
+                onClick = { openWhatsAppWithOrder(context, uiState) },
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF25D366),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(alpha = buttonsAlpha.value)
+            ) {
+                Text("Enviar por WhatsApp", fontWeight = FontWeight.Bold)
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Button(
                 onClick = onViewOrder,
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -1445,15 +1482,15 @@ private fun OrderCreatedContent(
 
             Spacer(Modifier.height(8.dp))
 
-        OutlinedButton(
-            onClick = onGoHome,
-            shape = RoundedCornerShape(14.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(alpha = buttonsAlpha.value)
-        ) {
-            Text("Volver al inicio")
-        }
+            OutlinedButton(
+                onClick = onGoHome,
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(alpha = buttonsAlpha.value)
+            ) {
+                Text("Volver al inicio")
+            }
         }
     }
 }
