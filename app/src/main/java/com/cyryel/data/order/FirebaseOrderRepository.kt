@@ -95,6 +95,31 @@ class FirebaseOrderRepository @Inject constructor(
         }
     }
 
+    override suspend fun getOrdersByUserIdPaginated(
+        userId: String,
+        lastTimestamp: Long?,
+        pageSize: Int
+    ): Result<Pair<List<Order>, Boolean>> {
+        return try {
+            var query = firestore.collection("orders")
+                .whereEqualTo("userId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(pageSize.toLong() + 1)
+
+            if (lastTimestamp != null) {
+                query = query.startAfter(Timestamp(lastTimestamp / 1000, ((lastTimestamp % 1000) * 1000).toInt()))
+            }
+
+            val snapshot = query.get().await()
+            val docs = snapshot.documents
+            val hasMore = docs.size > pageSize
+            val orders = docs.take(pageSize).mapNotNull { orderFromDocument(it) }
+            Result.success(Pair(orders, hasMore))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getOrderById(orderId: String): Result<Order> {
         return try {
             val doc = firestore.collection("orders").document(orderId).get().await()

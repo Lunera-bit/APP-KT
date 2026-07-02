@@ -12,7 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,16 +23,23 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -142,8 +151,13 @@ fun OrderDetailScreen(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Column {
-                                        Text(item.productName, style = MaterialTheme.typography.bodyMedium)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = item.productName,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                         Text(
                                             text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
                                             style = MaterialTheme.typography.bodySmall,
@@ -153,7 +167,8 @@ fun OrderDetailScreen(
                                     Text(
                                         text = "S/ ${"%.2f".format(item.subtotal)}",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(start = 12.dp)
                                     )
                                 }
                                 if (index < order.items.lastIndex) {
@@ -200,6 +215,66 @@ fun OrderDetailScreen(
                             }
                         }
                     }
+
+                    if (order.status == "pendiente" && !uiState.cancelSuccess) {
+                        var showDialog by remember { mutableStateOf(false) }
+
+                        if (showDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDialog = false },
+                                title = { Text("Cancelar pedido") },
+                                text = { Text("¿Estás seguro de cancelar este pedido? Esta acción no se puede deshacer.") },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showDialog = false
+                                            viewModel.cancelOrder(orderId)
+                                        },
+                                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                                    ) {
+                                        Text("Sí, cancelar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDialog = false }) {
+                                        Text("No")
+                                    }
+                                }
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showDialog = true },
+                            enabled = !uiState.isCancelling,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+                        ) {
+                            if (uiState.isCancelling) {
+                                CircularProgressIndicator(
+                                    strokeWidth = 2.dp,
+                                    color = Color.Red,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            }
+                            Text("Cancelar pedido")
+                        }
+                    }
+
+                    if (uiState.cancelSuccess) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Pedido cancelado",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF2E7D32)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -215,13 +290,15 @@ private fun TotalRow(label: String, amount: Double, bold: Boolean = false) {
         Text(
             text = label,
             style = if (bold) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
-            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.weight(1f)
         )
         Text(
             text = "S/ ${"%.2f".format(amount)}",
             style = if (bold) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
             fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            color = if (bold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            color = if (bold) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1
         )
     }
 }

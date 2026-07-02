@@ -29,11 +29,19 @@ class OrdersViewModel @Inject constructor(
     fun loadOrders() {
         val userId = authRepository.getCurrentUserId() ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = orderRepository.getOrdersByUserId(userId)
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, hasMore = true) }
+            val result = orderRepository.getOrdersByUserIdPaginated(userId, null, 5)
             if (result.isSuccess) {
-                _uiState.update {
-                    it.copy(isLoading = false, orders = result.getOrDefault(emptyList()))
+                val (orders, hasMore) = result.getOrDefault(Pair(emptyList(), false))
+                val lastTs = orders.lastOrNull()?.createdAt
+                _uiState.update { state ->
+                    state.copy(
+                        isLoading = false,
+                        allOrders = orders,
+                        hasMore = hasMore,
+                        lastOrderTimestamp = lastTs,
+                        filteredOrders = orders.applyFilters(state.selectedFilter, state.startDate, state.endDate)
+                    )
                 }
             } else {
                 _uiState.update {
@@ -46,17 +54,60 @@ class OrdersViewModel @Inject constructor(
         }
     }
 
-    fun setFilter(filter: String) {
-        _uiState.update { it.copy(selectedFilter = filter) }
-    }
-
-    val filteredOrders: List<Order>
-        get() {
-            val state = _uiState.value
-            return if (state.selectedFilter == "todos") {
-                state.orders
+    fun loadMoreOrders() {
+        val state = _uiState.value
+        if (state.isLoadingMore || !state.hasMore) return
+        val userId = authRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+            val result = orderRepository.getOrdersByUserIdPaginated(
+                userId, state.lastOrderTimestamp, 5
+            )
+            if (result.isSuccess) {
+                val (newOrders, hasMore) = result.getOrDefault(Pair(emptyList(), false))
+                val lastTs = newOrders.lastOrNull()?.createdAt
+                _uiState.update { st ->
+                    val updated = st.allOrders + newOrders
+                    st.copy(
+                        isLoadingMore = false,
+                        allOrders = updated,
+                        hasMore = hasMore,
+                        lastOrderTimestamp = lastTs ?: st.lastOrderTimestamp,
+                        filteredOrders = updated.applyFilters(st.selectedFilter, st.startDate, st.endDate)
+                    )
+                }
             } else {
-                state.orders.filter { it.status == state.selectedFilter }
+                _uiState.update { it.copy(isLoadingMore = false) }
             }
         }
+    }
+
+    fun setFilter(filter: String) {
+        _uiState.update { state ->
+            state.copy(
+                selectedFilter = filter,
+                filteredOrders = state.allOrders.applyFilters(filter, state.startDate, state.endDate)
+            )
+        }
+    }
+
+    fun setDateFilter(startDate: Long?, endDate: Long?) {
+        _uiState.update { state ->
+            state.copy(
+                startDate = startDate,
+                endDate = endDate,
+                filteredOrders = state.allOrders.applyFilters(state.selectedFilter, startDate, endDate)
+            )
+        }
+    }
+
+    fun clearDateFilter() {
+        _uiState.update { state ->
+            state.copy(
+                startDate = null,
+                endDate = null,
+                filteredOrders = state.allOrders.applyFilters(state.selectedFilter, null, null)
+            )
+        }
+    }
 }
