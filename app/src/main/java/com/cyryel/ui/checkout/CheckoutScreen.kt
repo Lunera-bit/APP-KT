@@ -15,6 +15,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Geocoder
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -1105,7 +1106,7 @@ private fun StepPayment(
                                     if (account.cci != null) append("\n${account.cci}")
                                 }
                                 clipboard.setPrimaryClip(ClipData.newPlainText(account.name, text))
-                                Toast.makeText(context, "✓ Copiado: ${account.name}", Toast.LENGTH_SHORT).show()
+                                showCustomToast(context, "✓  Copiado: ${account.name}")
                             },
                             border = BorderStroke(1.dp, AzulRey)
                         ) {
@@ -1148,6 +1149,17 @@ private data class BankAccount(
     val number: String,
     val cci: String? = null
 )
+
+private fun showCustomToast(context: Context, message: String) {
+    val inflater = LayoutInflater.from(context)
+    val layout = inflater.inflate(R.layout.toast_copied, null)
+    layout.findViewById<android.widget.TextView>(R.id.toastText).text = message
+    Toast(context).apply {
+        duration = Toast.LENGTH_SHORT
+        view = layout
+        show()
+    }
+}
 
 @Composable
 private fun PaymentOptionCard(
