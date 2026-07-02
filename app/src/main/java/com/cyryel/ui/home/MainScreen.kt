@@ -39,7 +39,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -51,6 +50,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -163,7 +164,7 @@ fun MainScreen(
                     }
                     Spacer(Modifier.weight(1f))
                     val cartCount = cartState.items.sumOf { it.quantity }
-                    IconButton(onClick = onNavigateToCart) {
+                    Box(modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onNavigateToCart)) {
                         BadgedBox(
                             badge = {
                                 if (cartCount > 0) {
@@ -183,15 +184,17 @@ fun MainScreen(
                             Icon(
                                 Icons.Filled.ShoppingCart,
                                 contentDescription = "Carrito",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(8.dp)
                             )
                         }
                     }
-                    IconButton(onClick = onNavigateToNotifications) {
+                    Box(modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onNavigateToNotifications)) {
                         Icon(
                             Icons.Filled.Notifications,
                             contentDescription = "Notificaciones",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(8.dp)
                         )
                     }
                 }
