@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -25,7 +26,7 @@ class CyryelMessagingService : FirebaseMessagingService() {
             try {
                 FirebaseFirestore.getInstance()
                     .collection("users").document(uid)
-                    .set(mapOf("fcmToken" to token), SetOptions.merge())
+                    .set(mapOf("fcmToken" to token, "fcmTokenUpdatedAt" to FieldValue.serverTimestamp()), SetOptions.merge())
                     .addOnSuccessListener { Log.d("FCM", "Token refreshed for $uid") }
                     .addOnFailureListener { Log.w("FCM", "Token refresh failed for $uid", it) }
             } catch (e: Exception) {

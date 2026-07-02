@@ -50,8 +50,12 @@ class FirebaseAuthRepository @Inject constructor(
     override suspend fun saveFcmToken(userId: String) {
         try {
             val token = FirebaseMessaging.getInstance().token.await()
+            val updates = mapOf<String, Any>(
+                "fcmToken" to token,
+                "fcmTokenUpdatedAt" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+            )
             firestore.collection("users").document(userId)
-                .set(mapOf("fcmToken" to token), SetOptions.merge())
+                .set(updates, SetOptions.merge())
                 .await()
             Log.d("FCM", "Token saved for user $userId")
         } catch (e: Exception) {
