@@ -71,6 +71,14 @@ fun BilleteraScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                val moneyComposition by rememberLottieComposition(LottieCompositionSpec.Asset("money.json"))
+                LottieAnimation(
+                    composition = moneyComposition,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .align(Alignment.CenterHorizontally),
+                    iterations = Int.MAX_VALUE
+                )
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -83,13 +91,6 @@ fun BilleteraScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val moneyComposition by rememberLottieComposition(LottieCompositionSpec.Asset("money.json"))
-                        LottieAnimation(
-                            composition = moneyComposition,
-                            modifier = Modifier.size(100.dp),
-                            iterations = Int.MAX_VALUE
-                        )
-                        Spacer(Modifier.height(4.dp))
                         Text(
                             text = "Saldo de puntos",
                             style = MaterialTheme.typography.titleMedium
