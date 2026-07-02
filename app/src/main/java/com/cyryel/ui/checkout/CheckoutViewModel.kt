@@ -214,12 +214,27 @@ class CheckoutViewModel @Inject constructor(
 
             if (result.isSuccess) {
                 val orderId = result.getOrDefault("")
+                val snapshot = OrderSnapshot(
+                    items = state.items,
+                    subtotal = state.subtotal,
+                    deliveryMethod = state.deliveryMethod,
+                    street = state.street,
+                    city = state.city,
+                    latitude = state.latitude,
+                    longitude = state.longitude,
+                    reference = state.reference,
+                    recipientName = state.recipientName,
+                    phone = state.phone,
+                    notes = state.notes,
+                    paymentMethod = state.paymentMethod
+                )
                 cartManager.clear()
                 _uiState.update {
                     it.copy(
                         isPlacingOrder = false,
                         orderCreatedMessage = "Pedido creado exitosamente",
-                        orderId = orderId
+                        orderId = orderId,
+                        lastOrderSnapshot = snapshot
                     )
                 }
             } else {

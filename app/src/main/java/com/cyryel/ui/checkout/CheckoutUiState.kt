@@ -12,6 +12,21 @@ enum class CheckoutStep(val step: Int, val title: String) {
     fun previous(): CheckoutStep = entries[(ordinal - 1).coerceAtLeast(0)]
 }
 
+data class OrderSnapshot(
+    val items: List<CartItem>,
+    val subtotal: Double,
+    val deliveryMethod: String,
+    val street: String,
+    val city: String,
+    val latitude: Double,
+    val longitude: Double,
+    val reference: String,
+    val recipientName: String,
+    val phone: String,
+    val notes: String,
+    val paymentMethod: String
+)
+
 data class CheckoutUiState(
     val currentStep: CheckoutStep = CheckoutStep.REVIEW,
     val items: List<CartItem> = emptyList(),
@@ -32,7 +47,8 @@ data class CheckoutUiState(
     val isLoadingProfile: Boolean = true,
     val orderCreatedMessage: String? = null,
     val orderId: String = "",
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val lastOrderSnapshot: OrderSnapshot? = null
 ) {
     val subtotal: Double get() = items.sumOf { it.subtotal }
 
