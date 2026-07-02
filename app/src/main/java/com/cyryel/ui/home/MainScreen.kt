@@ -78,6 +78,12 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.core.content.PermissionChecker
 import androidx.compose.ui.platform.LocalContext
 import com.cyryel.ui.util.showToast
 
@@ -112,6 +118,22 @@ fun MainScreen(
     val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (PermissionChecker.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PermissionChecker.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     val tabs = listOf(
         Tab("Inicio", R.drawable.ic_home),

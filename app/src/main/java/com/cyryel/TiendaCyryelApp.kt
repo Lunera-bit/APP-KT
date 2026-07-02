@@ -15,15 +15,23 @@ class TiendaCyryelApp : Application() {
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val manager = getSystemService(NotificationManager::class.java)
+            val pedidosChannel = NotificationChannel(
                 "pedidos_channel",
                 "Pedidos",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notificaciones de pedidos y promociones"
             }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
+            manager.createNotificationChannel(pedidosChannel)
+            val defaultChannel = NotificationChannel(
+                "default",
+                "Notificaciones",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notificaciones generales"
+            }
+            manager.createNotificationChannel(defaultChannel)
         }
     }
 }
