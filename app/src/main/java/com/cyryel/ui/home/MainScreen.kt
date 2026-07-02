@@ -73,8 +73,8 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
-import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import com.cyryel.ui.util.showToast
 
 private data class Tab(val label: String, val iconRes: Int)
 
@@ -257,7 +257,7 @@ fun MainScreen(
                     onAgregarTodo = {
                         homeViewModel.marcarAgregarTodoUsado()
                         homeState.quickProducts.forEach(cartViewModel::addProduct)
-                        Toast.makeText(context, "Productos agregados al carrito", Toast.LENGTH_SHORT).show()
+                        context.showToast("Productos agregados al carrito")
                     },
                     onProductClick = onNavigateToProduct,
                     onCategoryClick = onNavigateToCategory
