@@ -13,7 +13,7 @@ fun Context.showToast(message: String) {
     Toast(this).apply {
         duration = Toast.LENGTH_SHORT
         view = layout
-        setGravity(Gravity.BOTTOM, 0, (-24 * density).toInt())
+        setGravity(Gravity.BOTTOM, 0, (100 * density).toInt())
         show()
     }
 }
