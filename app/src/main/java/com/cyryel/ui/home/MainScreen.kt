@@ -168,7 +168,7 @@ fun MainScreen(
                             badge = {
                                 if (cartCount > 0) {
                                     Badge(
-                                        modifier = Modifier.offset(x = (-3).dp, y = (-2).dp),
+                                        modifier = Modifier.offset(x = (-8).dp, y = (-4).dp),
                                         containerColor = MaterialTheme.colorScheme.error
                                     ) {
                                         Text(
@@ -250,7 +250,7 @@ fun MainScreen(
     ) { innerPadding ->
         AnimatedContent(
             targetState = selectedTab,
-            transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(250)) },
+            transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(150)) },
             label = "tab_content"
         ) { tab ->
             when (tab) {
