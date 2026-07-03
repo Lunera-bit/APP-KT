@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.automirrored.filled.List
@@ -51,7 +50,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cyryel.data.order.Order
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.AzulReyClaro
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -105,18 +108,9 @@ fun OrdersScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Mis Pedidos") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = AzulRey,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -149,7 +143,7 @@ fun OrdersScreen(
                             selectedContainerColor = AzulRey,
                             selectedLabelColor = Color.White,
                             containerColor = AzulRey.copy(alpha = 0.08f),
-                            labelColor = AzulRey
+                            labelColor = AzulReyClaro
                         )
                     )
                 }
@@ -273,7 +267,7 @@ fun OrdersScreen(
                                     viewModel.setFilter("todos")
                                     viewModel.clearDateFilter()
                                 }) {
-                                    Text("Limpiar filtros", color = AzulRey)
+                                    Text("Limpiar filtros", color = AzulReyClaro)
                                 }
                             }
                         }
@@ -364,7 +358,7 @@ private fun DateFilterBar(
                 onClick = onSelectStart,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulRey)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulReyClaro)
             ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
@@ -384,7 +378,7 @@ private fun DateFilterBar(
                 onClick = onSelectEnd,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulRey)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AzulReyClaro)
             ) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
@@ -420,7 +414,7 @@ private fun DateFilterBar(
             Text(
                 text = "$startText — $endText",
                 style = MaterialTheme.typography.labelSmall,
-                color = AzulRey,
+                color = AzulReyClaro,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )
@@ -460,14 +454,20 @@ private fun OrderCard(
                         imageVector = Icons.Default.ShoppingCart,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        tint = AzulRey
+                        tint = AzulReyClaro
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "#${order.id.take(8).uppercase()}",
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(color = AzulRey)) {
+                                append("#")
+                            }
+                            withStyle(SpanStyle(color = AzulReyClaro)) {
+                                append(order.id.take(8).uppercase())
+                            }
+                        },
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = AzulRey
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -538,7 +538,7 @@ private fun OrderCard(
                     text = "S/ ${"%.2f".format(order.total)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AzulRey,
+                    color = AzulReyClaro,
                     fontSize = 18.sp
                 )
             }

@@ -16,11 +16,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.location.Geocoder
 import com.cyryel.ui.util.showToast
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -50,8 +46,10 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
@@ -85,13 +83,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -116,18 +121,18 @@ import com.cyryel.BuildConfig
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.AzulReyClaro
 import com.cyryel.ui.util.openWhatsAppWithOrder
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.animation.animateContentSize
 import com.google.android.gms.location.LocationServices
 
-private const val STORE_LATITUDE = -11.56544559
-private const val STORE_LONGITUDE = -77.27104991
+private const val STORE_LATITUDE = -11.56545313746308
+private const val STORE_LONGITUDE = -77.27110282305334
 
 private val stepIcons = listOf(
     Icons.Filled.ShoppingCart,
@@ -344,7 +349,7 @@ private fun CheckoutStepper(
                     Text(
                         text = step.title.split(" ").first(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isCurrent) AzulRey else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        color = if (isCurrent) AzulReyClaro else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                         textAlign = TextAlign.Center,
                         maxLines = 1
@@ -449,7 +454,7 @@ private fun StepReview(
             text = "Revisa tu pedido",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = AzulRey
+            color = AzulReyClaro
         )
         Text(
             text = "Verifica que los productos y cantidades sean correctos",
@@ -489,7 +494,7 @@ private fun StepReview(
                     text = "S/ ${"%.2f".format(item.subtotal)}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AzulRey
+                    color = AzulReyClaro
                 )
             }
         }
@@ -513,7 +518,7 @@ private fun StepReview(
                     text = "S/ ${"%.2f".format(subtotal)}",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = AzulRey
+                    color = AzulReyClaro
                 )
             }
         }
@@ -535,13 +540,33 @@ private fun StepDelivery(
     var latitude by remember { mutableDoubleStateOf(STORE_LATITUDE) }
     var longitude by remember { mutableDoubleStateOf(STORE_LONGITUDE) }
     var placedMarker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    var prevDeliveryMethod by remember { mutableStateOf(deliveryMethod) }
+
+    LaunchedEffect(deliveryMethod) {
+        if (deliveryMethod == "tienda") {
+            latitude = STORE_LATITUDE
+            longitude = STORE_LONGITUDE
+            placedMarker = true
+            onStreetChange("Av. Los Pinos 123, Huaral")
+            onCityChange("Huaral")
+            onReferenceChange("")
+        } else if (deliveryMethod == "domicilio" && prevDeliveryMethod == "tienda") {
+            placedMarker = false
+            onStreetChange("")
+            onCityChange("")
+            onReferenceChange("")
+        }
+        prevDeliveryMethod = deliveryMethod
+    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = "Tipo de entrega",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = AzulRey
+            color = AzulReyClaro
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -578,7 +603,6 @@ private fun StepDelivery(
                     pickerLng = longitude
                     pickerStreet = street
                     pickerCity = city
-                    pickerRef = reference
                     showMapPicker = true
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -595,7 +619,6 @@ private fun StepDelivery(
                     initialLng = pickerLng,
                     initialStreet = pickerStreet,
                     initialCity = pickerCity,
-                    initialRef = pickerRef,
                     onConfirm = { lat, lng, addr, cty, ref ->
                         latitude = lat
                         longitude = lng
@@ -617,7 +640,7 @@ private fun StepDelivery(
                     )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Ubicación seleccionada:", fontWeight = FontWeight.Bold, color = AzulRey)
+                        Text("Ubicación seleccionada:", fontWeight = FontWeight.Bold, color = AzulReyClaro)
                         if (street.isNotBlank()) Text("Dirección: $street")
                         if (city.isNotBlank()) Text("Ciudad: $city")
                         if (reference.isNotBlank()) Text("Referencia: $reference")
@@ -638,7 +661,7 @@ private fun StepDelivery(
                     Icon(
                         Icons.Filled.Home,
                         contentDescription = null,
-                        tint = AzulRey,
+                        tint = AzulReyClaro,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.width(10.dp))
@@ -653,14 +676,12 @@ private fun StepDelivery(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapPickerDialog(
     initialLat: Double,
     initialLng: Double,
     initialStreet: String,
     initialCity: String,
-    initialRef: String,
     onConfirm: (Double, Double, String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -668,12 +689,14 @@ private fun MapPickerDialog(
     var longitude by remember { mutableDoubleStateOf(initialLng) }
     var street by remember { mutableStateOf(initialStreet) }
     var city by remember { mutableStateOf(initialCity) }
-    var reference by remember { mutableStateOf(initialRef) }
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     remember { MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN; Unit }
+
+    var currentZoom by remember { mutableDoubleStateOf(18.0) }
+    var currentPitch by remember { mutableDoubleStateOf(60.0) }
 
     var locationGranted by remember { mutableStateOf(false) }
     var requestingLocation by remember { mutableStateOf(false) }
@@ -684,36 +707,46 @@ private fun MapPickerDialog(
         if (granted) requestingLocation = true
     }
 
+    fun moveCamera(lat: Double, lng: Double, zoom: Double = currentZoom) {
+        mapView?.mapboxMap?.setCamera(
+            CameraOptions.Builder()
+                .center(Point.fromLngLat(lng, lat))
+                .zoom(zoom)
+                .pitch(currentPitch)
+                .build()
+        )
+    }
+
+    fun placePin(lat: Double, lng: Double) {
+        annotationManager?.deleteAll()
+        annotationManager?.create(
+            PointAnnotationOptions()
+                .withPoint(Point.fromLngLat(lng, lat))
+                .withIconImage("pin-icon")
+        )
+    }
+
+    fun updateFromLocation(lat: Double, lng: Double) {
+        latitude = lat
+        longitude = lng
+        moveCamera(lat, lng)
+        placePin(lat, lng)
+        reverseGeocodeAddress(
+            context, lat, lng,
+            onAddressFound = { addr, cty ->
+                if (addr != null) street = addr
+                if (cty != null) city = cty
+            }
+        )
+    }
+
     LaunchedEffect(requestingLocation) {
         if (requestingLocation) {
             try {
                 val fusedClient = LocationServices.getFusedLocationProviderClient(context)
                 fusedClient.lastLocation.addOnSuccessListener { location ->
                     if (location != null) {
-                        val lat = location.latitude
-                        val lng = location.longitude
-                        latitude = lat
-                        longitude = lng
-                        mapView?.mapboxMap?.setCamera(
-                            CameraOptions.Builder()
-                                .center(Point.fromLngLat(lng, lat))
-                                .zoom(14.0)
-                                .pitch(45.0)
-                                .build()
-                        )
-                        annotationManager?.deleteAll()
-                        annotationManager?.create(
-                            PointAnnotationOptions()
-                                .withPoint(Point.fromLngLat(lng, lat))
-                                .withIconImage("pin-icon")
-                        )
-                        reverseGeocodeAddress(
-                            context, lat, lng,
-                            onAddressFound = { addr, cty ->
-                                if (addr != null) street = addr
-                                if (cty != null) city = cty
-                            }
-                        )
+                        updateFromLocation(location.latitude, location.longitude)
                     }
                 }
             } catch (_: Exception) { }
@@ -721,7 +754,9 @@ private fun MapPickerDialog(
         }
     }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var showRefQuestion by remember { mutableStateOf(false) }
+    var showRefInput by remember { mutableStateOf(false) }
+    var tempRef by remember { mutableStateOf("") }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -731,17 +766,11 @@ private fun MapPickerDialog(
             AndroidView(
                 factory = { ctx ->
                     MapView(ctx).apply {
-                        mapboxMap.loadStyleUri("mapbox://styles/mapbox/standard") { style ->
+                        mapboxMap.loadStyleUri("mapbox://styles/hola231341/cmr55bvuc002n01qodr8m2j2p") { style ->
                             try {
                                 val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
                                 if (pinBitmap != null) style.addImage("pin-icon", pinBitmap)
-                                mapboxMap.setCamera(
-                                    CameraOptions.Builder()
-                                        .center(Point.fromLngLat(longitude, latitude))
-                                        .zoom(14.0)
-                                        .pitch(45.0)
-                                        .build()
-                                )
+                                moveCamera(latitude, longitude)
                             } catch (_: Exception) { }
                         }
                         setOnTouchListener { _, event ->
@@ -750,38 +779,13 @@ private fun MapPickerDialog(
                                     event.x.toDouble(), event.y.toDouble()
                                 )
                                 val point = mapboxMap.coordinateForPixel(screenPoint)
-                                latitude = point.latitude()
-                                longitude = point.longitude()
-                                mapboxMap.setCamera(
-                                    CameraOptions.Builder()
-                                        .center(Point.fromLngLat(point.longitude(), point.latitude()))
-                                        .zoom(14.0)
-                                        .pitch(45.0)
-                                        .build()
-                                )
-                                annotationManager?.deleteAll()
-                                annotationManager?.create(
-                                    PointAnnotationOptions()
-                                        .withPoint(Point.fromLngLat(point.longitude(), point.latitude()))
-                                        .withIconImage("pin-icon")
-                                )
-                                reverseGeocodeAddress(
-                                    context, point.latitude(), point.longitude(),
-                                    onAddressFound = { addr, cty ->
-                                        if (addr != null) street = addr
-                                        if (cty != null) city = cty
-                                    }
-                                )
+                                updateFromLocation(point.latitude(), point.longitude())
                             }
                             false
                         }
                         annotationManager = annotations.createPointAnnotationManager()
                         if (initialLat != STORE_LATITUDE || initialLng != STORE_LONGITUDE) {
-                            annotationManager?.create(
-                                PointAnnotationOptions()
-                                    .withPoint(Point.fromLngLat(initialLng, initialLat))
-                                    .withIconImage("pin-icon")
-                            )
+                            placePin(initialLat, initialLng)
                         }
                         mapView = this
                         post {
@@ -793,7 +797,7 @@ private fun MapPickerDialog(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxSize().padding(8.dp),
+                modifier = Modifier.fillMaxSize(),
                 update = { }
             )
 
@@ -811,63 +815,197 @@ private fun MapPickerDialog(
                 onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
-            FloatingActionButton(
-                onClick = {
-                    if (locationGranted) {
-                        requestingLocation = true
-                    } else {
-                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-                },
+            // Top address card
+            Card(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
             ) {
-                Text("⌖", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            }
-
-            ModalBottomSheet(
-                onDismissRequest = onDismiss,
-                sheetState = sheetState,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .navigationBarsPadding()
-                        .imePadding(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text("Ubicación de entrega", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AzulRey)
+                Box(modifier = Modifier.padding(8.dp)) {
                     OutlinedTextField(
                         value = street,
-                        onValueChange = { street = it },
+                        onValueChange = {},
                         label = { Text("Dirección") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = false,
+                        textStyle = TextStyle(fontSize = 13.sp)
                     )
-                    OutlinedTextField(
-                        value = city,
-                        onValueChange = { city = it },
-                        label = { Text("Ciudad") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = reference,
-                        onValueChange = { reference = it },
-                        label = { Text("Referencia (opcional)") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Button(
-                        onClick = { onConfirm(latitude, longitude, street, city, reference) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
-                    ) {
-                        Text("Confirmar ubicación")
-                    }
                 }
+            }
+
+            // Zoom controls
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        currentZoom = (currentZoom + 0.5).coerceAtMost(22.0)
+                        mapView?.mapboxMap?.setCamera(
+                            CameraOptions.Builder()
+                                .center(Point.fromLngLat(longitude, latitude))
+                                .zoom(currentZoom)
+                                .pitch(currentPitch)
+                                .build()
+                        )
+                    },
+                    modifier = Modifier.size(40.dp),
+                    containerColor = Color.White.copy(alpha = 0.9f),
+                    contentColor = AzulReyClaro
+                ) {
+                    Text("+", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                }
+                FloatingActionButton(
+                    onClick = {
+                        currentZoom = (currentZoom - 0.5).coerceAtLeast(1.0)
+                        mapView?.mapboxMap?.setCamera(
+                            CameraOptions.Builder()
+                                .center(Point.fromLngLat(longitude, latitude))
+                                .zoom(currentZoom)
+                                .pitch(currentPitch)
+                                .build()
+                        )
+                    },
+                    modifier = Modifier.size(40.dp),
+                    containerColor = Color.White.copy(alpha = 0.9f),
+                    contentColor = AzulReyClaro
+                ) {
+                    Text("−", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                }
+                // Toggle 3D / plano
+                FloatingActionButton(
+                    onClick = {
+                        currentPitch = if (currentPitch == 60.0) 0.0 else 60.0
+                        mapView?.mapboxMap?.setCamera(
+                            CameraOptions.Builder()
+                                .center(Point.fromLngLat(longitude, latitude))
+                                .zoom(currentZoom)
+                                .pitch(currentPitch)
+                                .build()
+                        )
+                    },
+                    modifier = Modifier.size(40.dp),
+                    containerColor = Color.White.copy(alpha = 0.9f),
+                    contentColor = AzulReyClaro
+                ) {
+                    Text(
+                        if (currentPitch == 60.0) "⬡" else "⬔",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                // Location
+                FloatingActionButton(
+                    onClick = {
+                        if (locationGranted) {
+                            requestingLocation = true
+                        } else {
+                            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    },
+                    modifier = Modifier.size(40.dp),
+                    containerColor = Color.White.copy(alpha = 0.9f),
+                    contentColor = AzulReyClaro
+                ) {
+                    Text("⌖", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            // Bottom buttons
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 85.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = AzulReyClaro),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cerrar", fontWeight = FontWeight.Medium)
+                }
+                Button(
+                    onClick = {
+                        if (street.isBlank()) {
+                            context.showToast("Seleccione una ubicación en el mapa")
+                        } else {
+                            showRefQuestion = true
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AzulRey),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Confirmar", fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (showRefQuestion) {
+                AlertDialog(
+                    onDismissRequest = { showRefQuestion = false },
+                    title = { Text("Referencia") },
+                    text = { Text("¿Desea agregar una referencia para la entrega?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showRefQuestion = false
+                            showRefInput = true
+                        }) {
+                            Text("Sí", color = AzulReyClaro)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showRefQuestion = false
+                            context.showToast("Ubicación confirmada")
+                            onConfirm(latitude, longitude, street, city, "")
+                        }) {
+                            Text("No")
+                        }
+                    }
+                )
+            }
+
+            if (showRefInput) {
+                AlertDialog(
+                    onDismissRequest = { showRefInput = false },
+                    title = { Text("Referencia") },
+                    text = {
+                        OutlinedTextField(
+                            value = tempRef,
+                            onValueChange = { tempRef = it },
+                            label = { Text("Ingrese una referencia") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showRefInput = false
+                            context.showToast("Ubicación confirmada")
+                            onConfirm(latitude, longitude, street, city, tempRef)
+                        }) {
+                            Text("Aceptar", color = AzulReyClaro)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showRefInput = false }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
             }
         }
     }
@@ -909,9 +1047,9 @@ private fun DeliveryMethodCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (selected) AzulRey else MaterialTheme.colorScheme.outlineVariant
+    val borderColor = if (selected) AzulReyClaro else MaterialTheme.colorScheme.outlineVariant
     val bgColor = if (selected) AzulRey.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface
-    val iconTint = if (selected) AzulRey else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconTint = if (selected) AzulReyClaro else MaterialTheme.colorScheme.onSurfaceVariant
 
     OutlinedCard(
         onClick = onClick,
@@ -937,7 +1075,7 @@ private fun DeliveryMethodCard(
                 text = if (selected) "✓ $title" else title,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected) AzulRey else MaterialTheme.colorScheme.onSurface,
+                color = if (selected) AzulReyClaro else MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
             Text(
@@ -969,7 +1107,7 @@ private fun StepContact(
             text = "Informacion de contacto",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = AzulRey
+            color = AzulReyClaro
         )
         Text(
             text = "Quien recibira el pedido?",
@@ -988,6 +1126,7 @@ private fun StepContact(
         OutlinedTextField(
             value = phone,
             onValueChange = { onPhoneChange(it.filter { c -> c.isDigit() }.take(9)) },
+            visualTransformation = PhoneVisualTransformation(),
             label = { Text("Telefono (9 digitos)") },
             isError = fieldErrors.containsKey("phone"),
             supportingText = fieldErrors["phone"]?.let { { Text(it) } },
@@ -1051,7 +1190,7 @@ private fun DocumentTypeCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (selected) AzulRey else MaterialTheme.colorScheme.outlineVariant
+    val borderColor = if (selected) AzulReyClaro else MaterialTheme.colorScheme.outlineVariant
     val bgColor = if (selected) AzulRey.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface
 
     OutlinedCard(
@@ -1072,7 +1211,7 @@ private fun DocumentTypeCard(
                 Icon(
                     Icons.Filled.Check,
                     contentDescription = null,
-                    tint = AzulRey,
+                    tint = AzulReyClaro,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(4.dp))
@@ -1081,7 +1220,7 @@ private fun DocumentTypeCard(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected) AzulRey else MaterialTheme.colorScheme.onSurface
+                color = if (selected) AzulReyClaro else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -1098,7 +1237,7 @@ private fun StepPayment(
             text = "Metodo de pago",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = AzulRey
+            color = AzulReyClaro
         )
         Text(
             text = "Selecciona como deseas pagar",
@@ -1175,7 +1314,7 @@ private fun StepPayment(
                                 text = account.name,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = AzulRey
+                                color = AzulReyClaro
                             )
                             Text(
                                 text = account.number,
@@ -1190,7 +1329,7 @@ private fun StepPayment(
                             },
                             border = BorderStroke(1.dp, AzulRey)
                         ) {
-                            Text("Copiar", color = AzulRey, fontWeight = FontWeight.Medium)
+                            Text("Copiar", color = AzulReyClaro, fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -1210,7 +1349,7 @@ private fun StepPayment(
                     Text(
                         text = "Monto a pagar: S/ ${"%.2f".format(subtotal)}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AzulRey,
+                        color = AzulReyClaro,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -1229,7 +1368,7 @@ private fun StepPayment(
                     Icon(
                         Icons.Filled.Check,
                         contentDescription = null,
-                        tint = AzulRey,
+                        tint = AzulReyClaro,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
@@ -1257,7 +1396,7 @@ private fun PaymentOptionCard(
     description: String,
     onClick: () -> Unit
 ) {
-    val borderColor = if (selected) AzulRey else MaterialTheme.colorScheme.outlineVariant
+    val borderColor = if (selected) AzulReyClaro else MaterialTheme.colorScheme.outlineVariant
     val bgColor = if (selected) AzulRey.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface
 
     OutlinedCard(
@@ -1276,7 +1415,7 @@ private fun PaymentOptionCard(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (selected) AzulRey else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (selected) AzulReyClaro else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(28.dp)
             )
             Spacer(Modifier.width(12.dp))
@@ -1285,7 +1424,7 @@ private fun PaymentOptionCard(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (selected) AzulRey else MaterialTheme.colorScheme.onSurface
+                    color = if (selected) AzulReyClaro else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,
@@ -1297,7 +1436,7 @@ private fun PaymentOptionCard(
                 Icon(
                     Icons.Filled.Check,
                     contentDescription = null,
-                    tint = AzulRey,
+                    tint = AzulReyClaro,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -1324,7 +1463,7 @@ private fun StepConfirm(
             text = "Confirma tu pedido",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = AzulRey
+            color = AzulReyClaro
         )
         Text(
             text = "Revisa toda la informacion antes de confirmar",
@@ -1368,7 +1507,7 @@ private fun StepConfirm(
                         text = "S/ ${"%.2f".format(subtotal)}",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AzulRey
+                        color = AzulReyClaro
                     )
                 }
             }
@@ -1423,7 +1562,7 @@ private fun ConfirmSection(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = AzulRey
+                color = AzulReyClaro
             )
             Spacer(Modifier.height(6.dp))
             content()
@@ -1488,8 +1627,14 @@ private fun OrderCreatedContent(
         }
     }
 
+    val confettiComposition by rememberLottieComposition(LottieCompositionSpec.Asset("confetti.json"))
+
     Box(modifier = modifier.fillMaxSize()) {
-        ConfettiEffect()
+        LottieAnimation(
+            composition = confettiComposition,
+            modifier = Modifier.fillMaxSize(),
+            iterations = Int.MAX_VALUE
+        )
 
         Column(
             modifier = Modifier
@@ -1510,7 +1655,7 @@ private fun OrderCreatedContent(
                 text = uiState.orderCreatedMessage ?: "Pedido creado",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = AzulRey,
+                color = AzulReyClaro,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
             )
@@ -1521,7 +1666,7 @@ private fun OrderCreatedContent(
                     text = "Nro. pedido: ${uiState.orderId}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = AzulRey.copy(alpha = 0.7f),
+                    color = AzulReyClaro.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.graphicsLayer(alpha = textAlpha.value)
                 )
@@ -1584,66 +1729,6 @@ private fun OrderCreatedContent(
     }
 }
 
-private data class ConfettiParticle(
-    val startX: Float,
-    val startY: Float,
-    val size: Float,
-    val color: Color,
-    val speed: Float,
-    val sway: Float,
-    val swaySpeed: Float
-)
-
-@Composable
-private fun ConfettiEffect(modifier: Modifier = Modifier) {
-    val particles = remember {
-        (0 until 100).map {
-            ConfettiParticle(
-                startX = Random.nextFloat(),
-                startY = Random.nextFloat(),
-                size = Random.nextFloat() * 16f + 6f,
-                color = Color(
-                    red = Random.nextFloat(),
-                    green = Random.nextFloat(),
-                    blue = Random.nextFloat(),
-                    alpha = 1f
-                ),
-                speed = Random.nextFloat() * 0.4f + 0.2f,
-                sway = Random.nextFloat() * 80f + 30f,
-                swaySpeed = Random.nextFloat() * 2f + 0.5f
-            )
-        }
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "confetti")
-    val time by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 12000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "time"
-    )
-
-    Canvas(modifier = modifier.fillMaxSize()) {
-        val w = size.width
-        val h = size.height
-        particles.forEach { p ->
-            val raw = (time * p.speed + p.startY * 1000f) % 1000f / 1000f
-            val y = raw * h * 1.2f - h * 0.1f
-            val angle = (raw * p.swaySpeed * kotlin.math.PI * 3f).toFloat()
-            val x = p.startX * w + kotlin.math.sin(angle.toDouble()).toFloat() * p.sway
-            val alpha = if (raw > 0.9f) (1f - raw) * 10f else 1f
-            drawRect(
-                color = p.color.copy(alpha = alpha),
-                topLeft = Offset(x, y),
-                size = Size(p.size, p.size * 0.6f)
-            )
-        }
-    }
-}
-
 private fun vectorToBitmap(context: Context, drawableRes: Int): Bitmap? {
     val drawable = AppCompatResources.getDrawable(context, drawableRes) ?: return null
     val bitmap = Bitmap.createBitmap(
@@ -1655,4 +1740,26 @@ private fun vectorToBitmap(context: Context, drawableRes: Int): Bitmap? {
     drawable.setBounds(0, 0, canvas.width, canvas.height)
     drawable.draw(canvas)
     return bitmap
+}
+
+private class PhoneVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text.filter { it.isDigit() }
+        val formatted = raw.chunked(3).joinToString(" ")
+        return TransformedText(
+            AnnotatedString(formatted),
+            object : OffsetMapping {
+                override fun originalToTransformed(offset: Int): Int {
+                    if (offset <= 3) return offset
+                    if (offset <= 6) return offset + 1
+                    return offset + 2
+                }
+                override fun transformedToOriginal(offset: Int): Int {
+                    if (offset <= 3) return offset
+                    if (offset <= 7) return offset - 1
+                    return offset - 2
+                }
+            }
+        )
+    }
 }

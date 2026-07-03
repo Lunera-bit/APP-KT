@@ -1,5 +1,6 @@
 package com.cyryel.ui.checkout
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.auth.AuthRepository
@@ -17,20 +18,40 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val cartManager: CartManager,
     private val orderRepository: OrderRepository,
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CheckoutUiState())
+    private val _uiState = MutableStateFlow(
+        CheckoutUiState(
+            orderId = savedStateHandle.get<String>("orderId") ?: "",
+            orderCreatedMessage = savedStateHandle.get<String>("orderCreatedMessage")
+        )
+    )
     val uiState: StateFlow<CheckoutUiState> = _uiState.asStateFlow()
 
     init {
-        loadUserProfile()
+        val prevOrderId = savedStateHandle.get<String>("orderId")
+        if (!prevOrderId.isNullOrBlank()) {
+            _uiState.update {
+                it.copy(
+                    currentStep = CheckoutStep.CONFIRM,
+                    orderId = prevOrderId,
+                    orderCreatedMessage = savedStateHandle.get<String>("orderCreatedMessage")
+                )
+            }
+        } else {
+            loadUserProfile()
+        }
         viewModelScope.launch {
             cartManager.items.collect { items ->
-                _uiState.update { it.copy(items = items) }
+                _uiState.update {
+                    if (it.orderId.isNotBlank()) it
+                    else it.copy(items = items)
+                }
             }
         }
     }
@@ -228,6 +249,8 @@ class CheckoutViewModel @Inject constructor(
                     notes = state.notes,
                     paymentMethod = state.paymentMethod
                 )
+                savedStateHandle["orderId"] = orderId
+                savedStateHandle["orderCreatedMessage"] = "Pedido creado exitosamente"
                 cartManager.clear()
                 _uiState.update {
                     it.copy(

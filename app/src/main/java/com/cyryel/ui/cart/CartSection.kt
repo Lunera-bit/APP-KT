@@ -56,6 +56,7 @@ import com.cyryel.data.ForcedPackConfig
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.AzulReyClaro
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,7 +181,7 @@ private fun CartBottomBar(
                     text = "S/ ${"%.2f".format(subtotal)}",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = AzulRey
+                    color = AzulReyClaro
                 )
             }
             Button(
@@ -189,7 +190,7 @@ private fun CartBottomBar(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = AmarilloVibrante,
-                    contentColor = AzulRey
+                    contentColor = AzulReyClaro
                 ),
                 modifier = Modifier.height(50.dp)
             ) {
@@ -254,7 +255,7 @@ private fun CartItemCard(
                     Text(
                         text = "S/ ${"%.2f".format(price)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AzulRey,
+                        color = AzulReyClaro,
                         fontWeight = FontWeight.Bold
                     )
                     if (quantity > 1) {
@@ -282,7 +283,7 @@ private fun CartItemCard(
                         text = "S/ ${"%.2f".format(subtotal)}",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = AzulRey
+                        color = AzulReyClaro
                     )
                 }
             }
@@ -321,14 +322,14 @@ private fun QuantitySelector(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) else AzulRey.copy(alpha = 0.1f)),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey)
+                .background(if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f) else AzulReyClaro.copy(alpha = 0.25f)),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulReyClaro)
         ) {
             Text(
                 text = "-",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulRey
+                color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f) else AzulReyClaro
             )
         }
         Text(
@@ -337,7 +338,7 @@ private fun QuantitySelector(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.width(32.dp),
             textAlign = TextAlign.Center,
-            color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else AzulRey
+            color = if (isLocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else AzulReyClaro
         )
         IconButton(
             onClick = onIncrease,

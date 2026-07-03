@@ -78,6 +78,7 @@ import com.cyryel.ui.orders.OrdersScreen
 import com.cyryel.ui.profile.ProfileViewModel
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
+import com.cyryel.ui.theme.AzulReyClaro
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -364,7 +365,7 @@ private fun PromocionesSection(promotions: List<Promotion>) {
         text = "Promociones",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = AzulRey
+        color = AzulReyClaro
     )
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -499,14 +500,14 @@ private fun QuickProductCard(
                     fontWeight = FontWeight.Medium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    color = AzulRey
+                    color = AzulReyClaro
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "S/ ${"%.2f".format(product.precio)}",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
-                    color = AzulRey
+                    color = AzulReyClaro
                 )
             }
         }
@@ -522,7 +523,7 @@ private fun CategoriasSection(
         text = "Categorias de productos",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = AzulRey
+        color = AzulReyClaro
     )
     if (categories.isEmpty()) {
         Text(
