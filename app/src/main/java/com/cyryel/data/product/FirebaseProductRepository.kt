@@ -17,6 +17,14 @@ class FirebaseProductRepository @Inject constructor(
 ) : ProductRepository {
 
     private val gson = Gson()
+    private val categoryCache = mutableMapOf<String, CachedCategory>()
+    private val CACHE_TTL_MS = 5 * 60 * 1000L
+
+    private data class CachedCategory(
+        val products: MutableList<Product> = mutableListOf(),
+        var lastDocId: String? = null,
+        var timestamp: Long = 0L
+    )
 
     override suspend fun getRandomProducts(limit: Int): Result<List<Product>> {
         return try {
@@ -65,19 +73,7 @@ class FirebaseProductRepository @Inject constructor(
     }
 
     override suspend fun getProductsByCategory(category: String, limit: Int): Result<List<Product>> {
-        return try {
-            val snapshot = firestore.collection("products")
-                .whereEqualTo("categoria", category)
-                .orderBy("nombre")
-                .limit(limit.toLong())
-                .get()
-                .await()
-            val products = snapshot.documents.map { productFromDocument(it) }
-                .filter { it.isActive }
-            Result.success(products)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return getProductsByCategoryPaged(category, limit, null).map { it.products }
     }
 
     override suspend fun getProductsByCategoryPaged(
@@ -86,6 +82,16 @@ class FirebaseProductRepository @Inject constructor(
         startAfter: String?
     ): Result<ProductPage> {
         return try {
+            val now = System.currentTimeMillis()
+
+            if (startAfter == null) {
+                val cached = categoryCache[category]
+                if (cached != null && now - cached.timestamp < CACHE_TTL_MS) {
+                    return Result.success(ProductPage(cached.products.toList(), cached.lastDocId))
+                }
+                categoryCache[category] = CachedCategory(timestamp = now)
+            }
+
             var query = firestore.collection("products")
                 .whereEqualTo("categoria", category)
                 .orderBy("nombre")
@@ -99,9 +105,19 @@ class FirebaseProductRepository @Inject constructor(
             }
 
             val snapshot = query.get().await()
-            val products = snapshot.documents.map { productFromDocument(it) }
-                .filter { it.isActive }
+            val products = snapshot.documents.mapNotNull { productFromDocument(it) }
             val newLastDocId = snapshot.documents.lastOrNull()?.id
+
+            val cached = categoryCache[category]
+            if (cached != null) {
+                val existingIds = cached.products.map { it.id }.toSet()
+                for (p in products) {
+                    if (p.id !in existingIds) {
+                        cached.products.add(p)
+                    }
+                }
+                cached.lastDocId = newLastDocId
+            }
             Result.success(ProductPage(products, newLastDocId))
         } catch (e: Exception) {
             Result.failure(e)
@@ -124,12 +140,12 @@ class FirebaseProductRepository @Inject constructor(
             if (tokens.isNotEmpty()) {
                 val token = tokens.first()
                 val snapshot = firestore.collection("products")
-                    .whereEqualTo("isActive", true)
                     .whereArrayContains("searchKeywords", token)
                     .limit(limit.toLong())
                     .get()
                     .await()
-                val products = snapshot.documents.map { productFromDocument(it) }
+                val products = snapshot.documents.mapNotNull { productFromDocument(it) }
+                    .filter { it.isActive }
                 return Result.success(products)
             }
 
@@ -142,7 +158,8 @@ class FirebaseProductRepository @Inject constructor(
                 .limit(limit.toLong())
                 .get()
                 .await()
-            val products = snapshot.documents.map { productFromDocument(it) }
+            val products = snapshot.documents.mapNotNull { productFromDocument(it) }
+                .filter { it.isActive }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
@@ -163,29 +180,25 @@ class FirebaseProductRepository @Inject constructor(
             val tokens = norm.split(" ").filter { it.length >= 2 }
 
             if (tokens.isNotEmpty()) {
-                val token = tokens.first()
                 val snapshot = firestore.collection("products")
-                    .whereEqualTo("categoria", category)
-                    .whereEqualTo("isActive", true)
-                    .whereArrayContains("searchKeywords", token)
-                    .limit(limit.toLong())
+                    .whereArrayContains("searchKeywords", tokens.first())
+                    .limit((limit * 3).toLong())
                     .get()
                     .await()
-                val products = snapshot.documents.map { productFromDocument(it) }
+                val products = snapshot.documents.mapNotNull { productFromDocument(it) }
+                    .filter { it.isActive && it.categoria == category }
+                    .take(limit)
                 return Result.success(products)
             }
 
-            val start = query.uppercase()
-            val end = start + "\uf8ff"
             val snapshot = firestore.collection("products")
                 .whereEqualTo("categoria", category)
                 .orderBy("nombre")
-                .whereGreaterThanOrEqualTo("nombre", start)
-                .whereLessThanOrEqualTo("nombre", end)
                 .limit(limit.toLong())
                 .get()
                 .await()
-            val products = snapshot.documents.map { productFromDocument(it) }
+            val products = snapshot.documents.mapNotNull { productFromDocument(it) }
+                .filter { it.isActive }
             Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)

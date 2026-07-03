@@ -87,6 +87,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -94,7 +95,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -575,27 +577,28 @@ private fun StepDelivery(
             Box(modifier = Modifier.fillMaxWidth()) {
                 var mapView by remember { mutableStateOf<MapView?>(null) }
                 var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
-                var styleLoaded by remember { mutableStateOf(false) }
+                val lifecycleOwner = LocalLifecycleOwner.current
 
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
-                            mapboxMap.loadStyleUri("mapbox://styles/hola231341/cmif5i96h00if01qmchq96rxm") { style ->
+                            mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
                                 try {
                                     val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
-                                    style.addImage("pin-icon", pinBitmap)
-                                    styleLoaded = true
-                                } catch (_: Exception) {
-                                    styleLoaded = true
+                                    if (pinBitmap != null) {
+                                        style.addImage("pin-icon", pinBitmap)
+                                    }
+                                    mapboxMap.setCamera(
+                                        CameraOptions.Builder()
+                                            .center(Point.fromLngLat(STORE_LONGITUDE, STORE_LATITUDE))
+                                            .zoom(14.0)
+                                            .pitch(0.0)
+                                            .build()
+                                    )
+                                } catch (e: Exception) {
+                                    android.util.Log.e("Mapbox", "Error loading style assets", e)
                                 }
                             }
-                            mapboxMap.setCamera(
-                                CameraOptions.Builder()
-                                    .center(Point.fromLngLat(STORE_LONGITUDE, STORE_LATITUDE))
-                                    .zoom(14.0)
-                                    .pitch(0.0)
-                                    .build()
-                            )
                             setOnTouchListener { _, event ->
                                 if (event.action == android.view.MotionEvent.ACTION_UP) {
                                     val screenPoint = com.mapbox.maps.ScreenCoordinate(
@@ -630,6 +633,13 @@ private fun StepDelivery(
                             }
                             annotationManager = annotations.createPointAnnotationManager()
                             mapView = this
+                            post {
+                                if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                    this.onResume()
+                                } else if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                                    this.onStart()
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
@@ -637,6 +647,24 @@ private fun StepDelivery(
                         .height(250.dp),
                     update = { }
                 )
+
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME -> mapView?.onResume()
+                            Lifecycle.Event.ON_PAUSE -> {
+                                try { mapView?.onPause() } catch (_: Exception) { }
+                            }
+                            Lifecycle.Event.ON_STOP -> mapView?.onStop()
+                            Lifecycle.Event.ON_DESTROY -> mapView?.onDestroy()
+                            else -> {}
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose {
+                        lifecycleOwner.lifecycle.removeObserver(observer)
+                    }
+                }
 
                 Column(
                     modifier = Modifier
@@ -672,18 +700,9 @@ private fun StepDelivery(
                     }
                 }
 
-                DisposableEffect(Unit) {
-                    try { mapView?.onStart() } catch (_: Exception) {}
-                    try { mapView?.onResume() } catch (_: Exception) {}
-                    onDispose {
-                        try { mapView?.onStop() } catch (_: Exception) {}
-                        try { mapView?.onDestroy() } catch (_: Exception) {}
-                    }
-                }
-
                 if (requestingLocation) {
                     LaunchedEffect(Unit) {
-                        if (locationGranted) {
+                        if (locationGranted && mapView != null) {
                             locationClient.lastLocation.addOnSuccessListener { loc ->
                                 if (loc != null) {
                                     latitude = loc.latitude
@@ -1564,10 +1583,12 @@ private fun ConfettiEffect(modifier: Modifier = Modifier) {
     }
 }
 
-private fun vectorToBitmap(context: Context, drawableRes: Int): Bitmap {
-    val drawable = AppCompatResources.getDrawable(context, drawableRes)!!
+private fun vectorToBitmap(context: Context, drawableRes: Int): Bitmap? {
+    val drawable = AppCompatResources.getDrawable(context, drawableRes) ?: return null
     val bitmap = Bitmap.createBitmap(
-        drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        drawable.intrinsicWidth.takeIf { it > 0 } ?: 36,
+        drawable.intrinsicHeight.takeIf { it > 0 } ?: 36,
+        Bitmap.Config.ARGB_8888
     )
     val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)

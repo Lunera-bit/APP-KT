@@ -2,6 +2,7 @@ package com.cyryel.ui.categoryproducts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.Normalizer
 import javax.inject.Inject
 
 @HiltViewModel
@@ -81,6 +83,13 @@ class CategoryProductsViewModel @Inject constructor(
             searchJob?.cancel()
             return
         }
+
+        val localResults = searchLocal(query, _uiState.value.products)
+        if (localResults.isNotEmpty()) {
+            _uiState.update { it.copy(searchResults = localResults, isSearching = false) }
+            return
+        }
+
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             _uiState.update { it.copy(isSearching = true) }
@@ -95,6 +104,27 @@ class CategoryProductsViewModel @Inject constructor(
             result.onFailure {
                 _uiState.update { it.copy(searchResults = emptyList(), isSearching = false) }
             }
+        }
+    }
+
+    private fun searchLocal(query: String, products: List<Product>): List<Product> {
+        val norm = normalize(query)
+        if (norm.isBlank()) return emptyList()
+        return products.filter { p ->
+            normalize(p.nombre).contains(norm) ||
+            normalize(p.codigo).contains(norm) ||
+            normalize(p.categoria).contains(norm)
+        }.take(20)
+    }
+
+    private fun normalize(text: String): String {
+        return try {
+            Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD)
+                .replace(Regex("[\\u0300-\\u036f]"), "")
+                .replace(Regex("[^a-z0-9\\s]"), " ")
+                .trim()
+        } catch (_: Exception) {
+            text.lowercase().trim()
         }
     }
 }

@@ -54,16 +54,19 @@ fun AuthRoute(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            val data: Intent? = result.data
-            try {
-                val account = GoogleSignIn.getSignedInAccountFromIntent(data).result
-                account?.idToken?.let { token ->
-                    viewModel.signInWithGoogle(token)
-                }
-            } catch (e: ApiException) {
-                // Google sign-in failed
+        android.util.Log.d("GOOGLE_DEBUG", "Result recibido: código=${result.resultCode}, data=${result.data}")
+        try {
+            val account = GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(ApiException::class.java)
+            val token = account.idToken
+            if (token != null) {
+                viewModel.signInWithGoogle(token)
+            } else {
+                android.util.Log.w("GOOGLE_SIGNIN", "idToken es null")
+                viewModel.showError("Error: No se pudo obtener el token de Google")
             }
+        } catch (e: ApiException) {
+            android.util.Log.e("GOOGLE_SIGNIN", "ApiException codigo=${e.statusCode}: ${e.localizedMessage}", e)
+            viewModel.showError("Error de Google (${e.statusCode}): ${e.localizedMessage ?: "desconocido"}")
         }
     }
 
@@ -79,9 +82,7 @@ fun AuthRoute(
             uiState = uiState,
             onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
             onGoogleSignInClick = {
-                googleSignInClient.signOut().addOnCompleteListener {
-                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
-                }
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
             }
         )
     }
