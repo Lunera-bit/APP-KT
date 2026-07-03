@@ -21,11 +21,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.cyryel"
+        applicationId = "com.CYRYEL.com"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 30
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

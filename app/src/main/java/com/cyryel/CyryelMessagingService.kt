@@ -85,16 +85,19 @@ class CyryelMessagingService : FirebaseMessagingService() {
             }
         }
 
-        val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        val orderId = message.data["orderId"] ?: ""
+        val intent = Intent(this, com.cyryel.MainActivity::class.java)
+        if (orderId.isNotBlank()) {
+            intent.data = android.net.Uri.parse("cyryel://order/$orderId")
         }
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(com.cyryel.R.drawable.ic_notification_icon)
+            .setSmallIcon(com.cyryel.R.drawable.ic_stat_4081896)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

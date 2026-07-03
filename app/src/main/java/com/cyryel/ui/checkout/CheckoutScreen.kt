@@ -133,6 +133,7 @@ private val stepIcons = listOf(
 fun CheckoutScreen(
     onBack: () -> Unit,
     onOrderCreated: (String) -> Unit = {},
+    onGoHome: () -> Unit = onBack,
     modifier: Modifier = Modifier,
     viewModel: CheckoutViewModel = hiltViewModel()
 ) {
@@ -169,7 +170,7 @@ fun CheckoutScreen(
                         onBack()
                     }
                 },
-                onGoHome = onBack
+                onGoHome = onGoHome
             )
         } else {
             Column(
@@ -579,7 +580,7 @@ private fun StepDelivery(
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
-                            mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
+                            mapboxMap.loadStyleUri("mapbox://styles/hola231341/cmif5i96h00if01qmchq96rxm") { style ->
                                 try {
                                     val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
                                     style.addImage("pin-icon", pinBitmap)

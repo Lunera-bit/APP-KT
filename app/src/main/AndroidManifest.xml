@@ -19,7 +19,7 @@
             android:value="${MAPBOX_ACCESS_TOKEN}" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_notification_icon" />
+            android:resource="@drawable/ic_stat_4081896" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/notificationColor" />

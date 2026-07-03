@@ -10,6 +10,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.cyryel.ui.auth.AuthRoute
 import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.categoryproducts.CategoryProductsScreen
@@ -141,13 +142,19 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                     navController.navigate(Routes.orderDetail(orderId)) {
                         popUpTo(Routes.MAIN)
                     }
+                },
+                onGoHome = {
+                    navController.navigate(Routes.MAIN) {
+                        popUpTo(Routes.MAIN) { inclusive = true }
+                    }
                 }
             )
         }
 
         composable(
             route = Routes.ORDER_DETAIL,
-            arguments = listOf(navArgument("orderId") { type = NavType.StringType })
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+            deepLinks = listOf(navDeepLink { uriPattern = "cyryel://order/{orderId}" })
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             OrderDetailScreen(

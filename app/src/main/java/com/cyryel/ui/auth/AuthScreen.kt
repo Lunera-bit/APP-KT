@@ -79,7 +79,9 @@ fun AuthRoute(
             uiState = uiState,
             onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
             onGoogleSignInClick = {
-                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                googleSignInClient.signOut().addOnCompleteListener {
+                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                }
             }
         )
     }
