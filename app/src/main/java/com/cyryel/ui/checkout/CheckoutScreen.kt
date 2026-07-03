@@ -582,11 +582,23 @@ private fun StepDelivery(
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
+                            val token = com.cyryel.BuildConfig.MAPBOX_ACCESS_TOKEN
+                            android.util.Log.d("MAPBOX_DEBUG", "=== MAPBOX DEBUG ===")
+                            android.util.Log.d("MAPBOX_DEBUG", "Token disponible: ${token != null && token.isNotEmpty() && token != "null"}")
+                            android.util.Log.d("MAPBOX_DEBUG", "Token prefix: ${token.take(20)}...")
+                            android.util.Log.d("MAPBOX_DEBUG", "Token length: ${token.length}")
+                            android.util.Log.d("MAPBOX_DEBUG", "SK token en local.properties: presente (no se puede leer en runtime)")
+                            android.util.Log.d("MAPBOX_DEBUG", "Style URI: mapbox://styles/mapbox/streets-v12")
+                            android.util.Log.d("MAPBOX_DEBUG", "Meta-data en AndroidManifest: com.mapbox.maps.token")
+                            android.util.Log.d("MAPBOX_DEBUG", "MapView creado, cargando estilo...")
                             mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
+                                android.util.Log.d("MAPBOX_DEBUG", "Style loaded OK")
                                 try {
                                     val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
+                                    android.util.Log.d("MAPBOX_DEBUG", "Pin bitmap: ${if (pinBitmap != null) "OK (${pinBitmap.width}x${pinBitmap.height})" else "NULL"}")
                                     if (pinBitmap != null) {
                                         style.addImage("pin-icon", pinBitmap)
+                                        android.util.Log.d("MAPBOX_DEBUG", "Pin icon added to style")
                                     }
                                     mapboxMap.setCamera(
                                         CameraOptions.Builder()
@@ -595,11 +607,13 @@ private fun StepDelivery(
                                             .pitch(0.0)
                                             .build()
                                     )
+                                    android.util.Log.d("MAPBOX_DEBUG", "Camera set to tienda position: lat=$STORE_LATITUDE, lng=$STORE_LONGITUDE")
                                 } catch (e: Exception) {
-                                    android.util.Log.e("Mapbox", "Error loading style assets", e)
+                                    android.util.Log.e("MAPBOX_DEBUG", "Error loading style assets: ${e.message}", e)
                                 }
                             }
                             setOnTouchListener { _, event ->
+                                android.util.Log.d("MAPBOX_DEBUG", "Touch event: action=${event.action}")
                                 if (event.action == android.view.MotionEvent.ACTION_UP) {
                                     val screenPoint = com.mapbox.maps.ScreenCoordinate(
                                         event.x.toDouble(), event.y.toDouble()
@@ -645,15 +659,18 @@ private fun StepDelivery(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(250.dp),
-                    update = { }
+                    update = {
+                        android.util.Log.d("MAPBOX_DEBUG", "AndroidView update called, mapView=${mapView != null}")
+                    }
                 )
 
                 DisposableEffect(lifecycleOwner) {
                     val observer = LifecycleEventObserver { _, event ->
+                        android.util.Log.d("MAPBOX_DEBUG", "Lifecycle event: $event, mapView=${mapView != null}")
                         when (event) {
                             Lifecycle.Event.ON_RESUME -> mapView?.onResume()
                             Lifecycle.Event.ON_PAUSE -> {
-                                try { mapView?.onPause() } catch (_: Exception) { }
+                                android.util.Log.d("MAPBOX_DEBUG", "ON_PAUSE (onPause no disponible en este SDK)")
                             }
                             Lifecycle.Event.ON_STOP -> mapView?.onStop()
                             Lifecycle.Event.ON_DESTROY -> mapView?.onDestroy()
@@ -702,8 +719,10 @@ private fun StepDelivery(
 
                 if (requestingLocation) {
                     LaunchedEffect(Unit) {
+                        android.util.Log.d("MAPBOX_DEBUG", "requestingLocation=true, locationGranted=$locationGranted, mapView=${mapView != null}")
                         if (locationGranted && mapView != null) {
                             locationClient.lastLocation.addOnSuccessListener { loc ->
+                                android.util.Log.d("MAPBOX_DEBUG", "lastLocation result: loc=${loc != null}")
                                 if (loc != null) {
                                     latitude = loc.latitude
                                     longitude = loc.longitude
