@@ -22,9 +22,9 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Canvas
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -102,7 +102,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.google.android.gms.location.LocationServices
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
@@ -528,22 +527,6 @@ private fun StepDelivery(
     var latitude by remember { mutableDoubleStateOf(STORE_LATITUDE) }
     var longitude by remember { mutableDoubleStateOf(STORE_LONGITUDE) }
     var placedMarker by remember { mutableStateOf(false) }
-    var locationGranted by remember { mutableStateOf(false) }
-    var requestingLocation by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val locationClient = remember {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        locationGranted = granted
-        if (granted) {
-            requestingLocation = true
-        }
-    }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -574,234 +557,65 @@ private fun StepDelivery(
             )
         }
         if (deliveryMethod == "domicilio") {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                var mapView by remember { mutableStateOf<MapView?>(null) }
-                var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
-                val lifecycleOwner = LocalLifecycleOwner.current
+            var showMapPicker by remember { mutableStateOf(false) }
+            var pickerLat by remember { mutableDoubleStateOf(latitude) }
+            var pickerLng by remember { mutableDoubleStateOf(longitude) }
+            var pickerStreet by remember { mutableStateOf(street) }
+            var pickerCity by remember { mutableStateOf(city) }
+            var pickerRef by remember { mutableStateOf(reference) }
 
-                AndroidView(
-                    factory = { ctx ->
-                        MapView(ctx).apply {
-                            val token = com.cyryel.BuildConfig.MAPBOX_ACCESS_TOKEN
-                            android.util.Log.d("MAPBOX_DEBUG", "=== MAPBOX DEBUG ===")
-                            android.util.Log.d("MAPBOX_DEBUG", "Token disponible: ${token != null && token.isNotEmpty() && token != "null"}")
-                            android.util.Log.d("MAPBOX_DEBUG", "Token prefix: ${token.take(20)}...")
-                            android.util.Log.d("MAPBOX_DEBUG", "Token length: ${token.length}")
-                            android.util.Log.d("MAPBOX_DEBUG", "SK token en local.properties: presente (no se puede leer en runtime)")
-                            android.util.Log.d("MAPBOX_DEBUG", "Style URI: mapbox://styles/mapbox/streets-v12")
-                            android.util.Log.d("MAPBOX_DEBUG", "Meta-data en AndroidManifest: com.mapbox.maps.token")
-                            android.util.Log.d("MAPBOX_DEBUG", "MapView creado, cargando estilo...")
-                            mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
-                                android.util.Log.d("MAPBOX_DEBUG", "Style loaded OK")
-                                try {
-                                    val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
-                                    android.util.Log.d("MAPBOX_DEBUG", "Pin bitmap: ${if (pinBitmap != null) "OK (${pinBitmap.width}x${pinBitmap.height})" else "NULL"}")
-                                    if (pinBitmap != null) {
-                                        style.addImage("pin-icon", pinBitmap)
-                                        android.util.Log.d("MAPBOX_DEBUG", "Pin icon added to style")
-                                    }
-                                    mapboxMap.setCamera(
-                                        CameraOptions.Builder()
-                                            .center(Point.fromLngLat(STORE_LONGITUDE, STORE_LATITUDE))
-                                            .zoom(14.0)
-                                            .pitch(0.0)
-                                            .build()
-                                    )
-                                    android.util.Log.d("MAPBOX_DEBUG", "Camera set to tienda position: lat=$STORE_LATITUDE, lng=$STORE_LONGITUDE")
-                                } catch (e: Exception) {
-                                    android.util.Log.e("MAPBOX_DEBUG", "Error loading style assets: ${e.message}", e)
-                                }
-                            }
-                            setOnTouchListener { _, event ->
-                                android.util.Log.d("MAPBOX_DEBUG", "Touch event: action=${event.action}")
-                                if (event.action == android.view.MotionEvent.ACTION_UP) {
-                                    val screenPoint = com.mapbox.maps.ScreenCoordinate(
-                                        event.x.toDouble(), event.y.toDouble()
-                                    )
-                                    val point = mapboxMap.coordinateForPixel(screenPoint)
-                                    latitude = point.latitude()
-                                    longitude = point.longitude()
-                                    placedMarker = true
-                                    mapboxMap.setCamera(
-                                        CameraOptions.Builder()
-                                            .center(Point.fromLngLat(point.longitude(), point.latitude()))
-                                            .zoom(14.0)
-                                            .pitch(0.0)
-                                            .build()
-                                    )
-                                    annotationManager?.deleteAll()
-                                    annotationManager?.create(
-                                        PointAnnotationOptions()
-                                            .withPoint(Point.fromLngLat(point.longitude(), point.latitude()))
-                                            .withIconImage("pin-icon")
-                                    )
-                                    reverseGeocodeAddress(
-                                        context, point.latitude(), point.longitude(),
-                                        onAddressFound = { addr, cty ->
-                                            if (addr != null) onStreetChange(addr)
-                                            if (cty != null) onCityChange(cty)
-                                        }
-                                    )
-                                }
-                                false
-                            }
-                            annotationManager = annotations.createPointAnnotationManager()
-                            mapView = this
-                            post {
-                                if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                                    this.onResume()
-                                } else if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                                    this.onStart()
-                                }
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp),
-                    update = {
-                        android.util.Log.d("MAPBOX_DEBUG", "AndroidView update called, mapView=${mapView != null}")
-                    }
-                )
-
-                DisposableEffect(lifecycleOwner) {
-                    val observer = LifecycleEventObserver { _, event ->
-                        android.util.Log.d("MAPBOX_DEBUG", "Lifecycle event: $event, mapView=${mapView != null}")
-                        when (event) {
-                            Lifecycle.Event.ON_RESUME -> mapView?.onResume()
-                            Lifecycle.Event.ON_PAUSE -> {
-                                android.util.Log.d("MAPBOX_DEBUG", "ON_PAUSE (onPause no disponible en este SDK)")
-                            }
-                            Lifecycle.Event.ON_STOP -> mapView?.onStop()
-                            Lifecycle.Event.ON_DESTROY -> mapView?.onDestroy()
-                            else -> {}
-                        }
-                    }
-                    lifecycleOwner.lifecycle.addObserver(observer)
-                    onDispose {
-                        lifecycleOwner.lifecycle.removeObserver(observer)
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    FloatingActionButton(
-                        onClick = {
-                            mapView?.mapboxMap?.let { map ->
-                                val currentZoom = map.cameraState.zoom
-                                map.setCamera(CameraOptions.Builder().zoom(currentZoom + 1).build())
-                            }
-                        },
-                        modifier = Modifier.size(36.dp),
-                        containerColor = AzulRey,
-                        contentColor = Color.White
-                    ) {
-                        Text("+", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    }
-                    FloatingActionButton(
-                        onClick = {
-                            mapView?.mapboxMap?.let { map ->
-                                val currentZoom = map.cameraState.zoom
-                                map.setCamera(CameraOptions.Builder().zoom(currentZoom - 1).build())
-                            }
-                        },
-                        modifier = Modifier.size(36.dp),
-                        containerColor = AzulRey,
-                        contentColor = Color.White
-                    ) {
-                        Text("-", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    }
-                }
-
-                if (requestingLocation) {
-                    LaunchedEffect(Unit) {
-                        android.util.Log.d("MAPBOX_DEBUG", "requestingLocation=true, locationGranted=$locationGranted, mapView=${mapView != null}")
-                        if (locationGranted && mapView != null) {
-                            locationClient.lastLocation.addOnSuccessListener { loc ->
-                                android.util.Log.d("MAPBOX_DEBUG", "lastLocation result: loc=${loc != null}")
-                                if (loc != null) {
-                                    latitude = loc.latitude
-                                    longitude = loc.longitude
-                                    placedMarker = true
-                                    mapView?.mapboxMap?.setCamera(
-                                        CameraOptions.Builder()
-                                            .center(Point.fromLngLat(loc.longitude, loc.latitude))
-                                            .zoom(14.0)
-                                            .pitch(0.0)
-                                            .build()
-                                    )
-                                    annotationManager?.deleteAll()
-                                    annotationManager?.create(
-                                        PointAnnotationOptions()
-                                            .withPoint(Point.fromLngLat(loc.longitude, loc.latitude))
-                                            .withIconImage("pin-icon")
-                                    )
-                                    reverseGeocodeAddress(
-                                        context, loc.latitude, loc.longitude,
-                                        onAddressFound = { addr, cty ->
-                                            if (addr != null) onStreetChange(addr)
-                                            if (cty != null) onCityChange(cty)
-                                        }
-                                    )
-                                }
-                                requestingLocation = false
-                            }
-                        }
-                    }
-                }
-
-                FloatingActionButton(
-                    onClick = {
-                        if (locationGranted) {
-                            requestingLocation = true
-                        } else {
-                            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(8.dp)
-                        .size(40.dp),
-                    containerColor = AzulRey,
-                    contentColor = Color.White
-                ) {
-                    Text(
-                        text = "⌖",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
+            Button(
+                onClick = {
+                    pickerLat = latitude
+                    pickerLng = longitude
+                    pickerStreet = street
+                    pickerCity = city
+                    pickerRef = reference
+                    showMapPicker = true
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+            ) {
+                Icon(Icons.Filled.Home, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Elegir ubicación en el mapa")
             }
 
-            OutlinedTextField(
-                value = street,
-                onValueChange = onStreetChange,
-                label = { Text("Direccion") },
-                isError = fieldErrors.containsKey("street"),
-                supportingText = fieldErrors["street"]?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = city,
-                onValueChange = onCityChange,
-                label = { Text("Ciudad") },
-                isError = fieldErrors.containsKey("city"),
-                supportingText = fieldErrors["city"]?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            OutlinedTextField(
-                value = reference,
-                onValueChange = onReferenceChange,
-                label = { Text("Referencia (opcional)") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            if (showMapPicker) {
+                MapPickerDialog(
+                    initialLat = pickerLat,
+                    initialLng = pickerLng,
+                    initialStreet = pickerStreet,
+                    initialCity = pickerCity,
+                    initialRef = pickerRef,
+                    onConfirm = { lat, lng, addr, cty, ref ->
+                        latitude = lat
+                        longitude = lng
+                        placedMarker = true
+                        onStreetChange(addr)
+                        onCityChange(cty)
+                        onReferenceChange(ref)
+                        showMapPicker = false
+                    },
+                    onDismiss = { showMapPicker = false }
+                )
+            }
+
+            if (placedMarker) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = AzulRey.copy(alpha = 0.08f)
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("Ubicación seleccionada:", fontWeight = FontWeight.Bold, color = AzulRey)
+                        if (street.isNotBlank()) Text("Dirección: $street")
+                        if (city.isNotBlank()) Text("Ciudad: $city")
+                        if (reference.isNotBlank()) Text("Referencia: $reference")
+                    }
+                }
+            }
         } else {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -825,6 +639,159 @@ private fun StepDelivery(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MapPickerDialog(
+    initialLat: Double,
+    initialLng: Double,
+    initialStreet: String,
+    initialCity: String,
+    initialRef: String,
+    onConfirm: (Double, Double, String, String, String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var latitude by remember { mutableDoubleStateOf(initialLat) }
+    var longitude by remember { mutableDoubleStateOf(initialLng) }
+    var street by remember { mutableStateOf(initialStreet) }
+    var city by remember { mutableStateOf(initialCity) }
+    var reference by remember { mutableStateOf(initialRef) }
+    var mapView by remember { mutableStateOf<MapView?>(null) }
+    var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+            AndroidView(
+                factory = { ctx ->
+                    MapView(ctx).apply {
+                        mapboxMap.loadStyleUri("mapbox://styles/mapbox/standard") { style ->
+                            try {
+                                val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
+                                if (pinBitmap != null) style.addImage("pin-icon", pinBitmap)
+                                mapboxMap.setCamera(
+                                    CameraOptions.Builder()
+                                        .center(Point.fromLngLat(longitude, latitude))
+                                        .zoom(14.0)
+                                        .pitch(0.0)
+                                        .build()
+                                )
+                            } catch (_: Exception) { }
+                        }
+                        setOnTouchListener { _, event ->
+                            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                                val screenPoint = com.mapbox.maps.ScreenCoordinate(
+                                    event.x.toDouble(), event.y.toDouble()
+                                )
+                                val point = mapboxMap.coordinateForPixel(screenPoint)
+                                latitude = point.latitude()
+                                longitude = point.longitude()
+                                mapboxMap.setCamera(
+                                    CameraOptions.Builder()
+                                        .center(Point.fromLngLat(point.longitude(), point.latitude()))
+                                        .zoom(14.0)
+                                        .pitch(0.0)
+                                        .build()
+                                )
+                                annotationManager?.deleteAll()
+                                annotationManager?.create(
+                                    PointAnnotationOptions()
+                                        .withPoint(Point.fromLngLat(point.longitude(), point.latitude()))
+                                        .withIconImage("pin-icon")
+                                )
+                                reverseGeocodeAddress(
+                                    context, point.latitude(), point.longitude(),
+                                    onAddressFound = { addr, cty ->
+                                        if (addr != null) street = addr
+                                        if (cty != null) city = cty
+                                    }
+                                )
+                            }
+                            false
+                        }
+                        annotationManager = annotations.createPointAnnotationManager()
+                        if (initialLat != STORE_LATITUDE || initialLng != STORE_LONGITUDE) {
+                            annotationManager?.create(
+                                PointAnnotationOptions()
+                                    .withPoint(Point.fromLngLat(initialLng, initialLat))
+                                    .withIconImage("pin-icon")
+                            )
+                        }
+                        mapView = this
+                        post {
+                            if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                                this.onResume()
+                            } else if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                                this.onStart()
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+                update = { }
+            )
+
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME -> mapView?.onResume()
+                        Lifecycle.Event.ON_PAUSE -> { }
+                        Lifecycle.Event.ON_STOP -> mapView?.onStop()
+                        Lifecycle.Event.ON_DESTROY -> mapView?.onDestroy()
+                        else -> {}
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(
+                        Color.White.copy(alpha = 0.95f),
+                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                    )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text("Ubicación de entrega", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AzulRey)
+                OutlinedTextField(
+                    value = street,
+                    onValueChange = { street = it },
+                    label = { Text("Dirección") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = city,
+                    onValueChange = { city = it },
+                    label = { Text("Ciudad") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = reference,
+                    onValueChange = { reference = it },
+                    label = { Text("Referencia (opcional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Button(
+                    onClick = { onConfirm(latitude, longitude, street, city, reference) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+                ) {
+                    Text("Confirmar ubicación")
                 }
             }
         }
