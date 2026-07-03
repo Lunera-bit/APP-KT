@@ -117,6 +117,14 @@ import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.util.openWhatsAppWithOrder
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import com.google.android.gms.location.LocationServices
 
 private const val STORE_LATITUDE = -11.56544559
 private const val STORE_LONGITUDE = -77.27104991
@@ -645,6 +653,7 @@ private fun StepDelivery(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapPickerDialog(
     initialLat: Double,
@@ -666,6 +675,54 @@ private fun MapPickerDialog(
     val context = LocalContext.current
     remember { MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN; Unit }
 
+    var locationGranted by remember { mutableStateOf(false) }
+    var requestingLocation by remember { mutableStateOf(false) }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        locationGranted = granted
+        if (granted) requestingLocation = true
+    }
+
+    LaunchedEffect(requestingLocation) {
+        if (requestingLocation) {
+            try {
+                val fusedClient = LocationServices.getFusedLocationProviderClient(context)
+                fusedClient.lastLocation.addOnSuccessListener { location ->
+                    if (location != null) {
+                        val lat = location.latitude
+                        val lng = location.longitude
+                        latitude = lat
+                        longitude = lng
+                        mapView?.mapboxMap?.setCamera(
+                            CameraOptions.Builder()
+                                .center(Point.fromLngLat(lng, lat))
+                                .zoom(14.0)
+                                .pitch(45.0)
+                                .build()
+                        )
+                        annotationManager?.deleteAll()
+                        annotationManager?.create(
+                            PointAnnotationOptions()
+                                .withPoint(Point.fromLngLat(lng, lat))
+                                .withIconImage("pin-icon")
+                        )
+                        reverseGeocodeAddress(
+                            context, lat, lng,
+                            onAddressFound = { addr, cty ->
+                                if (addr != null) street = addr
+                                if (cty != null) city = cty
+                            }
+                        )
+                    }
+                }
+            } catch (_: Exception) { }
+            requestingLocation = false
+        }
+    }
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -682,7 +739,7 @@ private fun MapPickerDialog(
                                     CameraOptions.Builder()
                                         .center(Point.fromLngLat(longitude, latitude))
                                         .zoom(14.0)
-                                        .pitch(0.0)
+                                        .pitch(45.0)
                                         .build()
                                 )
                             } catch (_: Exception) { }
@@ -699,7 +756,7 @@ private fun MapPickerDialog(
                                     CameraOptions.Builder()
                                         .center(Point.fromLngLat(point.longitude(), point.latitude()))
                                         .zoom(14.0)
-                                        .pitch(0.0)
+                                        .pitch(45.0)
                                         .build()
                                 )
                                 annotationManager?.deleteAll()
@@ -736,7 +793,7 @@ private fun MapPickerDialog(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(8.dp),
                 update = { }
             )
 
@@ -754,45 +811,62 @@ private fun MapPickerDialog(
                 onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
-            Column(
+            FloatingActionButton(
+                onClick = {
+                    if (locationGranted) {
+                        requestingLocation = true
+                    } else {
+                        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                },
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(
-                        Color.White.copy(alpha = 0.95f),
-                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-                    )
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
             ) {
-                Text("Ubicación de entrega", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AzulRey)
-                OutlinedTextField(
-                    value = street,
-                    onValueChange = { street = it },
-                    label = { Text("Dirección") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = city,
-                    onValueChange = { city = it },
-                    label = { Text("Ciudad") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = reference,
-                    onValueChange = { reference = it },
-                    label = { Text("Referencia (opcional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Button(
-                    onClick = { onConfirm(latitude, longitude, street, city, reference) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+                Text("⌖", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            }
+
+            ModalBottomSheet(
+                onDismissRequest = onDismiss,
+                sheetState = sheetState,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .navigationBarsPadding()
+                        .imePadding(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("Confirmar ubicación")
+                    Text("Ubicación de entrega", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = AzulRey)
+                    OutlinedTextField(
+                        value = street,
+                        onValueChange = { street = it },
+                        label = { Text("Dirección") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = city,
+                        onValueChange = { city = it },
+                        label = { Text("Ciudad") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = reference,
+                        onValueChange = { reference = it },
+                        label = { Text("Referencia (opcional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Button(
+                        onClick = { onConfirm(latitude, longitude, street, city, reference) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+                    ) {
+                        Text("Confirmar ubicación")
+                    }
                 }
             }
         }
