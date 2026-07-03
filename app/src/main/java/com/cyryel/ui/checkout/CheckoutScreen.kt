@@ -111,6 +111,7 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.cyryel.BuildConfig
 import com.cyryel.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
@@ -570,17 +571,22 @@ private fun StepDelivery(
             )
         }
         if (deliveryMethod == "domicilio") {
-            val styleUri = "mapbox://styles/hola231341/cmjlpavo0006q01s58z376ig8"
             Box(modifier = Modifier.fillMaxWidth()) {
                 var mapView by remember { mutableStateOf<MapView?>(null) }
                 var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
+                var styleLoaded by remember { mutableStateOf(false) }
 
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
-                            mapboxMap.loadStyleUri(styleUri) { style ->
-                                val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
-                                style.addImage("pin-icon", pinBitmap)
+                            mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
+                                try {
+                                    val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
+                                    style.addImage("pin-icon", pinBitmap)
+                                    styleLoaded = true
+                                } catch (_: Exception) {
+                                    styleLoaded = true
+                                }
                             }
                             mapboxMap.setCamera(
                                 CameraOptions.Builder()
@@ -666,9 +672,11 @@ private fun StepDelivery(
                 }
 
                 DisposableEffect(Unit) {
+                    try { mapView?.onStart() } catch (_: Exception) {}
+                    try { mapView?.onResume() } catch (_: Exception) {}
                     onDispose {
-                        mapView?.onStop()
-                        mapView?.onDestroy()
+                        try { mapView?.onStop() } catch (_: Exception) {}
+                        try { mapView?.onDestroy() } catch (_: Exception) {}
                     }
                 }
 

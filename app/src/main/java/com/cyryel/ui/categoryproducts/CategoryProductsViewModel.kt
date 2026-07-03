@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.product.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +20,8 @@ class CategoryProductsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CategoryProductsUiState())
     val uiState: StateFlow<CategoryProductsUiState> = _uiState.asStateFlow()
+
+    private var searchJob: Job? = null
 
     fun loadCategory(categoryName: String) {
         if (_uiState.value.categoryName == categoryName && _uiState.value.products.isNotEmpty()) return
@@ -47,7 +51,7 @@ class CategoryProductsViewModel @Inject constructor(
 
     fun loadMore() {
         val state = _uiState.value
-        if (state.isLoadingMore || !state.hasMore) return
+        if (state.isLoadingMore || !state.hasMore || state.searchQuery.isNotBlank()) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
             val result = productRepository.getProductsByCategoryPaged(
@@ -66,6 +70,30 @@ class CategoryProductsViewModel @Inject constructor(
                 }
             } else {
                 _uiState.update { it.copy(isLoadingMore = false) }
+            }
+        }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+        if (query.isBlank()) {
+            _uiState.update { it.copy(searchResults = null, isSearching = false) }
+            searchJob?.cancel()
+            return
+        }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            _uiState.update { it.copy(isSearching = true) }
+            delay(300)
+            val result = productRepository.searchProductsByCategory(
+                query = query,
+                category = _uiState.value.categoryName
+            )
+            result.onSuccess { products ->
+                _uiState.update { it.copy(searchResults = products, isSearching = false) }
+            }
+            result.onFailure {
+                _uiState.update { it.copy(searchResults = emptyList(), isSearching = false) }
             }
         }
     }

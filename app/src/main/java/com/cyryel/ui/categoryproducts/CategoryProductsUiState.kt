@@ -9,5 +9,8 @@ data class CategoryProductsUiState(
     val categoryName: String = "",
     val errorMessage: String? = null,
     val lastDocId: String? = null,
-    val hasMore: Boolean = true
+    val hasMore: Boolean = true,
+    val searchQuery: String = "",
+    val searchResults: List<Product>? = null,
+    val isSearching: Boolean = false
 )

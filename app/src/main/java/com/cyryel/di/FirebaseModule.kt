@@ -8,6 +8,7 @@ import com.cyryel.data.cart.CartManager
 import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.category.FirebaseCategoryRepository
 import com.cyryel.data.local.AppDatabase
+import com.cyryel.data.local.CartDao
 import com.cyryel.data.local.ProductDao
 import com.cyryel.data.order.FirebaseOrderRepository
 import com.cyryel.data.order.OrderRepository
@@ -66,6 +67,12 @@ object FirebaseModule {
 
     @Provides
     @Singleton
+    fun provideCartDao(database: AppDatabase): CartDao {
+        return database.cartDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideProductRepository(
         firestore: FirebaseFirestore,
         productDao: ProductDao
@@ -77,12 +84,6 @@ object FirebaseModule {
     @Singleton
     fun provideOrderRepository(firestore: FirebaseFirestore): OrderRepository {
         return FirebaseOrderRepository(firestore)
-    }
-
-    @Provides
-    @Singleton
-    fun provideCartManager(): CartManager {
-        return CartManager()
     }
 
     @Provides

@@ -126,7 +126,7 @@ fun OrdersScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // ── Status filter chips ──
+            // ── Filtros y contenido ──
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -196,7 +196,7 @@ fun OrdersScreen(
                 onClear = { viewModel.clearDateFilter() }
             )
 
-            // ── Content area ──
+            // ── Content area with proper layout ──
             when {
                 uiState.isLoading -> {
                     Box(
@@ -283,6 +283,9 @@ fun OrdersScreen(
                 else -> {
                     LazyColumn(
                         state = listState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(
                             start = 12.dp, end = 12.dp, top = 10.dp, bottom = 16.dp

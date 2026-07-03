@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,54 +35,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.cyryel.data.product.Product
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.cyryel.data.product.ProductRepository
-
-@HiltViewModel
-class SearchViewModel @Inject constructor(
-    private val productRepository: ProductRepository
-) : ViewModel() {
-
-    private val _uiState = MutableStateFlow(SearchUiState())
-    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
-
-    private var allProducts: List<Product> = emptyList()
-
-    init {
-        loadAllProducts()
-    }
-
-    private fun loadAllProducts() {
-        viewModelScope.launch {
-            val result = productRepository.getRandomProducts(limit = 50)
-            if (result.isSuccess) {
-                allProducts = result.getOrDefault(emptyList())
-            }
-        }
-    }
-
-    fun onQueryChange(query: String) {
-        _uiState.update { it.copy(query = query, isSearching = query.isNotBlank()) }
-        if (query.isBlank()) {
-            _uiState.update { it.copy(results = emptyList(), isSearching = false) }
-            return
-        }
-        val filtered = allProducts.filter {
-            it.nombre.contains(query, ignoreCase = true) ||
-            it.categoria.contains(query, ignoreCase = true) ||
-            it.keywords.any { kw -> kw.contains(query, ignoreCase = true) }
-        }
-        _uiState.update { it.copy(results = filtered) }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

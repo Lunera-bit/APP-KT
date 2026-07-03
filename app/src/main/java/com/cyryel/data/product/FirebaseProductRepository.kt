@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.tasks.await
+import java.text.Normalizer
 import javax.inject.Inject
 
 class FirebaseProductRepository @Inject constructor(
@@ -102,6 +103,90 @@ class FirebaseProductRepository @Inject constructor(
                 .filter { it.isActive }
             val newLastDocId = snapshot.documents.lastOrNull()?.id
             Result.success(ProductPage(products, newLastDocId))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun searchProducts(query: String, limit: Int): Result<List<Product>> {
+        return try {
+            val norm = try {
+                Normalizer.normalize(query.lowercase(), Normalizer.Form.NFD)
+                    .replace(Regex("[\\u0300-\\u036f]"), "")
+                    .replace(Regex("[^a-z0-9\\s]"), " ")
+                    .replace(Regex("\\s+"), " ")
+                    .trim()
+            } catch (_: Exception) {
+                query.lowercase().trim()
+            }
+            val tokens = norm.split(" ").filter { it.length >= 2 }
+
+            if (tokens.isNotEmpty()) {
+                val token = tokens.first()
+                val snapshot = firestore.collection("products")
+                    .whereEqualTo("isActive", true)
+                    .whereArrayContains("searchKeywords", token)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+                val products = snapshot.documents.map { productFromDocument(it) }
+                return Result.success(products)
+            }
+
+            val start = query.uppercase()
+            val end = start + "\uf8ff"
+            val snapshot = firestore.collection("products")
+                .orderBy("nombre")
+                .whereGreaterThanOrEqualTo("nombre", start)
+                .whereLessThanOrEqualTo("nombre", end)
+                .limit(limit.toLong())
+                .get()
+                .await()
+            val products = snapshot.documents.map { productFromDocument(it) }
+            Result.success(products)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun searchProductsByCategory(query: String, category: String, limit: Int): Result<List<Product>> {
+        return try {
+            val norm = try {
+                Normalizer.normalize(query.lowercase(), Normalizer.Form.NFD)
+                    .replace(Regex("[\\u0300-\\u036f]"), "")
+                    .replace(Regex("[^a-z0-9\\s]"), " ")
+                    .replace(Regex("\\s+"), " ")
+                    .trim()
+            } catch (_: Exception) {
+                query.lowercase().trim()
+            }
+            val tokens = norm.split(" ").filter { it.length >= 2 }
+
+            if (tokens.isNotEmpty()) {
+                val token = tokens.first()
+                val snapshot = firestore.collection("products")
+                    .whereEqualTo("categoria", category)
+                    .whereEqualTo("isActive", true)
+                    .whereArrayContains("searchKeywords", token)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+                val products = snapshot.documents.map { productFromDocument(it) }
+                return Result.success(products)
+            }
+
+            val start = query.uppercase()
+            val end = start + "\uf8ff"
+            val snapshot = firestore.collection("products")
+                .whereEqualTo("categoria", category)
+                .orderBy("nombre")
+                .whereGreaterThanOrEqualTo("nombre", start)
+                .whereLessThanOrEqualTo("nombre", end)
+                .limit(limit.toLong())
+                .get()
+                .await()
+            val products = snapshot.documents.map { productFromDocument(it) }
+            Result.success(products)
         } catch (e: Exception) {
             Result.failure(e)
         }
