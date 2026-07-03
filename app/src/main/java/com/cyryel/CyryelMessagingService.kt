@@ -6,6 +6,9 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.cyryel.ui.notifications.FcmDebugStore
+import com.cyryel.ui.notifications.FcmLogEntry
+import com.cyryel.ui.notifications.FcmLogType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,17 +23,29 @@ class CyryelMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCM", "New token generated")
+        Log.d("FCM", "New token generated: $token")
+        FcmDebugStore.log(FcmLogEntry(FcmLogType.TOKEN_GENERATED, "Token generado: ${token.take(20)}..."))
+
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 FirebaseFirestore.getInstance()
                     .collection("users").document(uid)
-                    .set(mapOf("fcmToken" to token, "fcmTokenUpdatedAt" to FieldValue.serverTimestamp()), SetOptions.merge())
-                    .addOnSuccessListener { Log.d("FCM", "Token refreshed for $uid") }
-                    .addOnFailureListener { Log.w("FCM", "Token refresh failed for $uid", it) }
+                    .set(
+                        mapOf("fcmToken" to token, "fcmTokenUpdatedAt" to FieldValue.serverTimestamp()),
+                        SetOptions.merge()
+                    )
+                    .addOnSuccessListener {
+                        Log.d("FCM", "Token saved to Firestore for $uid")
+                        FcmDebugStore.log(FcmLogEntry(FcmLogType.TOKEN_SAVED, "Token guardado en Firestore para $uid"))
+                    }
+                    .addOnFailureListener {
+                        Log.w("FCM", "Token save failed for $uid", it)
+                        FcmDebugStore.log(FcmLogEntry(FcmLogType.TOKEN_SAVE_FAILED, "Error guardando token: ${it.localizedMessage}"))
+                    }
             } catch (e: Exception) {
-                Log.w("FCM", "Token refresh failed for $uid", e)
+                Log.w("FCM", "Token save failed for $uid", e)
+                FcmDebugStore.log(FcmLogEntry(FcmLogType.TOKEN_SAVE_FAILED, "Error guardando token: ${e.localizedMessage}"))
             }
         }
     }
@@ -40,13 +55,34 @@ class CyryelMessagingService : FirebaseMessagingService() {
 
         val title = message.notification?.title ?: message.data["title"] ?: "CYRYEL"
         val body = message.notification?.body ?: message.data["body"] ?: ""
+        val from = message.from ?: "unknown"
+        val data = message.data.entries.joinToString(", ") { "${it.key}=${it.value}" }
 
-        if (title.isBlank() && body.isBlank()) return
+        Log.d("FCM", "Message received - from: $from, title: $title, body: $body, data: $data")
+        FcmDebugStore.log(
+            FcmLogEntry(
+                FcmLogType.MESSAGE_RECEIVED,
+                "Mensaje recibido - Titulo: $title, Cuerpo: $body, Data: $data, From: $from"
+            )
+        )
+
+        if (title.isBlank() && body.isBlank()) {
+            FcmDebugStore.log(FcmLogEntry(FcmLogType.MESSAGE_DROPPED, "Mensaje ignorado: title y body vacios"))
+            return
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED
-            ) return
+            val hasPermission = checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+            FcmDebugStore.log(
+                FcmLogEntry(
+                    FcmLogType.PERMISSION_CHECK,
+                    "POST_NOTIFICATIONS permission: ${if (hasPermission == android.content.pm.PackageManager.PERMISSION_GRANTED) "CONCEDIDO" else "DENEGADO"}"
+                )
+            )
+            if (hasPermission != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                FcmDebugStore.log(FcmLogEntry(FcmLogType.MESSAGE_DROPPED, "Mensaje descartado: permiso de notificacion no concedido"))
+                return
+            }
         }
 
         val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
@@ -66,8 +102,14 @@ class CyryelMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .build()
 
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        try {
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+            FcmDebugStore.log(FcmLogEntry(FcmLogType.MESSAGE_SHOWN, "Notificacion mostrada: $title - $body"))
+        } catch (e: Exception) {
+            Log.e("FCM", "Error showing notification", e)
+            FcmDebugStore.log(FcmLogEntry(FcmLogType.ERROR, "Error al mostrar notificacion: ${e.localizedMessage ?: e.javaClass.simpleName}"))
+        }
     }
 
     companion object {
