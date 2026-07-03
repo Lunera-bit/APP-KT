@@ -24,7 +24,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.material3.TextButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,6 +104,7 @@ import coil.compose.AsyncImage
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
+import com.mapbox.common.MapboxOptions
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
@@ -664,6 +664,7 @@ private fun MapPickerDialog(
     var annotationManager by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
+    remember { MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN; Unit }
 
     Dialog(
         onDismissRequest = onDismiss,
