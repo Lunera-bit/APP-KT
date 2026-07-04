@@ -10,4 +10,5 @@ interface ProductRepository {
     suspend fun searchProducts(query: String, limit: Int = 50): Result<List<Product>>
     suspend fun searchProductsByCategory(query: String, category: String, limit: Int = 50): Result<List<Product>>
     suspend fun getCategories(): Result<List<Category>>
+    suspend fun getRedeemableProducts(limit: Int = 50): Result<List<Product>>
 }

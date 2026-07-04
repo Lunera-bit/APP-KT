@@ -62,12 +62,14 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ---
 
-## Fase 3: Billetera (Puntos) 🟡
+## Fase 3: Billetera (Puntos) 🟢
 
 | # | Tarea | Estado |
 |---|---|---|
 | 3.1 | Pantalla Billetera: saldo, ofertas slider, rewards, canjear | ✅ |
 | 3.2 | Historial de Puntos (subcolección `pointsHistory`) | ✅ |
+| 3.3 | Canjear con productos reales (query `pointsToRedeem > 0`) desde Firestore | ✅ |
+| 3.4 | Foto producto + "Ganas X pts al comprarlo" + navegación a detalle | ✅ |
 
 ---
 
@@ -189,11 +191,44 @@ Typos, imports no usados, `Typography()` vacío, formato moneda repetido, etc.
 
 - [ ] Subir APK release a Play Store (mismo keystore que Ionic)
 - [ ] Verificar notificaciones push flujo completo
-- [ ] Habilitar R8/ProGuard (`isMinifyEnabled = true`)
 - [ ] Mover tokens Mapbox a `local.properties` + `BuildConfig`
 - [ ] Agregar `.limit()` a queries Firestore
 - [ ] `fallbackToDestructiveMigration()` en Room
 - [ ] Tests unitarios para ViewModels/Repos
+
+### Pendiente corto plazo (de code review)
+
+| # | Tarea | Prioridad | Archivo |
+|---|---|---|---|
+| 6 | Habilitar R8/ProGuard (`isMinifyEnabled = true`) | Alta | `app/build.gradle.kts:41` |
+| 8 | Snapshots tiempo real en OrderDetailScreen (reemplazar `get()` por `addSnapshotListener`) | Alta | `OrderDetailViewModel.kt` |
+| 9 | Implementar `cancelOrder()` en repositorio (botón ya existe en UI) | Alta | `OrderRepository.kt`, `FirebaseOrderRepository.kt` |
+| 10 | Agregar `intent-filter` para deep links de notificaciones (`cyryel://order/{id}`) | Alta | `AndroidManifest.xml` |
+| 11 | CRUD direcciones (agregar/editar/eliminar) + seleccionar en checkout | Alta | Nuevo screen + `MainScreen.kt` PerfilTab |
+| 12 | Mapa tracking en detalle de pedido (escuchar `delivery_locations/{orderId}`) | Alta | `OrderDetailScreen.kt` |
+| 13 | Manejar userId null en `CheckoutViewModel.loadUserProfile()` (evita UI atascada) | Alta | `CheckoutViewModel.kt:60` |
+| — | Mover cuentas bancarias hardcodeadas fuera de UI (Firebase Remote Config o backend) | Crítica | `CheckoutScreen.kt:1289` |
+| — | `CartManager.clear()` usar `_items.update {}` en vez de `_items.value = emptyList()` | Media | `CartManager.kt` |
+
+## Fase 8: Perfil y Configuración ⏳ Pendiente
+
+| # | Tarea | Estado |
+|---|---|---|
+| 8.1 | Perfil editable (nombre, teléfono, documento) guardar en Firestore | ⏳ |
+| 8.2 | CRUD direcciones (agregar/editar/eliminar) + seleccionar en checkout | ⏳ |
+| 8.3 | Settings completo: notificaciones toggle, tema, cambiar contraseña, editar datos | ⏳ |
+| 8.4 | Settings "Acerca de" con versión y contacto | ✅ Básico |
+
+## Fase 9: Delivery App (repositorio separado) 🔮 Planeado
+
+| # | Tarea | Estado |
+|---|---|---|
+| 9.1 | Modelo Firestore: `dispatch_queue`, `delivery_batches`, `delivery_locations`, `drivers` | 🔮 |
+| 9.2 | Pantallas delivery: Online toggle, pedido entrante (timer), entrega activa (4 pasos), earnings | 🔮 |
+| 9.3 | Cloud Function dispatch: asignar repartidor + batch multi-orden | 🔮 |
+| 9.4 | Tracking en tiempo real: `addSnapshotListener` en `delivery_locations/{driverId}` | 🔮 |
+| 9.5 | Mapa delivery con ruta (Mapbox Directions API) + marcador 3D carro (ModelLayer .glb) | 🔮 |
+| 9.6 | Notificaciones push al usuario cuando cambia estado del pedido | 🔮 |
 
 ---
 
@@ -215,100 +250,3 @@ Typos, imports no usados, `Typography()` vacío, formato moneda repetido, etc.
 - **Room DB versión**: 6
 - **MAPBOX_ACCESS_TOKEN**: configurado en `local.properties` / `BuildConfig`
 - **Iconos app**: webp desde Ionic en mipmap, adaptive icon con foreground webp
-
----
-
-## Fase 6: Code Review — Hallazgos (29/06/2026)
-
-Calificación general: **C+** (aceptable con deficiencias importantes)
-Revisor: `kotlin-code-reviewer` — 47 hallazgos (7 críticos, 12 altos, 16 medios, 12 bajos)
-
-### 🔴 Críticos (7)
-
-| # | Hallazgo | Archivo/Línea | Sugerencia |
-|---|---|---|---|
-| H1 | Secreto Mapbox `sk.*` hardcodeado | `settings.gradle.kts:20` | Mover a `local.properties`, gitignore |
-| H2 | Token público Mapbox hardcodeado | `MapboxMapView.kt:183` | Usar `BuildConfig` |
-| H3 | Queries Firestore sin `.limit()` | `FirebaseProductRepository.kt`, `FirebasePromotionRepository.kt`, `FirebaseOrderRepository.kt`, `CategoriesViewModel.kt` | Agregar `.limit(30)` |
-| H4 | `Product.toEntity()` pierde variantes/puntos | `ProductMappers.kt:5-18` | Agregar `variantesJson` a `ProductEntity` |
-| H5 | CategoriesViewModel inyecta Firestore directo | `CategoriesViewModel.kt:18` | Crear `CategoryRepository` |
-| H6 | Auth no reactivo (no escucha cambios) | `AuthViewModel.kt:26` | Usar `FirebaseAuth.AuthStateListener` con `callbackFlow` |
-| H7 | `isMinifyEnabled = false` en release | `app/build.gradle.kts:28` | Habilitar R8/ProGuard |
-
-### 🟠 Altos (12)
-
-| # | Hallazgo | Archivo/Línea |
-|---|---|---|
-| H8 | `getRandomProducts()` carga todo el catálogo | `FirebaseProductRepository.kt:51-58` |
-| H9 | Race condition en validación de stock | `ProductDetailViewModel.kt`, `CartViewModel.kt` |
-| H10 | Dark mode no soportado (colores Dark* definidos pero no usados) | `Theme.kt:27-28` |
-| H11 | `getOrdersByUserId()` sin paginación | `FirebaseOrderRepository.kt:16-19` |
-| H12 | `shipping` hardcodeado a 0.0 | `FirebaseOrderRepository.kt:109` |
-| H13 | `paymentStatus` siempre "pendiente" (contra-entrega debería ser "completado") | `FirebaseOrderRepository.kt:103` |
-| H14 | `CartSection` ignora variantes al decrementar | `CartSection.kt:72` |
-| H15 | `HomeV2` usa `collectAsState()` (no lifecycle-aware) | `HomeV2.kt:79,80,104` |
-| H16 | JSONArray parseado en main thread | `CartViewModel.kt:339-362` |
-| H17 | `CartViewModel` God class (473 líneas) | `CartViewModel.kt` |
-| H18 | `set()` sin merge sobrescribe documento Firestore | `FirebaseUserRepository.kt:30` |
-| H19 | Room sin `fallbackToDestructiveMigration()` | `AppDatabase.kt:8` |
-
-### 🟡 Medios (16)
-
-| # | Hallazgo |
-|---|---|
-| H20 | Validación stock duplicada (ProductDetailVM + CartVM) |
-| H21 | `CartSection.kt` no se usa en flujo principal |
-| H22 | `CatalogSection.kt` no se usa en flujo principal |
-| H23 | `clampQuantity` definida dentro de @Composable |
-| H24 | `signIn(email, password)` nunca se usa |
-| H25 | `onEmailChange`/`onPasswordChange` nunca se usan |
-| H26 | `createOrder()` tiene 15 parámetros |
-| H27 | Usa `kapt` en vez de `ksp` para Room |
-| H28 | `Promotion.stockRemaining` usa `Int.MAX_VALUE` |
-| H29 | Sin política de invalidación de caché Room |
-| H30 | `isLoading = false` sin importar resultado en AccountVM |
-| H31 | `reverseGeocode()` no cachea resultados |
-| H32 | `STYLE_URI` hardcodeado |
-| H33 | Sin tests unitarios para ViewModels/Repos |
-| H34 | `CartItem.product` almacena copia completa del Product |
-| H35 | `AddToCartFeedback` y `CartFeedback` duplicados |
-
-### 🟢 Bajos (12)
-Typos, imports no usados, `Typography()` vacío, formato moneda repetido, `ProductMappers.kt` con typo, SettingsScreen sin efecto, etc.
-
-### ✅ Cosas que están MUY bien
-1. **Hilt DI** — uso ejemplar de `@HiltViewModel`, `@Module`, `@InstallIn`
-2. **Arquitectura MVVM + Repositorios** — interfaces separadas de implementaciones Firebase
-3. **StateFlow/SharedFlow** — separación estado persistente vs eventos one-shot
-4. **Persistencia carrito** con SavedStateHandle
-5. **Cache offline con Room** — fallback cuando no hay conexión
-6. **Patrón `Result<T>`** para operaciones Firebase
-7. **Mapbox click-to-place + GPS FAB** completo
-8. **Validaciones checkout** — DNI 8 díg, RUC 11, teléfono 9
-9. **Haversine** correcto para costo de envío
-10. **Material3** en toda la UI
-11. **Navegación** con `saveState/restoreState/launchSingleTop`
-12. **Auto-fill checkout** desde perfil Firestore
-13. **Estructura de paquetes** limpia
-14. `collectAsStateWithLifecycle()` en 90% de los casos
-15. **Firebase completo** — Auth, Firestore, Messaging, Google Sign-In
-
----
-
-## Cómo ejecutar
-
-```bash
-# Compilar
-./gradlew assembleDebug
-```
-
-## Notas técnicas
-
-- **Build**: compila sin errores
-- **Checkout**: título "Checkout", paso 3 simplificado sin iconos, paso 4 con copia al portapapeles (ClipboardManager + Toast), paso 5 con Atras + Confirmar lado a lado (weight 1f, height 48dp), total en BrandBlue
-- **Mapbox**: SDK v11, CircleAnnotation + CircleAnnotationState, click-to-place (onMapClickListener devuelve Point geográfico), GPS FAB, reverseGeocode
-- **16 KB alignment**: artifacts `-ndk27`
-- **Tema**: forzado claro siempre
-- **Queries sin `.limit()`** → prioridad Fase 1.4
-- **Tokens Mapbox expuestos** en settings.gradle.kts (sk.*) y MapboxMapView.kt (pk.*) — rotar antes de producción
-- **Índice compuesto requerido**: `orders` collection, `userId` ASC + `createdAt` DESC

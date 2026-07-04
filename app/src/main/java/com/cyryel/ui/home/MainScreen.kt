@@ -353,7 +353,7 @@ private fun InicioTab(
                     categories = homeState.categories,
                     onCategoryClick = onCategoryClick
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
             }
         }
     }

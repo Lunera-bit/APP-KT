@@ -205,6 +205,21 @@ class FirebaseProductRepository @Inject constructor(
         }
     }
 
+    override suspend fun getRedeemableProducts(limit: Int): Result<List<Product>> {
+        return try {
+            val snapshot = firestore.collection("products")
+                .whereGreaterThan("pointsToRedeem", 0)
+                .limit(limit.toLong())
+                .get()
+                .await()
+            val products = snapshot.documents.mapNotNull { productFromDocument(it) }
+                .filter { it.isActive }
+            Result.success(products)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun getCategories(): Result<List<Category>> {
         return try {
             val snapshot = firestore.collection("categories")

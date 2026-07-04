@@ -207,7 +207,10 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
 
         composable(Routes.BILLETERA_OFFERS) {
             com.cyryel.ui.billetera.OffersListScreen(
-                onBack = rememberBackHandler { navController.popBackStack() }
+                onBack = rememberBackHandler { navController.popBackStack() },
+                onProductClick = { productId ->
+                    navController.navigate("product/$productId")
+                }
             )
         }
 
