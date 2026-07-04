@@ -7,7 +7,7 @@ Checkout: ✅ **5 pasos completos con animaciones Lottie, dark theme, mapa 3D**
 Mapbox: ✅ **Click-to-place con CircleAnnotation, GPS FAB, toggle 3D/plano, zoom +/-**
 Autenticación: ✅ **Usuario creado en Firestore tras Google Sign-In + auto-fill checkout**
 Dark theme: ✅ **Soporte completo con `isSystemInDarkTheme()`**
-Splash: ✅ **Animación Lottie con pulso**
+Splash: ✅ **Animación Lottie con pulso + windowBackground eliminó flash cold start**
 Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ---
