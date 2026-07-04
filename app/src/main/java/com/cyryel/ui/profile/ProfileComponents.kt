@@ -299,7 +299,7 @@ fun ProfileInfoCard(
             } else {
                 Text(
                     text = uiState.userName.ifBlank { "Usuario" },
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
