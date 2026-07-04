@@ -61,14 +61,20 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userRepository.getUser(userId)
             result.onSuccess { user ->
+                val defaultAddr = user.addresses.firstOrNull { it.isDefault } ?: user.addresses.firstOrNull()
                 _uiState.update {
                     it.copy(
                         recipientName = user.name,
                         phone = user.phone,
                         documentNumber = if (user.ruc.isNotBlank()) user.ruc else user.documentNumber,
                         documentType = if (user.ruc.isNotBlank()) "ruc" else "dni",
-                        street = user.addresses.firstOrNull()?.street ?: "",
-                        city = user.addresses.firstOrNull()?.city ?: "",
+                        street = defaultAddr?.street ?: "",
+                        city = defaultAddr?.city ?: "",
+                        reference = defaultAddr?.reference ?: "",
+                        latitude = defaultAddr?.latitude ?: it.latitude,
+                        longitude = defaultAddr?.longitude ?: it.longitude,
+                        savedAddresses = user.addresses,
+                        selectedAddressId = defaultAddr?.id,
                         isLoadingProfile = false
                     )
                 }
@@ -189,6 +195,28 @@ class CheckoutViewModel @Inject constructor(
 
     fun onPaymentMethodChange(value: String) {
         _uiState.update { it.copy(paymentMethod = value, errorMessage = null) }
+    }
+
+    fun onLatitudeChange(value: Double) {
+        _uiState.update { it.copy(latitude = value) }
+    }
+
+    fun onLongitudeChange(value: Double) {
+        _uiState.update { it.copy(longitude = value) }
+    }
+
+    fun selectAddress(address: com.cyryel.data.user.Address) {
+        _uiState.update {
+            it.copy(
+                street = address.street,
+                city = address.city,
+                reference = address.reference,
+                latitude = address.latitude,
+                longitude = address.longitude,
+                selectedAddressId = address.id,
+                fieldErrors = it.fieldErrors - "street" - "city"
+            )
+        }
     }
 
     fun placeOrder() {

@@ -22,7 +22,11 @@ import com.cyryel.ui.orders.OrderDetailScreen
 import com.cyryel.ui.productdetail.ProductDetailScreen
 import com.cyryel.ui.search.SearchScreen
 import com.cyryel.ui.auth.AuthViewModel
+import com.cyryel.ui.profile.AddressScreen
 import com.cyryel.ui.settings.SettingsScreen
+import androidx.compose.ui.platform.LocalContext
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import androidx.hilt.navigation.compose.hiltViewModel
 
 object Routes {
@@ -36,6 +40,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val SEARCH = "search"
     const val NOTIFICATIONS = "notifications"
+    const val ADDRESSES = "addresses"
     const val BILLETERA_OFFERS = "billetera/offers"
     const val BILLETERA_HISTORIAL = "billetera/historial"
 
@@ -107,6 +112,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 },
                 onNavigateToCart = {
                     navController.navigate(Routes.CART)
+                },
+                onNavigateToAddresses = {
+                    navController.navigate(Routes.ADDRESSES)
                 }
             )
         }
@@ -179,9 +187,13 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
 
         composable(Routes.SETTINGS) {
             val authViewModel: AuthViewModel = hiltViewModel()
+            val context = LocalContext.current
             SettingsScreen(
                 onBack = rememberBackHandler { navController.popBackStack() },
                 onLogout = {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail().build()
+                    GoogleSignIn.getClient(context, gso).signOut()
                     authViewModel.signOut()
                     navController.navigate(Routes.AUTH) {
                         popUpTo(Routes.MAIN) { inclusive = true }
@@ -211,6 +223,12 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onProductClick = { productId ->
                     navController.navigate("product/$productId")
                 }
+            )
+        }
+
+        composable(Routes.ADDRESSES) {
+            AddressScreen(
+                onBack = rememberBackHandler { navController.popBackStack() }
             )
         }
 

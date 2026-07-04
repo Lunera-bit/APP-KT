@@ -27,6 +27,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Search
@@ -38,6 +39,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -75,7 +78,10 @@ import com.cyryel.data.promotion.Promotion
 import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.cart.CartViewModel
 import com.cyryel.ui.orders.OrdersScreen
+import com.cyryel.ui.profile.AddressCard
+import com.cyryel.ui.profile.ProfileInfoCard
 import com.cyryel.ui.profile.ProfileViewModel
+import com.cyryel.ui.profile.UserAvatar
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.AzulReyClaro
@@ -111,6 +117,7 @@ fun MainScreen(
     onNavigateToHistorial: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
+    onNavigateToAddresses: () -> Unit = {},
     modifier: Modifier = Modifier,
     cartViewModel: CartViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
@@ -133,6 +140,12 @@ fun MainScreen(
             ) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+    }
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 0) {
+            homeViewModel.refreshQuickProducts()
         }
     }
 
@@ -308,7 +321,8 @@ fun MainScreen(
                 )
                 3 -> PerfilTab(
                     modifier = Modifier.padding(innerPadding),
-                    onNavigateToSettings = onNavigateToSettings
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToAddresses = onNavigateToAddresses
                 )
             }
         }
@@ -626,6 +640,7 @@ private fun BilleteraTab(
 private fun PerfilTab(
     modifier: Modifier = Modifier,
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToAddresses: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -661,35 +676,42 @@ private fun PerfilTab(
                     }
                 }
                 else -> {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
-                        )
+                    ProfileInfoCard(
+                        uiState = uiState,
+                        onToggleEdit = viewModel::toggleEditing,
+                        onNameChange = viewModel::onEditNameChange,
+                        onPhoneChange = viewModel::onEditPhoneChange,
+                        onDniChange = viewModel::onEditDniChange,
+                        onRucChange = viewModel::onEditRucChange,
+                        onSave = viewModel::saveProfile
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = "Mis Direcciones",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AzulReyClaro
+                    )
+
+                    OutlinedButton(
+                        onClick = onNavigateToAddresses,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = uiState.userName.ifBlank { "Usuario" },
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = uiState.userEmail,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                            if (uiState.userPhone.isNotBlank()) {
-                                Text(
-                                    text = uiState.userPhone,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Gestionar direcciones")
                     }
+
+                    HorizontalDivider()
+
                     Button(
                         onClick = onNavigateToSettings,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AzulRey
+                        )
                     ) {
                         Text("Configuracion")
                     }

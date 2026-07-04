@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Tienda CYRYEL</string>
+    <string name="app_name">Cyryel Store</string>
     <string name="mapbox_access_token">MAPBOX_TOKEN_REEMPLAZAR</string>
 </resources>

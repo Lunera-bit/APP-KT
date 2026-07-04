@@ -23,6 +23,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -220,10 +221,13 @@ fun CheckoutScreen(
                                 city = uiState.city,
                                 reference = uiState.reference,
                                 fieldErrors = uiState.fieldErrors,
+                                savedAddresses = uiState.savedAddresses,
+                                selectedAddressId = uiState.selectedAddressId,
                                 onDeliveryMethodChange = viewModel::onDeliveryMethodChange,
                                 onStreetChange = viewModel::onStreetChange,
                                 onCityChange = viewModel::onCityChange,
-                                onReferenceChange = viewModel::onReferenceChange
+                                onReferenceChange = viewModel::onReferenceChange,
+                                onSelectAddress = viewModel::selectAddress
                             )
                             CheckoutStep.CONTACT -> StepContact(
                                 recipientName = uiState.recipientName,
@@ -532,10 +536,13 @@ private fun StepDelivery(
     city: String,
     reference: String,
     fieldErrors: Map<String, String>,
+    savedAddresses: List<com.cyryel.data.user.Address>,
+    selectedAddressId: String?,
     onDeliveryMethodChange: (String) -> Unit,
     onStreetChange: (String) -> Unit,
     onCityChange: (String) -> Unit,
-    onReferenceChange: (String) -> Unit
+    onReferenceChange: (String) -> Unit,
+    onSelectAddress: (com.cyryel.data.user.Address) -> Unit
 ) {
     var latitude by remember { mutableDoubleStateOf(STORE_LATITUDE) }
     var longitude by remember { mutableDoubleStateOf(STORE_LONGITUDE) }
@@ -559,6 +566,17 @@ private fun StepDelivery(
             onReferenceChange("")
         }
         prevDeliveryMethod = deliveryMethod
+    }
+
+    LaunchedEffect(selectedAddressId, savedAddresses) {
+        if (selectedAddressId != null && deliveryMethod == "domicilio") {
+            val addr = savedAddresses.firstOrNull { it.id == selectedAddressId }
+            if (addr != null) {
+                latitude = addr.latitude
+                longitude = addr.longitude
+                placedMarker = true
+            }
+        }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -590,6 +608,85 @@ private fun StepDelivery(
             )
         }
         if (deliveryMethod == "domicilio") {
+            if (savedAddresses.isNotEmpty()) {
+                Text(
+                    text = "Direcciones guardadas",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulReyClaro
+                )
+                savedAddresses.forEach { address ->
+                    val isSelected = address.id == selectedAddressId
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                latitude = address.latitude
+                                longitude = address.longitude
+                                placedMarker = true
+                                onSelectAddress(address)
+                            },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) AzulRey.copy(alpha = 0.12f)
+                            else MaterialTheme.colorScheme.surface
+                        ),
+                        border = if (isSelected) BorderStroke(2.dp, AzulRey) else null
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Home,
+                                contentDescription = null,
+                                tint = AzulReyClaro,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (address.name.isNotBlank()) {
+                                    Text(
+                                        text = address.name,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AzulRey
+                                    )
+                                }
+                                Text(
+                                    text = address.street,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                if (address.city.isNotBlank()) {
+                                    Text(
+                                        text = address.city,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                if (address.reference.isNotBlank()) {
+                                    Text(
+                                        text = address.reference,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = AzulRey,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+            }
+
             var showMapPicker by remember { mutableStateOf(false) }
             var pickerLat by remember { mutableDoubleStateOf(latitude) }
             var pickerLng by remember { mutableDoubleStateOf(longitude) }
@@ -597,7 +694,7 @@ private fun StepDelivery(
             var pickerCity by remember { mutableStateOf(city) }
             var pickerRef by remember { mutableStateOf(reference) }
 
-            Button(
+            OutlinedButton(
                 onClick = {
                     pickerLat = latitude
                     pickerLng = longitude
@@ -605,12 +702,11 @@ private fun StepDelivery(
                     pickerCity = city
                     showMapPicker = true
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Filled.Home, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Elegir ubicación en el mapa")
+                Text("Elegir en el mapa")
             }
 
             if (showMapPicker) {
@@ -640,12 +736,20 @@ private fun StepDelivery(
                     )
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Ubicación seleccionada:", fontWeight = FontWeight.Bold, color = AzulReyClaro)
-                        if (street.isNotBlank()) Text("Dirección: $street")
+                        Text("Ubicacion seleccionada:", fontWeight = FontWeight.Bold, color = AzulReyClaro)
+                        if (street.isNotBlank()) Text("Direccion: $street")
                         if (city.isNotBlank()) Text("Ciudad: $city")
                         if (reference.isNotBlank()) Text("Referencia: $reference")
                     }
                 }
+            }
+
+            if (fieldErrors.containsKey("street") || fieldErrors.containsKey("city")) {
+                Text(
+                    text = fieldErrors["street"] ?: fieldErrors["city"] ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         } else {
             Card(
@@ -762,7 +866,9 @@ private fun MapPickerDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        val surfaceColor = MaterialTheme.colorScheme.surface
+
+        Box(modifier = Modifier.fillMaxSize().background(surfaceColor)) {
             AndroidView(
                 factory = { ctx ->
                     MapView(ctx).apply {
@@ -822,7 +928,7 @@ private fun MapPickerDialog(
                     .padding(top = 48.dp, start = 16.dp, end = 16.dp)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
+                colors = CardDefaults.cardColors(containerColor = surfaceColor.copy(alpha = 0.95f))
             ) {
                 Box(modifier = Modifier.padding(8.dp)) {
                     OutlinedTextField(
@@ -856,7 +962,7 @@ private fun MapPickerDialog(
                         )
                     },
                     modifier = Modifier.size(40.dp),
-                    containerColor = Color.White.copy(alpha = 0.9f),
+                    containerColor = surfaceColor.copy(alpha = 0.9f),
                     contentColor = AzulReyClaro
                 ) {
                     Text("+", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -873,7 +979,7 @@ private fun MapPickerDialog(
                         )
                     },
                     modifier = Modifier.size(40.dp),
-                    containerColor = Color.White.copy(alpha = 0.9f),
+                    containerColor = surfaceColor.copy(alpha = 0.9f),
                     contentColor = AzulReyClaro
                 ) {
                     Text("−", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -891,7 +997,7 @@ private fun MapPickerDialog(
                         )
                     },
                     modifier = Modifier.size(40.dp),
-                    containerColor = Color.White.copy(alpha = 0.9f),
+                    containerColor = surfaceColor.copy(alpha = 0.9f),
                     contentColor = AzulReyClaro
                 ) {
                     Text(
@@ -910,7 +1016,7 @@ private fun MapPickerDialog(
                         }
                     },
                     modifier = Modifier.size(40.dp),
-                    containerColor = Color.White.copy(alpha = 0.9f),
+                    containerColor = surfaceColor.copy(alpha = 0.9f),
                     contentColor = AzulReyClaro
                 ) {
                     Text("⌖", fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -930,7 +1036,7 @@ private fun MapPickerDialog(
                     modifier = Modifier
                         .weight(1f)
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = AzulReyClaro),
+                    colors = ButtonDefaults.buttonColors(containerColor = surfaceColor, contentColor = AzulReyClaro),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text("Cerrar", fontWeight = FontWeight.Medium)

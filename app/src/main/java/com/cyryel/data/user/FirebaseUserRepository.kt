@@ -29,7 +29,8 @@ class FirebaseUserRepository @Inject constructor(
                         ruc = data["ruc"] as? String ?: "",
                         role = data["role"] as? String ?: "user",
                         fcmToken = data["fcmToken"] as? String ?: "",
-                        points = (data["points"] as? Long)?.toInt() ?: 0
+                        points = (data["points"] as? Long)?.toInt() ?: 0,
+                        addresses = parseAddresses(data["addresses"])
                     )
                 )
             } else {
@@ -62,5 +63,29 @@ class FirebaseUserRepository @Inject constructor(
 
     override fun getCurrentUserId(): String? {
         return firebaseAuth.currentUser?.uid
+    }
+
+    private fun parseAddresses(raw: Any?): List<Address> {
+        if (raw !is List<*>) return emptyList()
+        return raw.mapNotNull { item ->
+            if (item !is Map<*, *>) return@mapNotNull null
+            @Suppress("UNCHECKED_CAST")
+            val map = item as Map<String, Any?>
+            try {
+                Address(
+                    id = map["id"] as? String ?: "",
+                    name = map["name"] as? String ?: "",
+                    type = map["type"] as? String ?: "home",
+                    street = map["street"] as? String ?: "",
+                    city = map["city"] as? String ?: "",
+                    state = map["state"] as? String ?: "",
+                    zipCode = map["zipCode"] as? String ?: "",
+                    reference = map["reference"] as? String ?: "",
+                    latitude = (map["latitude"] as? Number)?.toDouble() ?: 0.0,
+                    longitude = (map["longitude"] as? Number)?.toDouble() ?: 0.0,
+                    isDefault = (map["default"] as? Boolean) ?: false
+                )
+            } catch (_: Exception) { null }
+        }
     }
 }

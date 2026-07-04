@@ -1,6 +1,7 @@
 package com.cyryel.ui.checkout
 
 import com.cyryel.data.cart.CartItem
+import com.cyryel.data.user.Address
 
 enum class CheckoutStep(val step: Int, val title: String) {
     REVIEW(0, "Revisar pedido"),
@@ -48,7 +49,9 @@ data class CheckoutUiState(
     val orderCreatedMessage: String? = null,
     val orderId: String = "",
     val errorMessage: String? = null,
-    val lastOrderSnapshot: OrderSnapshot? = null
+    val lastOrderSnapshot: OrderSnapshot? = null,
+    val savedAddresses: List<Address> = emptyList(),
+    val selectedAddressId: String? = null
 ) {
     val subtotal: Double get() = items.sumOf { it.subtotal }
 

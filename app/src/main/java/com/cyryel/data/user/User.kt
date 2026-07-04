@@ -18,11 +18,13 @@ data class User(
 
 data class Address(
     val id: String = "",
+    val name: String = "",
     val type: String = "home",
     val street: String = "",
     val city: String = "",
     val state: String = "",
     val zipCode: String = "",
+    val reference: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val isDefault: Boolean = false

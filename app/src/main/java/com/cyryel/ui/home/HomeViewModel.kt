@@ -44,6 +44,20 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(agregarTodoUsado = true) }
     }
 
+    fun refreshQuickProducts() {
+        viewModelScope.launch {
+            val productsResult = productRepository.getRandomProducts(limit = 10)
+            val products = productsResult.getOrDefault(emptyList())
+            val inStockProducts = products.filter { it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
+            _uiState.update {
+                it.copy(
+                    quickProducts = inStockProducts.take(6),
+                    agregarTodoUsado = false
+                )
+            }
+        }
+    }
+
     fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
