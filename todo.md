@@ -232,6 +232,107 @@ Typos, imports no usados, `Typography()` vacío, formato moneda repetido, etc.
 
 ---
 
+## Review de agentes (04/07/2026)
+
+### 🧠 Kotlin Code Senior — Recomendaciones arquitectónicas
+
+**Sistema de Puntos:**
+- [ ] Crear `PointsRepository` con reglas desde Firestore (no hardcodeadas en `BilleteraUiState`)
+- [ ] `CartItem` debe soportar `redeemedByPoints: Boolean`, `pointsUsed: Int`, `promotionId: String?`
+- [ ] Usar Cloud Function para transacciones atómicas al canjear (evitar race conditions)
+- [ ] Registrar canje en `users/{uid}/pointsHistory`
+
+**Delivery Dinámico:**
+- [ ] Crear `DeliveryRepository` con tarifas desde Firestore (`baseRate`, `ratePerKm`, `freeDeliveryRadiusKm`, `maxDeliveryRadiusKm`)
+- [ ] Implementar `CalculateDeliveryCostUseCase` con Haversine distance
+- [ ] Agregar `shipping` y `deliveryDistance` a `CheckoutUiState`
+- [ ] Extraer coordenadas tienda a `StoreConfig` en Firestore (hoy en 3 sitios distintos)
+
+**Datos Bancarios:**
+- [ ] **Crítico**: Mover cuentas de `CheckoutScreen.kt` a colección `config/banking/accounts` en Firestore
+
+**Tracking Mapa:**
+- [ ] Extraer `MapPickerDialog` a componente reutilizable (`MapboxMapView`)
+- [ ] Usar `SnapshotListener` a `deliveries/{orderId}/location` para tracking delivery
+- [ ] Polyline entre tienda ⇨ repartidor ⇨ destino con Mapbox Directions API
+
+**Blockers producción:**
+- [ ] R8/ProGuard habilitado
+- [ ] Auth reactivo con `authState: StateFlow<User?>`
+- [ ] Tests unitarios (al menos `CartManager`, `CalculateDeliveryCostUseCase`)
+
+---
+
+### 🔍 Kotlin Code Reviewer — Deuda técnica y priorización
+
+**Fase 0 — Hacer AHORA (seguridad + estabilidad):**
+- [ ] Habilitar R8 con ProGuard rules (`build.gradle.kts`)
+- [ ] Hacer `AuthRepository` reactivo con `AuthStateListener`
+- [ ] Revisar queries sin índice compuesto, agregar `.limit()` consistente
+- [ ] Mover `STORE_LATITUDE/LONGITUDE` a `StoreConfig` en Firestore
+
+**Fase 1 — Refactor base (desbloquea las 4 features):**
+- [ ] `CartItem`: agregar `redeemedByPoints`, `pointsUsed`, `promotionId`, `discountedPrice`. Eliminar `product: Product` (usar solo `productId`)
+- [ ] `CartManager.addProduct()` con quantity, points, promotion (eliminar `repeat(N)`)
+- [ ] `CreateOrderRequest`: agregar `pointsUsed`, `pointsDiscount`, `shipping` como requerido
+- [ ] `FirebaseOrderRepository`: recibir y guardar puntos/shipping reales
+- [ ] `CheckoutUiState`: agregar `shipping`, `deliveryDistance`, `pointsUsed`, `pointsDiscount`, `userPointsBalance`
+- [ ] `ForcedPackConfig`: mover a campo `packSize` en Firestore
+
+**Fase 2 — Refactor arquitectónico:**
+- [ ] Extraer `MapPickerDialog` a componente reutilizable
+- [ ] Dividir `CheckoutScreen.kt` en múltiples archivos por paso
+- [ ] Agregar capa `domain` con use cases (`CalculateShippingUseCase`, `RedeemPointsUseCase`, `ApplyPromotionUseCase`)
+- [ ] Agregar `ShippingRepository` con reglas de delivery
+- [ ] Configurar `FirestoreSnapshotListeners` en repositorios
+- [ ] Transacciones atómicas para operaciones de puntos
+
+**Evaluación deuda técnica:** 4/10 mantenibilidad, 2/10 testeabilidad, 3/10 seguridad, 2/10 preparación para features. Estima ~40-60h de refactor antes de implementar features nuevas.
+
+---
+
+### 🎨 Kotlin UI Expert — UI/UX y diseño
+
+**Problemas actuales:**
+- [ ] **Typography vacío** — personalizar escalas (`displayLarge` a `bodySmall`)
+- [ ] **Colores hardcodeados** — migrar a `MaterialTheme.colorScheme.*` (hoy usas `AzulRey`, `AzulReyClaro` directo)
+- [ ] **Dark theme**: contraste bajo de `AzulReyClaro` sobre fondo oscuro (~2.9:1, no cumple WCAG AA)
+- [ ] **Touch targets < 48dp** — stepper circles, QuantitySelector, zoom FABs
+- [ ] **Sin `contentDescription`** en iconos interactivos (accesibilidad TalkBack)
+
+**UX para próximas features:**
+- [ ] **Productos canjeables**: badge amarillo "🟡 Canjeado" + precio como "S/ X + Y pts"
+- [ ] **Compra con puntos**: segundo CTA "🪙 Comprar con puntos — XXX pts" en detalle; si no alcanza, mostrar "Necesitas YYY pts más"
+- [ ] **Carrito**: items canjeados con fondo amarillo tenue + icono estrella; bottom bar con "Subtotal efectivo" / "Puntos a canjear"
+- [ ] **Delivery cost**: card animada con distancia y costo al seleccionar ubicación; ocultar si es recojo en tienda
+- [ ] **Tracking mapa**: marcador animado del repartidor + info card (nombre, ETA, botones llamar/WhatsApp)
+- [ ] **Promos en carrito**: sección "Ofertas aplicadas" con badges `-15%` y desglose de descuentos
+
+**Mejoras visuales priorizadas:**
+| Prioridad | Mejora | Esfuerzo |
+|-----------|--------|----------|
+| Alta | Personalizar Typography | 30 min |
+| Alta | Hardcode colors → scheme | 2-3h |
+| Alta | Touch targets a 48dp | 1h |
+| Alta | Content descriptions | 30 min |
+| Media | Badge "Canjeado" en OrderDetail | 1h |
+| Media | Botón "Comprar con puntos" | 2h |
+| Media | Desglose efectivo+puntos en cart/checkout | 3-4h |
+| Media | Tracker map en OrderDetail | 4-6h |
+| Baja | Skeleton loaders | 2h |
+| Baja | Transición slide entre pasos checkout | 1h |
+
+---
+
+## Roadmap recomendado (post-review)
+
+1. **Fase 0 — Bloqueantes** (1 semana): R8, Auth reactivo, StoreConfig, datos bancarios en Firestore
+2. **Fase 1 — Refactor base** (1-2 semanas): CartItem, CartManager, CreateOrderRequest, DeliveryRepository
+3. **Fase 2 — Features** (2 semanas): Canje puntos, delivery dinámico, promos en carrito, tracking mapa
+4. **Fase 3 — Calidad** (ongoing): Tests, UI polish, accesibilidad, offline support
+
+---
+
 ## Cómo ejecutar
 
 ```bash
