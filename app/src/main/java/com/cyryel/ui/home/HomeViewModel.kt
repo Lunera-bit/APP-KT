@@ -44,7 +44,13 @@ class HomeViewModel @Inject constructor(
         _uiState.update { it.copy(agregarTodoUsado = true) }
     }
 
+    private var lastQuickRefreshTime = 0L
+    private val quickRefreshInterval = 5 * 60 * 1000L
+
     fun refreshQuickProducts() {
+        val now = System.currentTimeMillis()
+        if (now - lastQuickRefreshTime < quickRefreshInterval) return
+        lastQuickRefreshTime = now
         viewModelScope.launch {
             val productsResult = productRepository.getRandomProducts(limit = 10)
             val products = productsResult.getOrDefault(emptyList())
