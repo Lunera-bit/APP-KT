@@ -27,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -76,24 +77,52 @@ fun SearchScreen(
                 singleLine = true
             )
 
-            if (uiState.results.isNotEmpty()) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(top = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.results, key = { it.id }) { product ->
-                        ProductSearchItem(
-                            product = product,
-                            onClick = { onProductClick(product.id) }
-                        )
+            when {
+                uiState.isLoading -> {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
-            } else if (uiState.isSearching) {
-                Text(
-                    text = "No se encontraron productos",
-                    modifier = Modifier.padding(top = 24.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
+                uiState.errorMessage != null -> {
+                    Text(
+                        text = uiState.errorMessage ?: "",
+                        modifier = Modifier.padding(top = 24.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                uiState.results.isNotEmpty() -> {
+                    Text(
+                        text = "${uiState.results.size} resultado(s) encontrado(s)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp)
+                    )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(uiState.results, key = { it.id }) { product ->
+                            ProductSearchItem(
+                                product = product,
+                                onClick = { onProductClick(product.id) }
+                            )
+                        }
+                    }
+                }
+
+                uiState.hasSearched -> {
+                    Text(
+                        text = "No se encontraron productos",
+                        modifier = Modifier.padding(top = 24.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

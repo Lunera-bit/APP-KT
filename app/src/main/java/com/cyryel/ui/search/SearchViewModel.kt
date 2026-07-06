@@ -24,21 +24,21 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     fun onQueryChange(query: String) {
-        _uiState.update { it.copy(query = query, isSearching = query.isNotBlank()) }
+        searchJob?.cancel()
         if (query.isBlank()) {
-            _uiState.update { it.copy(results = emptyList(), isSearching = false) }
-            searchJob?.cancel()
+            _uiState.update { SearchUiState() }
             return
         }
-        searchJob?.cancel()
+        _uiState.update { it.copy(query = query, isLoading = true, errorMessage = null) }
         searchJob = viewModelScope.launch {
             delay(300)
             val result = productRepository.searchProducts(query)
-            result.onSuccess { products ->
-                _uiState.update { it.copy(results = products) }
-            }
-            result.onFailure { error ->
-                _uiState.update { it.copy(results = emptyList(), errorMessage = error.localizedMessage) }
+            _uiState.update {
+                it.copy(
+                    results = result.getOrDefault(emptyList()),
+                    isLoading = false,
+                    errorMessage = result.exceptionOrNull()?.localizedMessage
+                )
             }
         }
     }
