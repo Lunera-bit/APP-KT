@@ -36,8 +36,18 @@ android {
         manifestPlaceholders["MAPBOX_ACCESS_TOKEN"] = prop("MAPBOX_ACCESS_TOKEN")
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(prop("KEYSTORE_PATH"))
+            storePassword = prop("KEYSTORE_PASSWORD")
+            keyAlias = prop("KEY_ALIAS")
+            keyPassword = prop("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

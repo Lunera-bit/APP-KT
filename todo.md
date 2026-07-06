@@ -146,10 +146,13 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 ## Pendiente para producción
 
 - [ ] Category picker modal (bottom sheet) con búsqueda
-- [ ] Deep links externos: agregar `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
-- [ ] Agregar `.limit()` faltantes a queries Firestore en repositorios
+- [x] Deep links externos: `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
+- [x] Agregar `.limit()` faltantes a queries Firestore en repositorios
 - [x] R8/ProGuard habilitado para release
-- [ ] Auth reactivo con `AuthStateListener`
+- [x] Auth reactivo con `AuthStateListener`
+- [x] Purgar `google-services.json` del historial git (filter-repo)
+- [x] Eliminar cuentas bancarias hardcodeadas de WhatsAppUtil (cargar desde Firestore)
+- [x] Mover teléfono tienda fuera de WhatsAppUtil a CheckoutUiState
 - [ ] Tests unitarios (CartManager, ViewModels, Repos)
 - [ ] Subir APK release a Play Store
 
