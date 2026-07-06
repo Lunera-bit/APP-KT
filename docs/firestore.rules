@@ -59,6 +59,21 @@ service cloud.firestore {
              !request.resource.data.keys().hasAny(['createdAt']);
     }
     
+    /**
+     * Verifica si el usuario es dueño de la orden asociada al delivery
+     */
+    function isDeliveryOrderOwner(orderId) {
+      return isSignedIn() &&
+             get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid;
+    }
+    
+    /**
+     * Verifica si el delivery está asignado a este documento de delivery
+     */
+    function isAssignedDelivery() {
+      return isDelivery() && resource.data.deliveryPersonId == request.auth.uid;
+    }
+
     // ============================================================================
     // USUARIOS / USERS COLLECTION
     // ============================================================================
@@ -111,19 +126,6 @@ service cloud.firestore {
     }
     
     // ============================================================================
-    // FLASH / FLASH BANNERS COLLECTION
-    // ============================================================================
-    /**
-     * Banners GIF mostrados en la página de inicio
-     * - Read: Pública para que el slider sea visible en la app
-     * - Write: Solo admin
-     */
-    match /flash/{flashId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // ============================================================================
     // PRODUCTOS / PRODUCTS COLLECTION
     // ============================================================================
     /**
@@ -166,7 +168,7 @@ service cloud.firestore {
       allow get: if isOwner(resource.data.userId) || isDelivery() || isAdmin();
       allow list: if isAdmin() || 
                      isDelivery() ||
-                     isSignedIn(); // Usuarios normales ven sus propias órdenes (filtrado en cliente)
+                     (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() &&
                        hasRequiredFields(['userId', 'items', 'total', 'status', 'deliveryAddress', 'paymentMethod', 'paymentStatus']) &&
                        request.resource.data.userId == request.auth.uid;
@@ -177,20 +179,39 @@ service cloud.firestore {
     }
     
     // ============================================================================
+    // CONFIG / CONFIGURACION
+    // ============================================================================
+    /**
+     * Configuraciones generales de la app: precios, cuentas bancarias, etc.
+     * Permisos:
+     * - Read: Cualquier usuario autenticado (precios delivery, cuentas bancarias)
+     * - Write: Solo admin
+     */
+    match /config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ============================================================================
     // DELIVERIES / REPARTOS COLLECTION
     // ============================================================================
     /**
      * Asignaciones de delivery para repartidores
      * Permisos:
-     * - Read: Delivery (disponibles y propios), admin
+     * - Read: Delivery (disponibles y propios), admin, y el usuario dueño de la orden
      * - Create: Cloud Functions (al confirmar pedido)
      * - Update: Delivery que acepta, admin
      * - Delete: Solo admin
      */
     match /deliveries/{deliveryId} {
-      allow read: if isDelivery() || isAdmin();
+      allow read: if isDelivery() || isAdmin() || isDeliveryOrderOwner(resource.data.orderId);
       allow create: if isAdmin();
-      allow update: if isDelivery() || isAdmin();
+      allow update: if isAdmin() ||
+                       (isDelivery() && (
+                         resource.data.deliveryPersonId == request.auth.uid ||
+                         !('deliveryPersonId' in resource.data) ||
+                         resource.data.deliveryPersonId == null
+                       ));
       allow delete: if isAdmin();
     }
 
@@ -209,6 +230,7 @@ service cloud.firestore {
       allow get: if isOwner(resource.data.userId);
       allow list: if isOwner(resource.data.userId);
       allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid &&
                        hasRequiredFields(['userId', 'titulo', 'mensaje', 'tipo', 'fecha']);
       allow update: if isOwner(resource.data.userId);
       allow delete: if isOwner(resource.data.userId) || isAdmin();

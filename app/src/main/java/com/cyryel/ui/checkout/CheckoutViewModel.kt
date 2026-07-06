@@ -28,6 +28,37 @@ class CheckoutViewModel @Inject constructor(
     private val configRepository: ConfigRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val FREE_DELIVERY_RADIUS = 500.0
+
+        private fun distanceInMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+            val R = 6371000.0
+            val dLat = Math.toRadians(lat2 - lat1)
+            val dLng = Math.toRadians(lng2 - lng1)
+            val sinHalfLat = kotlin.math.sin(dLat / 2)
+            val sinHalfLng = kotlin.math.sin(dLng / 2)
+            val a = sinHalfLat * sinHalfLat +
+                    kotlin.math.cos(Math.toRadians(lat1)) *
+                    kotlin.math.cos(Math.toRadians(lat2)) *
+                    sinHalfLng * sinHalfLng
+            return R * 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+        }
+
+        fun deliveryCostFor(latitude: Double, longitude: Double, basePrice: Double, costPerKm: Double): Double {
+            if (latitude == StoreCoordinates.LATITUDE && longitude == StoreCoordinates.LONGITUDE) return 0.0
+            val distMeters = distanceInMeters(StoreCoordinates.LATITUDE, StoreCoordinates.LONGITUDE, latitude, longitude)
+            if (distMeters <= FREE_DELIVERY_RADIUS) return 0.0
+            val distKm = distMeters / 1000.0
+            if (distKm <= 1.0) return basePrice
+            return basePrice + ((distKm - 1.0) * costPerKm)
+        }
+    }
+
+    private var deliveryBasePrice: Double = 4.50
+    private var deliveryCostPerKm: Double = 1.30
+    private var userDni: String = ""
+    private var userRuc: String = ""
+
     private val _uiState = MutableStateFlow(
         CheckoutUiState(
             orderId = savedStateHandle.get<String>("orderId") ?: "",
@@ -42,6 +73,7 @@ class CheckoutViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     currentStep = CheckoutStep.CONFIRM,
+                    highestStepOrdinal = CheckoutStep.CONFIRM.ordinal,
                     orderId = prevOrderId,
                     orderCreatedMessage = savedStateHandle.get<String>("orderCreatedMessage")
                 )
@@ -50,12 +82,23 @@ class CheckoutViewModel @Inject constructor(
             loadUserProfile()
         }
         loadBankAccounts()
+        loadDeliveryConfig()
         viewModelScope.launch {
             cartManager.items.collect { items ->
                 _uiState.update {
                     if (it.orderId.isNotBlank()) it
                     else it.copy(items = items)
                 }
+            }
+        }
+    }
+
+    private fun loadDeliveryConfig() {
+        viewModelScope.launch {
+            configRepository.getDeliveryConfig().onSuccess { config ->
+                deliveryBasePrice = config.basePrice
+                deliveryCostPerKm = config.costPerKm
+                refreshDeliveryCost()
             }
         }
     }
@@ -74,13 +117,17 @@ class CheckoutViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userRepository.getUser(userId)
             result.onSuccess { user ->
+                userDni = user.documentNumber
+                userRuc = user.ruc
+                val defaultDni = if (user.ruc.isNotBlank()) "ruc" else "dni"
+                val defaultNumber = if (user.ruc.isNotBlank()) user.ruc else user.documentNumber
                 val defaultAddr = user.addresses.firstOrNull { it.isDefault } ?: user.addresses.firstOrNull()
                 _uiState.update {
                     it.copy(
                         recipientName = user.name,
                         phone = user.phone,
-                        documentNumber = if (user.ruc.isNotBlank()) user.ruc else user.documentNumber,
-                        documentType = if (user.ruc.isNotBlank()) "ruc" else "dni",
+                        documentNumber = defaultNumber,
+                        documentType = defaultDni,
                         street = defaultAddr?.street ?: "",
                         city = defaultAddr?.city ?: "",
                         reference = defaultAddr?.reference ?: "",
@@ -91,6 +138,7 @@ class CheckoutViewModel @Inject constructor(
                         isLoadingProfile = false
                     )
                 }
+                refreshDeliveryCost()
             }
             result.onFailure {
                 _uiState.update { it.copy(isLoadingProfile = false) }
@@ -99,7 +147,8 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun goToStep(step: CheckoutStep) {
-        if (step.ordinal < _uiState.value.currentStep.ordinal) {
+        val state = _uiState.value
+        if (step.ordinal <= state.highestStepOrdinal) {
             _uiState.update { it.copy(currentStep = step, errorMessage = null) }
         }
     }
@@ -157,9 +206,12 @@ class CheckoutViewModel @Inject constructor(
 
         val nextOrdinal = state.currentStep.ordinal + 1
         if (nextOrdinal < CheckoutStep.entries.size) {
+            val jumpTo = maxOf(nextOrdinal, state.highestStepOrdinal)
+            val newHighest = maxOf(state.highestStepOrdinal, jumpTo)
             _uiState.update {
                 it.copy(
-                    currentStep = CheckoutStep.entries[nextOrdinal],
+                    currentStep = CheckoutStep.entries[jumpTo],
+                    highestStepOrdinal = newHighest,
                     fieldErrors = emptyMap(),
                     errorMessage = null
                 )
@@ -176,6 +228,7 @@ class CheckoutViewModel @Inject constructor(
                 errorMessage = null
             )
         }
+        refreshDeliveryCost()
     }
 
     fun onStreetChange(value: String) {
@@ -200,7 +253,12 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun onDocumentTypeChange(value: String) {
-        _uiState.update { it.copy(documentType = value, documentNumber = "", fieldErrors = it.fieldErrors - "documentNumber", errorMessage = null) }
+        val number = when (value) {
+            "dni" -> userDni
+            "ruc" -> userRuc
+            else -> ""
+        }
+        _uiState.update { it.copy(documentType = value, documentNumber = number, fieldErrors = it.fieldErrors - "documentNumber", errorMessage = null) }
     }
 
     fun onDocumentNumberChange(value: String) {
@@ -217,12 +275,21 @@ class CheckoutViewModel @Inject constructor(
         _uiState.update { it.copy(paymentMethod = value, errorMessage = null) }
     }
 
+    private fun refreshDeliveryCost() {
+        val s = _uiState.value
+        val cost = if (s.deliveryMethod == "tienda") 0.0
+                   else deliveryCostFor(s.latitude, s.longitude, deliveryBasePrice, deliveryCostPerKm)
+        _uiState.update { it.copy(deliveryCost = cost) }
+    }
+
     fun onLatitudeChange(value: Double) {
         _uiState.update { it.copy(latitude = value) }
+        refreshDeliveryCost()
     }
 
     fun onLongitudeChange(value: Double) {
         _uiState.update { it.copy(longitude = value) }
+        refreshDeliveryCost()
     }
 
     fun selectAddress(address: com.cyryel.data.user.Address) {
@@ -237,6 +304,7 @@ class CheckoutViewModel @Inject constructor(
                 fieldErrors = it.fieldErrors - "street" - "city"
             )
         }
+        refreshDeliveryCost()
     }
 
     fun placeOrder() {
@@ -279,7 +347,7 @@ class CheckoutViewModel @Inject constructor(
                     notes = state.notes,
                     documentType = state.documentType,
                     documentNumber = state.documentNumber,
-                    shipping = 0.0,
+                    shipping = state.deliveryCost,
                     deliveryMethod = state.deliveryMethod,
                     paymentMethod = state.paymentMethod,
                     latitude = state.latitude,

@@ -196,6 +196,7 @@ fun CheckoutScreen(
             ) {
                 CheckoutStepper(
                     currentStep = uiState.currentStep,
+                    highestStepOrdinal = uiState.highestStepOrdinal,
                     onStepClick = { viewModel.goToStep(it) }
                 )
 
@@ -246,6 +247,7 @@ fun CheckoutScreen(
                             CheckoutStep.PAYMENT -> StepPayment(
                                 paymentMethod = uiState.paymentMethod,
                                 subtotal = uiState.subtotal,
+                                deliveryCost = uiState.deliveryCost,
                                 onPaymentMethodChange = viewModel::onPaymentMethodChange,
                                 bankAccounts = uiState.bankAccounts,
                                 bankTitular = uiState.bankTitular
@@ -253,6 +255,7 @@ fun CheckoutScreen(
                             CheckoutStep.CONFIRM -> StepConfirm(
                                 items = uiState.items,
                                 subtotal = uiState.subtotal,
+                                deliveryCost = uiState.deliveryCost,
                                 deliveryMethod = uiState.deliveryMethod,
                                 street = uiState.street,
                                 city = uiState.city,
@@ -298,6 +301,7 @@ fun CheckoutScreen(
 @Composable
 private fun CheckoutStepper(
     currentStep: CheckoutStep,
+    highestStepOrdinal: Int,
     onStepClick: (CheckoutStep) -> Unit
 ) {
     Column(
@@ -311,7 +315,7 @@ private fun CheckoutStepper(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             CheckoutStep.entries.forEachIndexed { index, step ->
-                val isCompleted = step.ordinal < currentStep.ordinal
+                val isCompleted = step.ordinal < highestStepOrdinal
                 val isCurrent = step == currentStep
                 val bgColor = when {
                     isCompleted -> AzulRey
@@ -333,7 +337,7 @@ private fun CheckoutStepper(
                             .size(32.dp)
                             .clip(CircleShape)
                             .background(bgColor)
-                            .clickable(enabled = isCompleted || isCurrent) { onStepClick(step) },
+                            .clickable(enabled = step.ordinal <= highestStepOrdinal) { onStepClick(step) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (isCompleted) {
@@ -1396,6 +1400,7 @@ private fun DocumentTypeCard(
 private fun StepPayment(
     paymentMethod: String,
     subtotal: Double,
+    deliveryCost: Double = 0.0,
     onPaymentMethodChange: (String) -> Unit,
     bankAccounts: List<BankAccountData> = emptyList(),
     bankTitular: String = ""
@@ -1510,7 +1515,7 @@ private fun StepPayment(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Monto a pagar: S/ ${"%.2f".format(subtotal)}",
+                        text = "Monto a pagar: S/ ${"%.2f".format(subtotal + deliveryCost)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = AzulReyClaro,
                         fontWeight = FontWeight.Bold
@@ -1606,6 +1611,7 @@ private fun PaymentOptionCard(
 private fun StepConfirm(
     items: List<com.cyryel.data.cart.CartItem>,
     subtotal: Double,
+    deliveryCost: Double = 0.0,
     deliveryMethod: String,
     street: String,
     city: String,
@@ -1679,6 +1685,42 @@ private fun StepConfirm(
                         color = AzulReyClaro
                     )
                 }
+                if (deliveryMethod == "domicilio" && deliveryCost > 0.0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Delivery",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "S/ ${"%.2f".format(deliveryCost)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AzulReyClaro
+                        )
+                    }
+                }
+                if (deliveryMethod == "domicilio" && deliveryCost == 0.0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Delivery",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "Gratis",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32)
+                        )
+                    }
+                }
                 if (totalPointsUsed > 0) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -1697,6 +1739,23 @@ private fun StepConfirm(
                             color = AmarilloVibrante
                         )
                     }
+                }
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Total",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "S/ ${"%.2f".format(subtotal + deliveryCost)}",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AzulReyClaro
+                    )
                 }
             }
         )

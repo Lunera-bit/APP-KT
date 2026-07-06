@@ -38,6 +38,7 @@ data class OrderSnapshot(
 
 data class CheckoutUiState(
     val currentStep: CheckoutStep = CheckoutStep.REVIEW,
+    val highestStepOrdinal: Int = 0,
     val items: List<CartItem> = emptyList(),
     val deliveryMethod: String = "domicilio",
     val street: String = "",
@@ -61,7 +62,8 @@ data class CheckoutUiState(
     val savedAddresses: List<Address> = emptyList(),
     val selectedAddressId: String? = null,
     val bankAccounts: List<BankAccountData> = emptyList(),
-    val bankTitular: String = ""
+    val bankTitular: String = "",
+    val deliveryCost: Double = 0.0
 ) {
     val subtotal: Double get() = items.sumOf { it.subtotal }
 

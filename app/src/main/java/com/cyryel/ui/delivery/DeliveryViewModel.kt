@@ -28,6 +28,7 @@ import javax.inject.Inject
 
 data class DeliveryUiState(
     val isLoading: Boolean = false,
+    val loadingMessage: String? = null,
     val isAvailable: Boolean = true,
     val availableDeliveries: List<Pair<DeliveryAssignment, Order>> = emptyList(),
     val myDeliveries: List<Pair<DeliveryAssignment, Order>> = emptyList(),
@@ -122,22 +123,22 @@ class DeliveryViewModel @Inject constructor(
                 LocationUploaderService.stop(app)
             }
 
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update { it.copy(isLoading = false, loadingMessage = null) }
         }
     }
 
     fun acceptDelivery(deliveryId: String, orderId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, loadingMessage = "Aceptando pedido...", errorMessage = null) }
 
             val uid = authRepository.getCurrentUserId() ?: run {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Usuario no autenticado") }
+                _uiState.update { it.copy(isLoading = false, loadingMessage = null, errorMessage = "Usuario no autenticado") }
                 return@launch
             }
 
             val location = getCurrentLocation()
             if (location == null) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "No se pudo obtener la ubicacion") }
+                _uiState.update { it.copy(isLoading = false, loadingMessage = null, errorMessage = "No se pudo obtener la ubicacion") }
                 return@launch
             }
 
@@ -155,7 +156,7 @@ class DeliveryViewModel @Inject constructor(
                 ).onSuccess {
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
+                            isLoading = false, loadingMessage = null,
                             successMessage = "Pedido aceptado con exito"
                         )
                     }
@@ -163,14 +164,14 @@ class DeliveryViewModel @Inject constructor(
                 }.onFailure { e ->
                     _uiState.update {
                         it.copy(
-                            isLoading = false,
+                            isLoading = false, loadingMessage = null,
                             errorMessage = e.localizedMessage ?: "Error al aceptar pedido"
                         )
                     }
                 }
             }.onFailure {
                 _uiState.update {
-                    it.copy(isLoading = false, errorMessage = "Error al obtener datos del usuario")
+                    it.copy(isLoading = false, loadingMessage = null, errorMessage = "Error al obtener datos del usuario")
                 }
             }
         }
@@ -178,12 +179,12 @@ class DeliveryViewModel @Inject constructor(
 
     fun startDelivery(deliveryId: String, orderId: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, loadingMessage = "Iniciando delivery...", errorMessage = null) }
 
             deliveryRepository.startDelivery(deliveryId, orderId).onSuccess {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        isLoading = false, loadingMessage = null,
                         successMessage = "Pedido marcado como en camino"
                     )
                 }
@@ -191,7 +192,7 @@ class DeliveryViewModel @Inject constructor(
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        isLoading = false, loadingMessage = null,
                         errorMessage = e.localizedMessage ?: "Error al iniciar delivery"
                     )
                 }
@@ -201,12 +202,12 @@ class DeliveryViewModel @Inject constructor(
 
     fun completeDelivery(deliveryId: String, orderId: String, confirmationCode: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, loadingMessage = "Verificando codigo...", errorMessage = null) }
 
             deliveryRepository.completeDelivery(deliveryId, orderId, confirmationCode).onSuccess {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        isLoading = false, loadingMessage = null,
                         successMessage = "Pedido entregado con exito",
                         selectedDelivery = null
                     )
@@ -215,7 +216,7 @@ class DeliveryViewModel @Inject constructor(
             }.onFailure { e ->
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
+                        isLoading = false, loadingMessage = null,
                         errorMessage = e.localizedMessage ?: "Error al completar delivery"
                     )
                 }

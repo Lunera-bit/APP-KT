@@ -39,6 +39,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.mapbox.common.MapboxOptions
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import androidx.appcompat.content.res.AppCompatResources
+import com.cyryel.BuildConfig
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -532,6 +537,8 @@ private fun DeliveryTrackMapCard(
 ) {
     if (destLatitude == 0.0 && destLongitude == 0.0) return
 
+    remember { MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN }
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -544,6 +551,7 @@ private fun DeliveryTrackMapCard(
 
             Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
                 var mapView by remember { mutableStateOf<MapView?>(null) }
+                var styleLoaded by remember { mutableStateOf(false) }
                 var destAnnotationMgr by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
                 var deliveryAnnotationMgr by remember { mutableStateOf<com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager?>(null) }
                 var routeSource by remember { mutableStateOf<GeoJsonSource?>(null) }
@@ -552,19 +560,25 @@ private fun DeliveryTrackMapCard(
                 AndroidView(
                     factory = { ctx ->
                         MapView(ctx).apply {
-                            mapboxMap.loadStyleUri("mapbox://styles/mapbox/streets-v12") { style ->
+                            mapboxMap.loadStyleUri("mapbox://styles/hola231341/cmr55bvuc002n01qodr8m2j2p") { style ->
                                 val destPoint = Point.fromLngLat(destLongitude, destLatitude)
                                 val deliveryPoint = Point.fromLngLat(deliveryLongitude, deliveryLatitude)
+
+                                val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
+                                if (pinBitmap != null) style.addImage("pin-icon", pinBitmap)
+
+                                val truckBitmap = vectorToBitmap(ctx, R.drawable.ic_delivery_truck)
+                                if (truckBitmap != null) style.addImage("delivery-icon", truckBitmap)
 
                                 val annotations = annotations
                                 destAnnotationMgr = annotations.createPointAnnotationManager()
                                 destAnnotationMgr?.create(
-                                    PointAnnotationOptions().withPoint(destPoint).withIconSize(1.5)
+                                    PointAnnotationOptions().withPoint(destPoint).withIconImage("pin-icon")
                                 )
 
                                 deliveryAnnotationMgr = annotations.createPointAnnotationManager()
                                 deliveryAnnotationMgr?.create(
-                                    PointAnnotationOptions().withPoint(deliveryPoint).withIconSize(1.5)
+                                    PointAnnotationOptions().withPoint(deliveryPoint).withIconImage("delivery-icon")
                                 )
 
                                 val src = GeoJsonSource.Builder("route-source")
@@ -575,7 +589,7 @@ private fun DeliveryTrackMapCard(
 
                                 style.addLayer(
                                     LineLayer("route-layer", "route-source")
-                                        .lineColor(android.graphics.Color.parseColor("#0066FF"))
+                                        .lineColor(android.graphics.Color.parseColor("#E53935"))
                                         .lineWidth(4.0)
                                         .lineOpacity(0.8)
                                 )
@@ -586,6 +600,8 @@ private fun DeliveryTrackMapCard(
                                         .zoom(12.0)
                                         .build()
                                 )
+
+                                styleLoaded = true
                             }
                             mapView = this
                             post {
@@ -614,21 +630,20 @@ private fun DeliveryTrackMapCard(
                     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
                 }
 
-                LaunchedEffect(deliveryLatitude, deliveryLongitude) {
+                LaunchedEffect(deliveryLatitude, deliveryLongitude, styleLoaded) {
+                    if (!styleLoaded) return@LaunchedEffect
+
                     val deliveryPoint = Point.fromLngLat(deliveryLongitude, deliveryLatitude)
                     deliveryAnnotationMgr?.deleteAll()
                     deliveryAnnotationMgr?.create(
-                        PointAnnotationOptions().withPoint(deliveryPoint).withIconSize(1.5)
+                        PointAnnotationOptions().withPoint(deliveryPoint).withIconImage("delivery-icon").withIconSize(1.5)
                     )
 
-                    val routeJson = withContext(Dispatchers.IO) {
+                    val routeLine = withContext(Dispatchers.IO) {
                         fetchRoute(destLatitude, destLongitude, deliveryLatitude, deliveryLongitude)
                     }
-                    if (routeJson != null) {
-                        val geometry = routeJson.geometry()
-                        if (geometry != null) {
-                            routeSource?.geometry(geometry)
-                        }
+                    if (routeLine != null) {
+                        routeSource?.geometry(routeLine)
                     }
                 }
             }
@@ -651,7 +666,7 @@ private fun DeliveryTrackMapCard(
 private suspend fun fetchRoute(
     fromLat: Double, fromLng: Double,
     toLat: Double, toLng: Double
-): Feature? {
+): com.mapbox.geojson.LineString? {
     return try {
         val token = com.cyryel.BuildConfig.MAPBOX_ACCESS_TOKEN
         val url = "https://api.mapbox.com/directions/v5/mapbox/driving/$fromLng,$fromLat;$toLng,$toLat?geometries=geojson&access_token=$token&overview=full&steps=false"
@@ -660,9 +675,22 @@ private suspend fun fetchRoute(
         val routes = obj?.getAsJsonArray("routes")
         if (routes != null && routes.size() > 0) {
             val geometry = routes[0].asJsonObject.getAsJsonObject("geometry")
-            Feature.fromJson(geometry.toString())
+            com.mapbox.geojson.LineString.fromJson(geometry.toString())
         } else null
     } catch (_: Exception) {
         null
     }
+}
+
+private fun vectorToBitmap(context: android.content.Context, drawableRes: Int): Bitmap? {
+    val drawable = AppCompatResources.getDrawable(context, drawableRes) ?: return null
+    val bitmap = Bitmap.createBitmap(
+        drawable.intrinsicWidth.takeIf { it > 0 } ?: 36,
+        drawable.intrinsicHeight.takeIf { it > 0 } ?: 36,
+        Bitmap.Config.ARGB_8888
+    )
+    val canvas = Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bitmap
 }

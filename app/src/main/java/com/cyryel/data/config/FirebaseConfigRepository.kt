@@ -32,4 +32,21 @@ class FirebaseConfigRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun getDeliveryConfig(): Result<DeliveryConfigData> {
+        return try {
+            val doc = firestore.collection("config").document("delivery").get().await()
+            val config = if (doc.exists()) {
+                DeliveryConfigData(
+                    basePrice = (doc.getDouble("basePrice") ?: 4.50),
+                    costPerKm = (doc.getDouble("costPerKm") ?: 1.30)
+                )
+            } else {
+                DeliveryConfigData()
+            }
+            Result.success(config)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

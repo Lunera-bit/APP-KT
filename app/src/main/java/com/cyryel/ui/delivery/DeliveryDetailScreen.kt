@@ -330,7 +330,7 @@ fun DeliveryDetailScreen(
                     ) {
                         CircularProgressIndicator(color = AzulRey)
                         Text(
-                            text = "Verificando codigo...",
+                            text = uiState.loadingMessage ?: "Cargando...",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
