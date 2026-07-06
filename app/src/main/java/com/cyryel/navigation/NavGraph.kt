@@ -162,7 +162,11 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
         composable(
             route = Routes.ORDER_DETAIL,
             arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
-            deepLinks = listOf(navDeepLink { uriPattern = "cyryel://order/{orderId}" })
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "cyryel://order/{orderId}" },
+                navDeepLink { uriPattern = "cyryel://shop/pedidos/{orderId}" },
+                navDeepLink { uriPattern = "cyryel://delivery/pedidos/{orderId}" }
+            )
         ) { backStackEntry ->
             val orderId = backStackEntry.arguments?.getString("orderId") ?: ""
             OrderDetailScreen(
