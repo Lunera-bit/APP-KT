@@ -12,6 +12,7 @@ data class User(
     val role: String = "user",
     val fcmToken: String = "",
     val points: Int = 0,
+    val isAvailable: Boolean = true,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

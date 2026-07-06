@@ -3,6 +3,7 @@ package com.cyryel.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.auth.AuthRepository
+import com.cyryel.data.user.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     val authStateFlow = authRepository.authStateFlow()
@@ -26,10 +28,20 @@ class AuthViewModel @Inject constructor(
     init {
         if (authRepository.isLoggedIn()) {
             viewModelScope.launch {
-                authRepository.getCurrentUserId()?.let { uid ->
-                    authRepository.saveFcmToken(uid)
-                }
+                val uid = authRepository.getCurrentUserId() ?: return@launch
+                authRepository.saveFcmToken(uid)
+                loadUserRole(uid)
             }
+        } else {
+            _uiState.update { it.copy(isRoleLoaded = true) }
+        }
+    }
+
+    private suspend fun loadUserRole(uid: String) {
+        userRepository.getUser(uid).onSuccess { user ->
+            _uiState.update { it.copy(role = user.role, isRoleLoaded = true) }
+        }.onFailure {
+            _uiState.update { it.copy(isRoleLoaded = true) }
         }
     }
 
@@ -45,6 +57,15 @@ class AuthViewModel @Inject constructor(
         _uiState.update { it.copy(termsAccepted = accepted, errorMessage = null) }
     }
 
+    private suspend fun afterLogin() {
+        val uid = authRepository.getCurrentUserId() ?: return
+        authRepository.saveFcmToken(uid)
+        loadUserRole(uid)
+        _uiState.update {
+            it.copy(isLoading = false, isAuthenticated = true, errorMessage = null)
+        }
+    }
+
     fun signIn() {
         val currentState = _uiState.value
         if (currentState.email.isBlank() || currentState.password.isBlank()) {
@@ -53,7 +74,7 @@ class AuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, password = "") }
 
             val result = authRepository.signIn(
                 email = currentState.email,
@@ -61,25 +82,11 @@ class AuthViewModel @Inject constructor(
             )
 
             if (result.isSuccess) {
-                authRepository.getCurrentUserId()?.let { uid ->
-                    authRepository.saveFcmToken(uid)
-                }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isAuthenticated = true,
-                        password = "",
-                        errorMessage = null
-                    )
-                }
+                afterLogin()
             } else {
                 val message = result.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar sesion"
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isAuthenticated = false,
-                        errorMessage = message
-                    )
+                    it.copy(isLoading = false, isAuthenticated = false, errorMessage = message)
                 }
             }
         }
@@ -92,12 +99,7 @@ class AuthViewModel @Inject constructor(
             val result = authRepository.signInWithGoogle(idToken)
 
             if (result.isSuccess) {
-                authRepository.getCurrentUserId()?.let { uid ->
-                    authRepository.saveFcmToken(uid)
-                }
-                _uiState.update {
-                    it.copy(isLoading = false, isAuthenticated = true, errorMessage = null)
-                }
+                afterLogin()
             } else {
                 val message = result.exceptionOrNull()?.localizedMessage ?: "No se pudo iniciar sesion con Google"
                 _uiState.update {
@@ -114,11 +116,7 @@ class AuthViewModel @Inject constructor(
     fun signOut() {
         authRepository.signOut()
         _uiState.update {
-            it.copy(
-                isAuthenticated = false,
-                password = "",
-                errorMessage = null
-            )
+            AuthUiState()
         }
     }
 }

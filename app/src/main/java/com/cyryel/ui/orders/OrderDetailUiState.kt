@@ -7,5 +7,7 @@ data class OrderDetailUiState(
     val order: Order? = null,
     val errorMessage: String? = null,
     val isCancelling: Boolean = false,
-    val cancelSuccess: Boolean = false
+    val cancelSuccess: Boolean = false,
+    val deliveryLatitude: Double? = null,
+    val deliveryLongitude: Double? = null
 )

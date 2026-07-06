@@ -2,6 +2,8 @@ package com.cyryel.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.cyryel.data.auth.AuthRepository
 import com.cyryel.data.auth.FirebaseAuthRepository
 import com.cyryel.data.cart.CartManager
@@ -9,6 +11,8 @@ import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.category.FirebaseCategoryRepository
 import com.cyryel.data.config.ConfigRepository
 import com.cyryel.data.config.FirebaseConfigRepository
+import com.cyryel.data.delivery.DeliveryRepository
+import com.cyryel.data.delivery.FirebaseDeliveryRepository
 import com.cyryel.data.notificacion.FirebaseNotificacionRepository
 import com.cyryel.data.notificacion.NotificacionRepository
 import com.cyryel.data.local.AppDatabase
@@ -114,5 +118,17 @@ object FirebaseModule {
     @Singleton
     fun provideNotificacionRepository(firestore: FirebaseFirestore): NotificacionRepository {
         return FirebaseNotificacionRepository(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFusedLocationClient(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeliveryRepository(firestore: FirebaseFirestore): DeliveryRepository {
+        return FirebaseDeliveryRepository(firestore)
     }
 }

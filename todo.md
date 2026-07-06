@@ -120,16 +120,23 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ---
 
-## Fase 9: Delivery App (repositorio separado) 🔮 Planeado
+## Fase 9: Delivery App (integrada en mismo APK) 🟡
 
 | # | Tarea | Estado |
 |---|---|---|
-| 9.1 | Modelo Firestore: `dispatch_queue`, `delivery_batches`, `delivery_locations`, `drivers` | 🔮 |
-| 9.2 | Pantallas delivery: Online toggle, pedido entrante (timer), entrega activa (4 pasos), earnings | 🔮 |
-| 9.3 | Cloud Function dispatch: asignar repartidor + batch multi-orden | 🔮 |
-| 9.4 | Tracking en tiempo real: `addSnapshotListener` en `delivery_locations/{driverId}` | 🔮 |
-| 9.5 | Mapa delivery con ruta (Mapbox Directions API) + marcador 3D carro (ModelLayer .glb) | 🔮 |
-| 9.6 | Notificaciones push al usuario cuando cambia estado del pedido | 🔮 |
+| 9.1 | Modelo Firestore: `deliveries/{orderId}` con status (disponible/aceptado/en_camino/entregado), `assignedDeliveryId`, `deliveryPerson` | ✅ |
+| 9.2 | Rol `delivery` en AuthScreen + NavGraph bifurca a DeliveryMainScreen | ✅ |
+| 9.3 | Delivery tabs: Pedidos (aceptar) + Perfil (toggle disponibilidad conectado a Firestore) | ✅ |
+| 9.4 | DeliveryRepository + FirebaseDeliveryRepository con transacciones (aceptar, startDelivery, completeDelivery) | ✅ |
+| 9.5 | Cloud Function `onOrderReadyForDelivery` genera código 4 dígitos en `deliveryConfirmationCode` | ✅ |
+| 9.6 | DeliveryDetailScreen: botones "Aceptar pedido", "Recogí el pedido", input código + "Entregar pedido" | ✅ |
+| 9.7 | LocationUploaderService (foreground service) sube ubicación cada 15s a deliveries activos | ✅ |
+| 9.8 | Diálogo explicativo antes de solicitar permiso `ACCESS_FINE_LOCATION` | ✅ |
+| 9.9 | Botón "Abrir Configuración" si permiso denegado permanentemente | ✅ |
+| 9.10 | MapCard con 2 botones: "Ver ubicación" (geo) + "Navegar" (google.navigation) | ✅ |
+| 9.11 | Código confirmación visible en OrderDetailScreen (cliente) con toggle mostrar/ocultar | ✅ |
+| 9.12 | SnapshotListener en tiempo real para notificaciones al usuario cuando cambia estado delivery | 🔮 |
+| 9.13 | Earnings / historial de entregas completadas | 🔮 |
 
 ---
 
@@ -137,7 +144,7 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 - [ ] Flash Banners slider (colección `flash`) con auto-scroll en Home
 - [ ] Category picker modal (bottom sheet) con búsqueda
-- [ ] Mapa tracking delivery en OrderDetailScreen (SnapshotListener a `delivery_locations/{orderId}`)
+- [ ] Mapa tracking delivery en OrderDetailScreen (SnapshotListener a `lastLocation` del repartidor)
 - [ ] Mover tokens Mapbox a `local.properties` + `BuildConfig`
 - [ ] Deep links externos: agregar `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
 - [ ] Agregar `.limit()` faltantes a queries Firestore en repositorios

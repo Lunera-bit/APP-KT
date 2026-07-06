@@ -38,6 +38,8 @@ class FirebaseOrderRepository @Inject constructor(
                 itemMap
             }
 
+            val initialStatus = if (request.deliveryMethod == "tienda") "confirmado" else "pendiente"
+
             val payload = hashMapOf<String, Any>(
                 "userId" to request.userId,
                 "items" to orderItems,
@@ -46,7 +48,7 @@ class FirebaseOrderRepository @Inject constructor(
                 "pointsUsed" to request.pointsUsed,
                 "pointsDiscount" to request.pointsDiscount,
                 "total" to total,
-                "status" to "pendiente",
+                "status" to initialStatus,
                 "paymentMethod" to request.paymentMethod,
                 "paymentStatus" to if (request.paymentMethod == "codigo") "pendiente" else "completado",
                 "deliveryMethod" to request.deliveryMethod,
@@ -233,6 +235,9 @@ class FirebaseOrderRepository @Inject constructor(
                 deliveryAddress = address,
                 notes = data["notes"] as? String ?: "",
                 deliveryNotes = data["deliveryNotes"] as? String ?: "",
+                deliveryConfirmationCode = data["deliveryConfirmationCode"] as? String ?: "",
+                deliveryAcceptedAt = (data["deliveryAcceptedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time,
+                deliveryStartedAt = (data["deliveryStartedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time,
                 customerContact = contact,
                 customerEmail = data["customerEmail"] as? String ?: "",
                 fcmToken = data["fcmToken"] as? String ?: "",

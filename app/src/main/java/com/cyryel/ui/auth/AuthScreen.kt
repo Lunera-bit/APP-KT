@@ -3,12 +3,15 @@ package com.cyryel.ui.auth
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +48,7 @@ import com.google.android.gms.common.api.ApiException
 @Composable
 fun AuthRoute(
     modifier: Modifier = Modifier,
-    onNavigateToMain: () -> Unit = {},
+    onNavigateToMain: (role: String) -> Unit = {},
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,21 +81,47 @@ fun AuthRoute(
         }
     }
 
-    LaunchedEffect(uiState.isAuthenticated) {
-        if (uiState.isAuthenticated) {
-            onNavigateToMain()
+    LaunchedEffect(uiState.isAuthenticated, uiState.isRoleLoaded) {
+        if (uiState.isAuthenticated && uiState.isRoleLoaded) {
+            onNavigateToMain(uiState.role)
         }
     }
 
-    if (!uiState.isAuthenticated) {
-        LoginScreen(
-            modifier = modifier,
-            uiState = uiState,
-            onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
-            onGoogleSignInClick = {
-                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+    Box(modifier = modifier.fillMaxSize()) {
+        if (!uiState.isAuthenticated) {
+            LoginScreen(
+                modifier = Modifier.fillMaxSize(),
+                uiState = uiState,
+                onTermsAcceptedChange = viewModel::onTermsAcceptedChange,
+                onGoogleSignInClick = {
+                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                }
+            )
+        }
+
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        strokeWidth = 4.dp,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = "Iniciando sesion...",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-        )
+        }
     }
 }
 

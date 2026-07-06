@@ -18,6 +18,7 @@ import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.categoryproducts.CategoryProductsScreen
 import com.cyryel.ui.cart.CartScreen
 import com.cyryel.ui.checkout.CheckoutScreen
+import com.cyryel.ui.delivery.DeliveryMainScreen
 import com.cyryel.ui.home.MainScreen
 import com.cyryel.ui.notifications.BandejaNotificacionesScreen
 import com.cyryel.ui.orders.OrderDetailScreen
@@ -34,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 object Routes {
     const val AUTH = "auth"
     const val MAIN = "main"
+    const val DELIVERY = "delivery"
     const val PRODUCT_DETAIL = "product/{productId}"
     const val CART = "cart"
     const val CHECKOUT = "checkout"
@@ -94,8 +96,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
         composable(Routes.AUTH) {
             AuthRoute(
                 modifier = androidx.compose.ui.Modifier,
-                onNavigateToMain = {
-                    navController.navigate(Routes.MAIN) {
+                onNavigateToMain = { role ->
+                    val dest = if (role == "delivery") Routes.DELIVERY else Routes.MAIN
+                    navController.navigate(dest) {
                         popUpTo(Routes.AUTH) { inclusive = true }
                     }
                 }
@@ -133,6 +136,21 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 },
                 onNavigateToAddresses = {
                     navController.navigate(Routes.ADDRESSES)
+                }
+            )
+        }
+
+        composable(Routes.DELIVERY) {
+            val context = LocalContext.current
+            DeliveryMainScreen(
+                onSignOut = {
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail().build()
+                    GoogleSignIn.getClient(context, gso).signOut()
+                    authViewModel.signOut()
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

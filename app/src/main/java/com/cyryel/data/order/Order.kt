@@ -5,6 +5,7 @@ import com.cyryel.data.product.ProductVariant
 enum class OrderStatus(val value: String) {
     PENDING("pendiente"),
     CONFIRMED("confirmado"),
+    IN_DELIVERY("en_reparto"),
     READY_FOR_PICKUP("listo_para_recoger"),
     IN_TRANSIT("en_camino"),
     DELIVERED("entregado"),
@@ -74,6 +75,9 @@ data class Order(
     val deliveryAddress: DeliveryAddress = DeliveryAddress("", ""),
     val notes: String = "",
     val deliveryNotes: String = "",
+    val deliveryConfirmationCode: String = "",
+    val deliveryAcceptedAt: Long? = null,
+    val deliveryStartedAt: Long? = null,
     val customerContact: CustomerContact = CustomerContact(),
     val customerEmail: String = "",
     val fcmToken: String = "",

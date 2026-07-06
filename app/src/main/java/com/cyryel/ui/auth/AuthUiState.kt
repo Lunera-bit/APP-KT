@@ -6,5 +6,7 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val isAuthenticated: Boolean = false,
     val errorMessage: String? = null,
-    val termsAccepted: Boolean = false
+    val termsAccepted: Boolean = false,
+    val role: String = "user",
+    val isRoleLoaded: Boolean = false
 )

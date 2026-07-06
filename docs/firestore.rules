@@ -177,6 +177,24 @@ service cloud.firestore {
     }
     
     // ============================================================================
+    // DELIVERIES / REPARTOS COLLECTION
+    // ============================================================================
+    /**
+     * Asignaciones de delivery para repartidores
+     * Permisos:
+     * - Read: Delivery (disponibles y propios), admin
+     * - Create: Cloud Functions (al confirmar pedido)
+     * - Update: Delivery que acepta, admin
+     * - Delete: Solo admin
+     */
+    match /deliveries/{deliveryId} {
+      allow read: if isDelivery() || isAdmin();
+      allow create: if isAdmin();
+      allow update: if isDelivery() || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ============================================================================
     // NOTIFICACIONES / NOTIFICACIONES COLLECTION
     // ============================================================================
     /**

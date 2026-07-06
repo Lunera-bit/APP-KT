@@ -30,6 +30,7 @@ class FirebaseUserRepository @Inject constructor(
                         role = data["role"] as? String ?: "user",
                         fcmToken = data["fcmToken"] as? String ?: "",
                         points = (data["points"] as? Long)?.toInt() ?: 0,
+                        isAvailable = (data["isAvailable"] as? Boolean) ?: true,
                         addresses = parseAddresses(data["addresses"])
                     )
                 )

@@ -32,6 +32,14 @@ class TiendaCyryelApp : Application() {
                 description = "Notificaciones generales"
             }
             manager.createNotificationChannel(defaultChannel)
+            val locationChannel = NotificationChannel(
+                "location_service",
+                "Ubicacion en tiempo real",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Notificacion persistente cuando el repartidor comparte ubicacion"
+            }
+            manager.createNotificationChannel(locationChannel)
         }
     }
 }
