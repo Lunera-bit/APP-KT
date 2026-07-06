@@ -77,7 +77,7 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 | 5.3 | Cancelar pedido (vía Cloud Function `updateOrderStatus`) | ✅ |
 | 5.4 | SnapshotListener en tiempo real para órdenes recientes | ✅ |
 | 5.5 | Scroll infinito (paginación load 5 + near-end detection) | ✅ |
-| 5.6 | Mapa tracking delivery en tiempo real | ⏳ Pendiente |
+| 5.6 | Mapa tracking delivery en tiempo real con Mapbox | ✅ |
 
 ---
 
@@ -135,8 +135,11 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 | 9.9 | Botón "Abrir Configuración" si permiso denegado permanentemente | ✅ |
 | 9.10 | MapCard con 2 botones: "Ver ubicación" (geo) + "Navegar" (google.navigation) | ✅ |
 | 9.11 | Código confirmación visible en OrderDetailScreen (cliente) con toggle mostrar/ocultar | ✅ |
-| 9.12 | SnapshotListener en tiempo real para notificaciones al usuario cuando cambia estado delivery | 🔮 |
-| 9.13 | Earnings / historial de entregas completadas | 🔮 |
+| 9.12 | Notificaciones FCM al cambiar estado delivery (Cloud Function onOrderUpdated) | ✅ |
+| 9.13 | Historial de entregas completadas en tab "Historial" | ✅ |
+| 9.14 | Mapa Mapbox con tracking en vivo en OrderDetailScreen (cliente) | ✅ |
+| 9.15 | SnapshotListener ubicación repartidor en OrderDetailViewModel | ✅ |
+| 9.16 | Navegación automática a pedidos tras entregar + overlay "Verificando código..." | ✅ |
 
 ---
 
@@ -144,7 +147,6 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 - [ ] Flash Banners slider (colección `flash`) con auto-scroll en Home
 - [ ] Category picker modal (bottom sheet) con búsqueda
-- [ ] Mapa tracking delivery en OrderDetailScreen (SnapshotListener a `lastLocation` del repartidor)
 - [ ] Mover tokens Mapbox a `local.properties` + `BuildConfig`
 - [ ] Deep links externos: agregar `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
 - [ ] Agregar `.limit()` faltantes a queries Firestore en repositorios
