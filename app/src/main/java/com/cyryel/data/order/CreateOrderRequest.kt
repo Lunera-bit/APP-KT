@@ -19,5 +19,7 @@ data class CreateOrderRequest(
     val paymentMethod: String = "contra_entrega",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    val fcmToken: String = ""
+    val fcmToken: String = "",
+    val pointsUsed: Int = 0,
+    val pointsDiscount: Double = 0.0
 )

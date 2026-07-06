@@ -1,5 +1,10 @@
 package com.cyryel.data.product
 
+const val STOCK_RESERVE = 4
+
+val Product.availableStock: Int
+    get() = maxOf(0, stock - STOCK_RESERVE)
+
 data class Product(
     val id: String = "",
     val nombre: String = "",

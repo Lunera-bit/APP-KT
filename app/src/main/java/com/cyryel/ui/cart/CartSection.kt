@@ -94,9 +94,12 @@ fun CartScreen(
         },
         bottomBar = {
             if (uiState.items.isNotEmpty()) {
+                val redeemedItems = uiState.items.filter { it.redeemedByPoints }
+                val pointsUsed = redeemedItems.sumOf { it.product.pointsToRedeem * it.quantity }
                 CartBottomBar(
                     subtotal = uiState.subtotal,
                     itemCount = uiState.itemCount,
+                    pointsUsed = pointsUsed,
                     enabled = true,
                     onCheckout = onCheckout
                 )
@@ -124,7 +127,7 @@ fun CartScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                items(uiState.items, key = { "${it.productId}|${it.variantName.orEmpty()}" }) { item ->
+                items(uiState.items, key = { "${it.productId}|${it.variantName.orEmpty()}|${it.redeemedByPoints}" }) { item ->
                     val forcedPackSize = ForcedPackConfig.getPackSize(item.product)
                     CartItemCard(
                         imageUrl = item.product.foto,
@@ -135,10 +138,12 @@ fun CartScreen(
                         hasVariants = item.variantName != null,
                         forcedPackSize = forcedPackSize,
                         productId = item.productId,
+                        redeemedByPoints = item.redeemedByPoints,
+                        pointsToRedeem = item.product.pointsToRedeem,
                         onProductClick = onProductClick,
-                        onIncrease = { viewModel.addProduct(item.product, item.variantName) },
-                        onDecrease = { viewModel.decreaseProduct(item.productId, item.variantName) },
-                        onRemove = { viewModel.removeProduct(item.productId, item.variantName) }
+                        onIncrease = { if (!item.redeemedByPoints) viewModel.addProduct(item.product, item.variantName) },
+                        onDecrease = { if (!item.redeemedByPoints) viewModel.decreaseProduct(item.productId, item.variantName, false) },
+                        onRemove = { viewModel.removeProduct(item.productId, item.variantName, item.redeemedByPoints) }
                     )
                 }
                 item {
@@ -153,6 +158,7 @@ fun CartScreen(
 private fun CartBottomBar(
     subtotal: Double,
     itemCount: Int,
+    pointsUsed: Int = 0,
     enabled: Boolean,
     onCheckout: () -> Unit
 ) {
@@ -183,6 +189,14 @@ private fun CartBottomBar(
                     fontWeight = FontWeight.Bold,
                     color = AzulReyClaro
                 )
+                if (pointsUsed > 0) {
+                    Text(
+                        text = "$pointsUsed pts por canje",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = AmarilloVibrante
+                    )
+                }
             }
             Button(
                 onClick = onCheckout,
@@ -214,6 +228,8 @@ private fun CartItemCard(
     hasVariants: Boolean = false,
     forcedPackSize: Int? = null,
     productId: String = "",
+    redeemedByPoints: Boolean = false,
+    pointsToRedeem: Int = 0,
     onProductClick: (String) -> Unit = {},
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
@@ -224,7 +240,9 @@ private fun CartItemCard(
             .fillMaxWidth()
             .clickable { onProductClick(productId) },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -241,29 +259,55 @@ private fun CartItemCard(
             )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(Modifier.height(4.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "S/ ${"%.2f".format(price)}",
+                        text = name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (redeemedByPoints) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(AmarilloVibrante.copy(alpha = 0.15f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "pts",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = AmarilloVibrante
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+                if (redeemedByPoints) {
+                    Text(
+                        text = "${pointsToRedeem * quantity} pts",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AzulReyClaro,
+                        color = AmarilloVibrante,
                         fontWeight = FontWeight.Bold
                     )
-                    if (quantity > 1) {
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = " x $quantity",
+                            text = "S/ ${"%.2f".format(price)}",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = AzulReyClaro,
+                            fontWeight = FontWeight.Bold
                         )
+                        if (quantity > 1) {
+                            Text(
+                                text = " x $quantity",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
@@ -272,19 +316,30 @@ private fun CartItemCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    QuantitySelector(
-                        quantity = quantity,
-                        onIncrease = onIncrease,
-                        onDecrease = onDecrease,
-                        hasVariants = hasVariants,
-                        forcedPackSize = forcedPackSize
-                    )
-                    Text(
-                        text = "S/ ${"%.2f".format(subtotal)}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = AzulReyClaro
-                    )
+                    if (!redeemedByPoints) {
+                        QuantitySelector(
+                            quantity = quantity,
+                            onIncrease = onIncrease,
+                            onDecrease = onDecrease,
+                            hasVariants = hasVariants,
+                            forcedPackSize = forcedPackSize
+                        )
+                    } else {
+                        Text(
+                            text = "Canjeado con puntos",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AmarilloVibrante,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    if (!redeemedByPoints) {
+                        Text(
+                            text = "S/ ${"%.2f".format(subtotal)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AzulReyClaro
+                        )
+                    }
                 }
             }
             Spacer(Modifier.width(4.dp))

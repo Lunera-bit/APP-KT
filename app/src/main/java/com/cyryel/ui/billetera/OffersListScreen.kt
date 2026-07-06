@@ -1,5 +1,6 @@
 package com.cyryel.ui.billetera
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.cyryel.R
 import com.cyryel.data.product.Product
+import com.cyryel.data.product.availableStock
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.AzulReyClaro
@@ -59,11 +62,13 @@ import com.cyryel.ui.theme.AzulReyClaro
 fun OffersListScreen(
     onBack: () -> Unit,
     onProductClick: (String) -> Unit,
+    onNavigateToCart: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: BilleteraViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val products = uiState.redeemableProducts
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier,
@@ -128,7 +133,15 @@ fun OffersListScreen(
                 items(products, key = { it.id }) { product ->
                     CanjearProductCard(
                         product = product,
-                        onClick = { onProductClick(product.id) }
+                        onClick = { onProductClick(product.id) },
+                        onCanjearClick = {
+                            val success = viewModel.redeemProduct(product)
+                            if (success) {
+                                onNavigateToCart()
+                            } else {
+                                Toast.makeText(context, "No tienes suficientes puntos para canjear este producto", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     )
                 }
             }
@@ -137,7 +150,7 @@ fun OffersListScreen(
 }
 
 @Composable
-private fun CanjearProductCard(product: Product, onClick: () -> Unit) {
+private fun CanjearProductCard(product: Product, onClick: () -> Unit, onCanjearClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -206,29 +219,33 @@ private fun CanjearProductCard(product: Product, onClick: () -> Unit) {
 
                 Spacer(Modifier.height(12.dp))
 
-                Button(
-                    onClick = onClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AmarilloVibrante,
-                        contentColor = AzulRey
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_gift),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "Canjear ahora",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+    val sinStock = product.availableStock <= 0
+    Button(
+        onClick = onCanjearClick,
+        enabled = !sinStock,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AmarilloVibrante,
+            contentColor = AzulRey,
+            disabledContainerColor = AmarilloVibrante.copy(alpha = 0.4f),
+            disabledContentColor = AzulRey.copy(alpha = 0.5f)
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_gift),
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = if (sinStock) "Sin stock" else "Canjear ahora",
+            fontWeight = FontWeight.Bold
+        )
+    }
             }
         }
     }

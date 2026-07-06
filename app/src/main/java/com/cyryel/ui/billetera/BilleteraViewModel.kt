@@ -3,7 +3,10 @@ package com.cyryel.ui.billetera
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.auth.AuthRepository
+import com.cyryel.data.cart.CartManager
+import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductRepository
+import com.cyryel.data.product.availableStock
 import com.cyryel.data.promotion.PromotionRepository
 import com.cyryel.data.user.UserRepository
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,7 +25,8 @@ class BilleteraViewModel @Inject constructor(
     private val promotionRepository: PromotionRepository,
     private val productRepository: ProductRepository,
     private val authRepository: AuthRepository,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val cartManager: CartManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BilleteraUiState())
@@ -62,6 +66,14 @@ class BilleteraViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun redeemProduct(product: Product): Boolean {
+        val userPoints = _uiState.value.user?.points ?: 0
+        if (userPoints < product.pointsToRedeem) return false
+        if (product.availableStock <= 0) return false
+        cartManager.addRedeemedProduct(product)
+        return true
     }
 
     private suspend fun loadPointsHistory(userId: String) {

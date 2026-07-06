@@ -2,6 +2,7 @@ package com.cyryel.data.cart
 
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductVariant
+import com.cyryel.data.product.availableStock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,13 +16,16 @@ class CartManager @Inject constructor() {
     private val _items = MutableStateFlow<List<CartItem>>(emptyList())
     val items: StateFlow<List<CartItem>> = _items.asStateFlow()
 
+    private fun totalProductQuantity(items: List<CartItem>, productId: String): Int {
+        return items.filter { it.productId == productId }.sumOf { it.quantity }
+    }
+
     fun addProduct(product: Product, variantName: String? = null, variantPrice: Double? = null) {
-        if (product.stock <= 0) return
+        if (product.availableStock <= 0) return
         val price = variantPrice ?: product.precio
         _items.update { current ->
-            val existing = current.find { it.productId == product.id && it.variantName == variantName }
-            val currentQty = (existing?.quantity ?: 0) + 1
-            if (currentQty > product.stock) return@update current
+            if (totalProductQuantity(current, product.id) + 1 > product.availableStock) return@update current
+            val existing = current.find { it.productId == product.id && it.variantName == variantName && !it.redeemedByPoints }
             if (existing == null) {
                 current + CartItem(
                     productId = product.id,
@@ -34,7 +38,7 @@ class CartManager @Inject constructor() {
                 )
             } else {
                 current.map { item ->
-                    if (item.productId == product.id && item.variantName == variantName) {
+                    if (item.productId == product.id && item.variantName == variantName && !item.redeemedByPoints) {
                         val qty = item.quantity + 1
                         item.copy(quantity = qty, subtotal = item.price * qty)
                     } else {
@@ -45,10 +49,10 @@ class CartManager @Inject constructor() {
         }
     }
 
-    fun decreaseProduct(productId: String, variantName: String? = null) {
+    fun decreaseProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
         _items.update { current ->
             current.mapNotNull { item ->
-                if (item.productId != productId || item.variantName != variantName) {
+                if (item.productId != productId || item.variantName != variantName || item.redeemedByPoints != redeemedByPoints) {
                     item
                 } else {
                     val qty = item.quantity - 1
@@ -59,9 +63,37 @@ class CartManager @Inject constructor() {
         }
     }
 
-    fun removeProduct(productId: String, variantName: String? = null) {
+    fun removeProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
         _items.update { current ->
-            current.filterNot { it.productId == productId && it.variantName == variantName }
+            current.filterNot { it.productId == productId && it.variantName == variantName && it.redeemedByPoints == redeemedByPoints }
+        }
+    }
+
+    fun addRedeemedProduct(product: Product) {
+        if (product.availableStock <= 0) return
+        _items.update { current ->
+            if (totalProductQuantity(current, product.id) + 1 > product.availableStock) return@update current
+            val existing = current.find { it.productId == product.id && it.redeemedByPoints }
+            if (existing == null) {
+                current + CartItem(
+                    productId = product.id,
+                    productName = product.nombre,
+                    quantity = 1,
+                    price = 0.0,
+                    subtotal = 0.0,
+                    product = product,
+                    redeemedByPoints = true
+                )
+            } else {
+                current.map { item ->
+                    if (item.productId == product.id && item.redeemedByPoints) {
+                        val qty = item.quantity + 1
+                        item.copy(quantity = qty, subtotal = 0.0)
+                    } else {
+                        item
+                    }
+                }
+            }
         }
     }
 

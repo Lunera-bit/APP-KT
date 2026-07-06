@@ -52,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.cyryel.data.product.Product
+import com.cyryel.data.product.availableStock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -198,7 +199,7 @@ private fun ProductGridItem(
     product: Product,
     onClick: () -> Unit
 ) {
-    val outOfStock = product.stock <= 0
+    val outOfStock = product.availableStock <= 0
     Card(
         modifier = Modifier
             .fillMaxWidth()

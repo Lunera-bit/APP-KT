@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cyryel.data.product.Product
+import com.cyryel.data.product.availableStock
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -113,7 +114,7 @@ fun CatalogSection(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Stock: ${product.stock} ${product.unidad}",
+                                text = "Stock: ${product.availableStock} ${product.unidad}",
                                 style = MaterialTheme.typography.bodyMedium
                             )
 

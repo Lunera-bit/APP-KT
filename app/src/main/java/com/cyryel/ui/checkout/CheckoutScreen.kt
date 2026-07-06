@@ -465,7 +465,11 @@ private fun StepReview(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        items.forEach { item ->
+        val redeemedItems = items.filter { it.redeemedByPoints }
+        val paidItems = items.filter { !it.redeemedByPoints }
+        val totalPointsUsed = redeemedItems.sumOf { it.product.pointsToRedeem * it.quantity }
+
+        paidItems.forEach { item ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -502,28 +506,81 @@ private fun StepReview(
                 )
             }
         }
+
+        redeemedItems.forEach { item ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = item.productName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "${item.product.pointsToRedeem * item.quantity} pts x ${item.quantity}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AmarilloVibrante,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Text(
+                    text = "0 pts",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AmarilloVibrante
+                )
+            }
+        }
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = AzulRey.copy(alpha = 0.05f))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Subtotal",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "S/ ${"%.2f".format(subtotal)}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = AzulReyClaro
-                )
+            Column(modifier = Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Subtotal",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "S/ ${"%.2f".format(subtotal)}",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = AzulReyClaro
+                    )
+                }
+                if (totalPointsUsed > 0) {
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Puntos a canjear",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = AmarilloVibrante
+                        )
+                        Text(
+                            text = "$totalPointsUsed pts",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = AmarilloVibrante
+                        )
+                    }
+                }
             }
         }
     }
@@ -1580,6 +1637,8 @@ private fun StepConfirm(
         ConfirmSection(
             title = "Productos",
             content = {
+                val redeemedItems = items.filter { it.redeemedByPoints }
+                val totalPointsUsed = redeemedItems.sumOf { it.product.pointsToRedeem * it.quantity }
                 items.forEach { item ->
                     Row(
                         modifier = Modifier
@@ -1592,11 +1651,20 @@ private fun StepConfirm(
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(1f)
                         )
-                        Text(
-                            text = "S/ ${"%.2f".format(item.subtotal)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Medium
-                        )
+                        if (item.redeemedByPoints) {
+                            Text(
+                                text = "${item.product.pointsToRedeem * item.quantity} pts",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = AmarilloVibrante
+                            )
+                        } else {
+                            Text(
+                                text = "S/ ${"%.2f".format(item.subtotal)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -1615,6 +1683,25 @@ private fun StepConfirm(
                         fontWeight = FontWeight.Bold,
                         color = AzulReyClaro
                     )
+                }
+                if (totalPointsUsed > 0) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Puntos a canjear",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = AmarilloVibrante
+                        )
+                        Text(
+                            text = "$totalPointsUsed pts",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = AmarilloVibrante
+                        )
+                    }
                 }
             }
         )

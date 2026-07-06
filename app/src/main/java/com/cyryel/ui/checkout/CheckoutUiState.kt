@@ -25,7 +25,9 @@ data class OrderSnapshot(
     val recipientName: String,
     val phone: String,
     val notes: String,
-    val paymentMethod: String
+    val paymentMethod: String,
+    val pointsUsed: Int = 0,
+    val pointsDiscount: Double = 0.0
 )
 
 data class CheckoutUiState(

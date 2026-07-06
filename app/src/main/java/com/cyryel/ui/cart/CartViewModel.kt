@@ -32,12 +32,12 @@ class CartViewModel @Inject constructor(
         cartManager.addProduct(product, variantName, variantPrice)
     }
 
-    fun decreaseProduct(productId: String, variantName: String? = null) {
-        cartManager.decreaseProduct(productId, variantName)
+    fun decreaseProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
+        cartManager.decreaseProduct(productId, variantName, redeemedByPoints)
     }
 
-    fun removeProduct(productId: String, variantName: String? = null) {
-        cartManager.removeProduct(productId, variantName)
+    fun removeProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
+        cartManager.removeProduct(productId, variantName, redeemedByPoints)
     }
 
     fun clearCart() {

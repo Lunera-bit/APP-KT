@@ -239,6 +239,13 @@ class CheckoutViewModel @Inject constructor(
             val fcmToken = authRepository.getFcmToken(userId) ?: ""
             val userEmail = authRepository.getCurrentUserEmail().orEmpty()
 
+            val pointsUsed = state.items
+                .filter { it.redeemedByPoints }
+                .sumOf { it.product.pointsToRedeem * it.quantity }
+            val pointsDiscount = state.items
+                .filter { it.redeemedByPoints }
+                .sumOf { it.product.precio * it.quantity }
+
             val result = orderRepository.createOrder(
                 CreateOrderRequest(
                     userId = userId,
@@ -257,7 +264,9 @@ class CheckoutViewModel @Inject constructor(
                     paymentMethod = state.paymentMethod,
                     latitude = state.latitude,
                     longitude = state.longitude,
-                    fcmToken = fcmToken
+                    fcmToken = fcmToken,
+                    pointsUsed = pointsUsed,
+                    pointsDiscount = pointsDiscount
                 )
             )
 
@@ -275,7 +284,9 @@ class CheckoutViewModel @Inject constructor(
                     recipientName = state.recipientName,
                     phone = state.phone,
                     notes = state.notes,
-                    paymentMethod = state.paymentMethod
+                    paymentMethod = state.paymentMethod,
+                    pointsUsed = pointsUsed,
+                    pointsDiscount = pointsDiscount
                 )
                 savedStateHandle["orderId"] = orderId
                 savedStateHandle["orderCreatedMessage"] = "Pedido creado exitosamente"

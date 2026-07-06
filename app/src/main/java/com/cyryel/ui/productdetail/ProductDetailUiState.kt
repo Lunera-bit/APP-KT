@@ -1,6 +1,7 @@
 package com.cyryel.ui.productdetail
 
 import com.cyryel.data.product.Product
+import com.cyryel.data.product.availableStock
 
 data class ProductDetailUiState(
     val isLoading: Boolean = true,
@@ -20,7 +21,7 @@ data class ProductDetailUiState(
     val displayStock: Int
         get() {
             val p = product ?: return 0
-            val real = maxOf(0, p.stock - 4)
+            val real = p.availableStock
             if (forcedPackSize != null) {
                 val groups = real / forcedPackSize
                 return groups * forcedPackSize

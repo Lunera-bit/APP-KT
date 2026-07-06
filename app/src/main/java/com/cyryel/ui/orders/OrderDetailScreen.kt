@@ -1,6 +1,8 @@
 package com.cyryel.ui.orders
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,10 +41,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cyryel.R
+import com.cyryel.ui.theme.AmarilloVibrante
+import com.cyryel.ui.theme.AzulRey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.text.SimpleDateFormat
@@ -149,27 +158,66 @@ fun OrderDetailScreen(
                             order.items.forEachIndexed { index, item ->
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = item.productName,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            if (item.redeemedByPoints) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .padding(start = 6.dp)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .background(AmarilloVibrante.copy(alpha = 0.15f))
+                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "pts",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = AmarilloVibrante
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        if (item.redeemedByPoints) {
+                                            Text(
+                                                text = "${item.quantity} × ${item.pointsUsed} pts",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = AmarilloVibrante,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        } else {
+                                            Text(
+                                                text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    if (item.redeemedByPoints) {
                                         Text(
-                                            text = item.productName,
+                                            text = "${item.pointsUsed} pts",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
+                                            fontWeight = FontWeight.Medium,
+                                            color = AmarilloVibrante,
+                                            modifier = Modifier.padding(start = 12.dp)
                                         )
+                                    } else {
                                         Text(
-                                            text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            text = "S/ ${"%.2f".format(item.subtotal)}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.padding(start = 12.dp)
                                         )
                                     }
-                                    Text(
-                                        text = "S/ ${"%.2f".format(item.subtotal)}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.padding(start = 12.dp)
-                                    )
                                 }
                                 if (index < order.items.lastIndex) {
                                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))

@@ -42,13 +42,11 @@ private fun generateOrderMessage(orderId: String, snapshot: OrderSnapshot): Stri
 
     lines.add("*💰 RESUMEN DE PAGO:*")
     lines.add("Subtotal: S/ ${"%.2f".format(snapshot.subtotal)}")
-    val shipping = 0.0
-    if (shipping > 0) {
-        lines.add("Envío: S/ ${"%.2f".format(shipping)}")
+    if (snapshot.pointsUsed > 0) {
+        lines.add("Puntos usados: ${snapshot.pointsUsed} pts")
     }
-    val pointsDiscount = 0.0
-    if (pointsDiscount > 0) {
-        lines.add("Descuento (puntos): -S/ ${"%.2f".format(pointsDiscount)}")
+    if (snapshot.pointsDiscount > 0) {
+        lines.add("Descuento (puntos): -S/ ${"%.2f".format(snapshot.pointsDiscount)}")
     }
     lines.add("*Total: S/ ${"%.2f".format(snapshot.subtotal)}*")
     lines.add("")

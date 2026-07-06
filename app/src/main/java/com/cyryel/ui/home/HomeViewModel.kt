@@ -7,6 +7,7 @@ import com.cyryel.data.category.Category
 import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductRepository
+import com.cyryel.data.product.availableStock
 import com.cyryel.data.promotion.Promotion
 import com.cyryel.data.promotion.PromotionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,7 +55,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val productsResult = productRepository.getRandomProducts(limit = 10)
             val products = productsResult.getOrDefault(emptyList())
-            val inStockProducts = products.filter { it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
+            val inStockProducts = products.filter { it.availableStock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
             _uiState.update {
                 it.copy(
                     quickProducts = inStockProducts.take(6),
@@ -75,7 +76,7 @@ class HomeViewModel @Inject constructor(
             val products = productsResult.getOrDefault(emptyList())
             val categories = categoriesResult.getOrDefault(emptyList())
             val promotions = promotionsResult.getOrDefault(emptyList())
-            val inStockProducts = products.filter { it.stock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
+            val inStockProducts = products.filter { it.availableStock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
 
             if (productsResult.isFailure) {
                 _uiState.update {

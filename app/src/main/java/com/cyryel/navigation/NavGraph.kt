@@ -222,6 +222,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onBack = rememberBackHandler { navController.popBackStack() },
                 onProductClick = { productId ->
                     navController.navigate("product/$productId")
+                },
+                onNavigateToCart = {
+                    navController.navigate(Routes.CART)
                 }
             )
         }

@@ -28,6 +28,10 @@ class FirebaseOrderRepository @Inject constructor(
                 if (!item.variantName.isNullOrBlank()) {
                     itemMap["variantName"] = item.variantName
                 }
+                if (item.redeemedByPoints) {
+                    itemMap["redeemedByPoints"] = true
+                    itemMap["pointsUsed"] = item.product.pointsToRedeem * item.quantity
+                }
                 itemMap
             }
 
@@ -36,8 +40,8 @@ class FirebaseOrderRepository @Inject constructor(
                 "items" to orderItems,
                 "subtotal" to subtotal,
                 "shipping" to request.shipping,
-                "pointsUsed" to 0,
-                "pointsDiscount" to 0.0,
+                "pointsUsed" to request.pointsUsed,
+                "pointsDiscount" to request.pointsDiscount,
                 "total" to total,
                 "status" to "pendiente",
                 "paymentMethod" to request.paymentMethod,

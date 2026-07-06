@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cyryel.data.ForcedPackConfig
 import com.cyryel.data.cart.CartManager
 import com.cyryel.data.product.ProductRepository
+import com.cyryel.data.product.availableStock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +31,7 @@ class ProductDetailViewModel @Inject constructor(
                 val product = result.getOrNull()
                 val forcedPackSize = product?.let(ForcedPackConfig::getPackSize)
                 val initialQty = if (forcedPackSize != null) {
-                    val maxStock = product?.let { maxOf(0, it.stock - 4) } ?: 0
+                    val maxStock = product?.availableStock ?: 0
                     val raw = maxOf(forcedPackSize, 1)
                     if (raw <= maxStock) raw else forcedPackSize
                 } else 1

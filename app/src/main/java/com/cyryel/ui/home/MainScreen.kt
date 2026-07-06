@@ -74,6 +74,7 @@ import coil.compose.AsyncImage
 import com.cyryel.R
 import com.cyryel.data.category.Category
 import com.cyryel.data.product.Product
+import com.cyryel.data.product.availableStock
 import com.cyryel.data.promotion.Promotion
 import com.cyryel.ui.billetera.BilleteraScreen
 import com.cyryel.ui.cart.CartViewModel
@@ -470,7 +471,7 @@ private fun QuickProductCard(
     product: Product,
     onProductClick: (String) -> Unit
 ) {
-    val outOfStock = product.stock <= 0
+    val outOfStock = product.availableStock <= 0
     Card(
         modifier = Modifier
             .width(140.dp)
