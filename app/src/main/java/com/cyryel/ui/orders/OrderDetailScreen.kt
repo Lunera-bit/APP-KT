@@ -256,7 +256,19 @@ fun OrderDetailScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             TotalRow("Subtotal", order.subtotal)
-                            if (order.shipping > 0) TotalRow("Envio", order.shipping)
+                            if (order.deliveryMethod == "domicilio") {
+                                if (order.shipping > 0) {
+                                    TotalRow("Envio", order.shipping)
+                                } else {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Envio", style = MaterialTheme.typography.bodyMedium)
+                                        Text("Gratis", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                                    }
+                                }
+                            }
                             if (order.pointsDiscount > 0) {
                                 TotalRow("Descuento puntos", -order.pointsDiscount)
                             }
@@ -267,11 +279,24 @@ fun OrderDetailScreen(
 
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Direccion de entrega", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                            Text(order.deliveryAddress.street, style = MaterialTheme.typography.bodyMedium)
-                            Text(order.deliveryAddress.city, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Recibe: ${order.deliveryAddress.recipientName}", style = MaterialTheme.typography.bodySmall)
-                            Text("Tel: ${order.deliveryAddress.phone}", style = MaterialTheme.typography.bodySmall)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Tipo de entrega", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                                Text(
+                                    if (order.deliveryMethod == "domicilio") "Delivery" else "Recojo en tienda",
+                                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
+                                    color = if (order.deliveryMethod == "domicilio") AzulRey else MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            if (order.deliveryMethod == "domicilio") {
+                                Spacer(Modifier.height(6.dp))
+                                Text(order.deliveryAddress.street, style = MaterialTheme.typography.bodyMedium)
+                                Text(order.deliveryAddress.city, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Recibe: ${order.deliveryAddress.recipientName}", style = MaterialTheme.typography.bodySmall)
+                                Text("Tel: ${order.deliveryAddress.phone}", style = MaterialTheme.typography.bodySmall)
+                            }
 
                             Spacer(Modifier.height(8.dp))
                             Text("Metodo de pago", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -282,7 +307,48 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    if (order.deliveryMethod == "domicilio" && order.deliveryConfirmationCode.isNotBlank()) {
+                    if (order.deliveryMethod == "domicilio") {
+                        val distMeters = distanceInMeters(
+                            -11.567832, -77.269716,
+                            order.deliveryAddress.latitude, order.deliveryAddress.longitude
+                        )
+                        val distKm = distMeters / 1000.0
+                        val estimatedMin = (distKm * 1.2 + 10).toInt()
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("Informacion de entrega", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = AzulRey)
+                                Spacer(Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Distancia", style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        if (distKm < 1.0) "${(distMeters).toInt()} m"
+                                        else "${"%.1f".format(distKm)} km",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Tiempo estimado", style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        if (estimatedMin < 60) "${estimatedMin} min"
+                                        else "${estimatedMin / 60}h ${estimatedMin % 60}min",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+
+                    if (order.deliveryMethod == "domicilio" && order.deliveryConfirmationCode.isNotBlank() && order.status != "entregado") {
                         var showCode by remember { mutableStateOf(false) }
                         val borderColor = if (showCode) AzulRey else MaterialTheme.colorScheme.outlineVariant
                         Card(
@@ -693,4 +759,17 @@ private fun vectorToBitmap(context: android.content.Context, drawableRes: Int): 
     drawable.setBounds(0, 0, canvas.width, canvas.height)
     drawable.draw(canvas)
     return bitmap
+}
+
+private fun distanceInMeters(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+    val R = 6371000.0
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLng = Math.toRadians(lng2 - lng1)
+    val sinHalfLat = kotlin.math.sin(dLat / 2)
+    val sinHalfLng = kotlin.math.sin(dLng / 2)
+    val a = sinHalfLat * sinHalfLat +
+            kotlin.math.cos(Math.toRadians(lat1)) *
+            kotlin.math.cos(Math.toRadians(lat2)) *
+            sinHalfLng * sinHalfLng
+    return R * 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
 }

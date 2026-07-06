@@ -145,12 +145,10 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ## Pendiente para producción
 
-- [ ] Flash Banners slider (colección `flash`) con auto-scroll en Home
 - [ ] Category picker modal (bottom sheet) con búsqueda
-- [ ] Mover tokens Mapbox a `local.properties` + `BuildConfig`
 - [ ] Deep links externos: agregar `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
 - [ ] Agregar `.limit()` faltantes a queries Firestore en repositorios
-- [ ] R8/ProGuard habilitado para release
+- [x] R8/ProGuard habilitado para release
 - [ ] Auth reactivo con `AuthStateListener`
 - [ ] Tests unitarios (CartManager, ViewModels, Repos)
 - [ ] Subir APK release a Play Store

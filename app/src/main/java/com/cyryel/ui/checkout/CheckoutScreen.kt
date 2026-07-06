@@ -229,7 +229,12 @@ fun CheckoutScreen(
                                 onStreetChange = viewModel::onStreetChange,
                                 onCityChange = viewModel::onCityChange,
                                 onReferenceChange = viewModel::onReferenceChange,
-                                onSelectAddress = viewModel::selectAddress
+                                onSelectAddress = viewModel::selectAddress,
+                                onClearSelectedAddress = viewModel::clearSelectedAddress,
+                                onLatLngChange = { lat, lng ->
+                                    viewModel.onLatitudeChange(lat)
+                                    viewModel.onLongitudeChange(lng)
+                                }
                             )
                             CheckoutStep.CONTACT -> StepContact(
                                 recipientName = uiState.recipientName,
@@ -606,31 +611,14 @@ private fun StepDelivery(
     onStreetChange: (String) -> Unit,
     onCityChange: (String) -> Unit,
     onReferenceChange: (String) -> Unit,
-    onSelectAddress: (com.cyryel.data.user.Address) -> Unit
+    onSelectAddress: (com.cyryel.data.user.Address) -> Unit,
+    onClearSelectedAddress: () -> Unit,
+    onLatLngChange: (Double, Double) -> Unit
 ) {
-    var latitude by remember { mutableDoubleStateOf(STORE_LATITUDE) }
-    var longitude by remember { mutableDoubleStateOf(STORE_LONGITUDE) }
-    var placedMarker by remember { mutableStateOf(false) }
+    var latitude by remember { mutableDoubleStateOf(StoreCoordinates.LATITUDE) }
+    var longitude by remember { mutableDoubleStateOf(StoreCoordinates.LONGITUDE) }
+    var placedMarker by remember { mutableStateOf(deliveryMethod == "tienda" || street.isNotBlank()) }
     val context = LocalContext.current
-
-    var prevDeliveryMethod by remember { mutableStateOf(deliveryMethod) }
-
-    LaunchedEffect(deliveryMethod) {
-        if (deliveryMethod == "tienda") {
-            latitude = STORE_LATITUDE
-            longitude = STORE_LONGITUDE
-            placedMarker = true
-            onStreetChange("Av. Los Pinos 123, Huaral")
-            onCityChange("Huaral")
-            onReferenceChange("")
-        } else if (deliveryMethod == "domicilio" && prevDeliveryMethod == "tienda") {
-            placedMarker = false
-            onStreetChange("")
-            onCityChange("")
-            onReferenceChange("")
-        }
-        prevDeliveryMethod = deliveryMethod
-    }
 
     LaunchedEffect(selectedAddressId, savedAddresses) {
         if (selectedAddressId != null && deliveryMethod == "domicilio") {
@@ -640,6 +628,14 @@ private fun StepDelivery(
                 longitude = addr.longitude
                 placedMarker = true
             }
+        }
+    }
+
+    LaunchedEffect(deliveryMethod) {
+        if (deliveryMethod == "domicilio" && street.isNotBlank() && selectedAddressId == null) {
+            placedMarker = true
+        } else if (deliveryMethod == "tienda") {
+            placedMarker = true
         }
     }
 
@@ -783,9 +779,11 @@ private fun StepDelivery(
                         latitude = lat
                         longitude = lng
                         placedMarker = true
+                        onLatLngChange(lat, lng)
                         onStreetChange(addr)
                         onCityChange(cty)
                         onReferenceChange(ref)
+                        onClearSelectedAddress()
                         showMapPicker = false
                     },
                     onDismiss = { showMapPicker = false }

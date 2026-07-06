@@ -49,8 +49,9 @@ class CheckoutViewModel @Inject constructor(
             val distMeters = distanceInMeters(StoreCoordinates.LATITUDE, StoreCoordinates.LONGITUDE, latitude, longitude)
             if (distMeters <= FREE_DELIVERY_RADIUS) return 0.0
             val distKm = distMeters / 1000.0
-            if (distKm <= 1.0) return basePrice
-            return basePrice + ((distKm - 1.0) * costPerKm)
+            val raw = if (distKm <= 1.0) basePrice
+                      else basePrice + ((distKm - 1.0) * costPerKm)
+            return kotlin.math.round(raw * 2) / 2
         }
     }
 
@@ -58,6 +59,12 @@ class CheckoutViewModel @Inject constructor(
     private var deliveryCostPerKm: Double = 1.30
     private var userDni: String = ""
     private var userRuc: String = ""
+    private var savedDeliveryStreet: String = ""
+    private var savedDeliveryCity: String = ""
+    private var savedDeliveryReference: String = ""
+    private var savedDeliveryLatitude: Double = StoreCoordinates.LATITUDE
+    private var savedDeliveryLongitude: Double = StoreCoordinates.LONGITUDE
+    private var savedSelectedAddressId: String? = null
 
     private val _uiState = MutableStateFlow(
         CheckoutUiState(
@@ -220,13 +227,48 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun onDeliveryMethodChange(value: String) {
-        _uiState.update {
-            it.copy(
-                deliveryMethod = value,
-                latitude = if (value == "tienda") StoreCoordinates.LATITUDE else it.latitude,
-                longitude = if (value == "tienda") StoreCoordinates.LONGITUDE else it.longitude,
-                errorMessage = null
-            )
+        val current = _uiState.value
+        if (value == "tienda" && current.deliveryMethod == "domicilio") {
+            savedDeliveryStreet = current.street
+            savedDeliveryCity = current.city
+            savedDeliveryReference = current.reference
+            savedDeliveryLatitude = current.latitude
+            savedDeliveryLongitude = current.longitude
+            savedSelectedAddressId = current.selectedAddressId
+            _uiState.update {
+                it.copy(
+                    deliveryMethod = value,
+                    street = "Calle Belen 310",
+                    city = "Chancay",
+                    reference = "",
+                    latitude = StoreCoordinates.LATITUDE,
+                    longitude = StoreCoordinates.LONGITUDE,
+                    selectedAddressId = null,
+                    errorMessage = null
+                )
+            }
+        } else if (value == "domicilio" && current.deliveryMethod == "tienda") {
+            _uiState.update {
+                it.copy(
+                    deliveryMethod = value,
+                    street = savedDeliveryStreet,
+                    city = savedDeliveryCity,
+                    reference = savedDeliveryReference,
+                    latitude = savedDeliveryLatitude,
+                    longitude = savedDeliveryLongitude,
+                    selectedAddressId = savedSelectedAddressId,
+                    errorMessage = null
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    deliveryMethod = value,
+                    latitude = if (value == "tienda") StoreCoordinates.LATITUDE else it.latitude,
+                    longitude = if (value == "tienda") StoreCoordinates.LONGITUDE else it.longitude,
+                    errorMessage = null
+                )
+            }
         }
         refreshDeliveryCost()
     }
@@ -290,6 +332,10 @@ class CheckoutViewModel @Inject constructor(
     fun onLongitudeChange(value: Double) {
         _uiState.update { it.copy(longitude = value) }
         refreshDeliveryCost()
+    }
+
+    fun clearSelectedAddress() {
+        _uiState.update { it.copy(selectedAddressId = null) }
     }
 
     fun selectAddress(address: com.cyryel.data.user.Address) {

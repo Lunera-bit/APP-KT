@@ -192,7 +192,7 @@ private fun LoginScreen(
                         uriHandler.openUri(it.item)
                     }
                 },
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
             )
         }
 
