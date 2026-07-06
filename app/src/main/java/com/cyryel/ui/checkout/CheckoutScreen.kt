@@ -1867,7 +1867,7 @@ private fun OrderCreatedContent(
     LaunchedEffect(uiState.orderId) {
         if (uiState.orderId.isNotBlank() && !whatsAppOpened) {
             kotlinx.coroutines.delay(1500)
-            openWhatsAppWithOrder(context, uiState)
+            openWhatsAppWithOrder(context, uiState, uiState.bankAccounts, uiState.storePhone)
             whatsAppOpened = true
         }
     }
@@ -1930,7 +1930,7 @@ private fun OrderCreatedContent(
             Spacer(Modifier.height(24.dp))
 
             Button(
-                onClick = { openWhatsAppWithOrder(context, uiState) },
+                onClick = { openWhatsAppWithOrder(context, uiState, uiState.bankAccounts, uiState.storePhone) },
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF25D366),

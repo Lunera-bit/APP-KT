@@ -29,6 +29,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
@@ -91,6 +92,8 @@ import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.AzulReyClaro
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -678,6 +681,7 @@ private fun PerfilTab(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier,
@@ -748,6 +752,29 @@ private fun PerfilTab(
                         )
                     ) {
                         Text("Configuracion")
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("https://wa.me/51925510147?text=Hola%2C%20necesito%20ayuda")
+                            }
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF25D366)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Phone,
+                            contentDescription = null,
+                            tint = Color(0xFF25D366)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Atencion al cliente")
                     }
                 }
             }

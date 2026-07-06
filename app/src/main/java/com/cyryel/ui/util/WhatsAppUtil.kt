@@ -3,23 +3,22 @@ package com.cyryel.ui.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.cyryel.data.config.BankAccountData
 import com.cyryel.ui.checkout.CheckoutUiState
 import com.cyryel.ui.checkout.OrderSnapshot
 
-private const val STORE_PHONE = "51925510147"
-
-fun openWhatsAppWithOrder(context: Context, uiState: CheckoutUiState) {
+fun openWhatsAppWithOrder(context: Context, uiState: CheckoutUiState, bankAccounts: List<BankAccountData>, storePhone: String) {
     val snapshot = uiState.lastOrderSnapshot ?: return
-    val message = generateOrderMessage(uiState.orderId, snapshot)
+    val message = generateOrderMessage(uiState.orderId, snapshot, bankAccounts)
     val encodedMessage = Uri.encode(message)
-    val whatsappUrl = "https://wa.me/$STORE_PHONE?text=$encodedMessage"
+    val whatsappUrl = "https://wa.me/$storePhone?text=$encodedMessage"
     val intent = Intent(Intent.ACTION_VIEW).apply {
         data = Uri.parse(whatsappUrl)
     }
     context.startActivity(intent)
 }
 
-private fun generateOrderMessage(orderId: String, snapshot: OrderSnapshot): String {
+private fun generateOrderMessage(orderId: String, snapshot: OrderSnapshot, bankAccounts: List<BankAccountData>): String {
     val lines = mutableListOf<String>()
 
     lines.add("*📦 NUEVO PEDIDO - TIENDA CYRYEL*")
@@ -72,10 +71,9 @@ private fun generateOrderMessage(orderId: String, snapshot: OrderSnapshot): Stri
     if (snapshot.paymentMethod == "codigo") {
         lines.add("")
         lines.add("*🏦 Cuentas para pagar:*")
-        lines.add("BBVA: 0011-0264-0200275841")
-        lines.add("BCP: 2957127650060")
-        lines.add("InterBank: 00229500712765006041")
-        lines.add("Yape/Plin: 925510147")
+        bankAccounts.forEach { account ->
+            lines.add("${account.name}: ${account.number}")
+        }
         lines.add("Titular: CYRYEL Eirl")
         lines.add("Monto a pagar: S/ ${"%.2f".format(snapshot.subtotal)}")
         lines.add("Por favor envía la captura del pago por este WhatsApp.")

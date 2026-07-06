@@ -63,7 +63,8 @@ data class CheckoutUiState(
     val selectedAddressId: String? = null,
     val bankAccounts: List<BankAccountData> = emptyList(),
     val bankTitular: String = "",
-    val deliveryCost: Double = 0.0
+    val deliveryCost: Double = 0.0,
+    val storePhone: String = "51925510147"
 ) {
     val subtotal: Double get() = items.sumOf { it.subtotal }
 
