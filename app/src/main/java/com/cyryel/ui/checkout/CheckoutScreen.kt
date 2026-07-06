@@ -120,6 +120,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.cyryel.BuildConfig
 import com.cyryel.R
+import com.cyryel.data.config.BankAccountData
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.AzulReyClaro
@@ -245,7 +246,9 @@ fun CheckoutScreen(
                             CheckoutStep.PAYMENT -> StepPayment(
                                 paymentMethod = uiState.paymentMethod,
                                 subtotal = uiState.subtotal,
-                                onPaymentMethodChange = viewModel::onPaymentMethodChange
+                                onPaymentMethodChange = viewModel::onPaymentMethodChange,
+                                bankAccounts = uiState.bankAccounts,
+                                bankTitular = uiState.bankTitular
                             )
                             CheckoutStep.CONFIRM -> StepConfirm(
                                 items = uiState.items,
@@ -1393,7 +1396,9 @@ private fun DocumentTypeCard(
 private fun StepPayment(
     paymentMethod: String,
     subtotal: Double,
-    onPaymentMethodChange: (String) -> Unit
+    onPaymentMethodChange: (String) -> Unit,
+    bankAccounts: List<BankAccountData> = emptyList(),
+    bankTitular: String = ""
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -1449,12 +1454,7 @@ private fun StepPayment(
         }
         if (paymentMethod == "codigo") {
             val context = LocalContext.current
-            val accounts = listOf(
-                BankAccount("BBVA", "0011-0264-0200275841"),
-                BankAccount("BCP", "2957127650060"),
-                BankAccount("InterBank", "00229500712765006041"),
-                BankAccount("Yape / Plin", "925510147")
-            )
+            val accounts = bankAccounts
             Text(
                 text = "Selecciona una cuenta para transferir",
                 style = MaterialTheme.typography.titleSmall,
@@ -1505,7 +1505,7 @@ private fun StepPayment(
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
-                        text = "Titular: CYRYEL Eirl",
+                        text = "Titular: $bankTitular",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -1545,11 +1545,6 @@ private fun StepPayment(
         }
     }
 }
-
-private data class BankAccount(
-    val name: String,
-    val number: String
-)
 
 @Composable
 private fun PaymentOptionCard(

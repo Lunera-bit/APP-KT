@@ -1,6 +1,7 @@
 package com.cyryel.ui.checkout
 
 import com.cyryel.data.cart.CartItem
+import com.cyryel.data.config.BankAccountData
 import com.cyryel.data.user.Address
 
 object StoreCoordinates {
@@ -58,7 +59,9 @@ data class CheckoutUiState(
     val errorMessage: String? = null,
     val lastOrderSnapshot: OrderSnapshot? = null,
     val savedAddresses: List<Address> = emptyList(),
-    val selectedAddressId: String? = null
+    val selectedAddressId: String? = null,
+    val bankAccounts: List<BankAccountData> = emptyList(),
+    val bankTitular: String = ""
 ) {
     val subtotal: Double get() = items.sumOf { it.subtotal }
 

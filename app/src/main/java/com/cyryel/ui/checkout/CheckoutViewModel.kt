@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.auth.AuthRepository
 import com.cyryel.data.cart.CartManager
+import com.cyryel.data.config.BankAccountData
+import com.cyryel.data.config.ConfigRepository
 import com.cyryel.data.order.CreateOrderRequest
 import com.cyryel.data.order.OrderRepository
 import com.cyryel.data.user.UserRepository
@@ -22,7 +24,8 @@ class CheckoutViewModel @Inject constructor(
     private val cartManager: CartManager,
     private val orderRepository: OrderRepository,
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val configRepository: ConfigRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -46,12 +49,22 @@ class CheckoutViewModel @Inject constructor(
         } else {
             loadUserProfile()
         }
+        loadBankAccounts()
         viewModelScope.launch {
             cartManager.items.collect { items ->
                 _uiState.update {
                     if (it.orderId.isNotBlank()) it
                     else it.copy(items = items)
                 }
+            }
+        }
+    }
+
+    private fun loadBankAccounts() {
+        viewModelScope.launch {
+            val result = configRepository.getBankAccounts()
+            result.onSuccess { accounts ->
+                _uiState.update { it.copy(bankAccounts = accounts, bankTitular = "CYRYEL Eirl") }
             }
         }
     }
