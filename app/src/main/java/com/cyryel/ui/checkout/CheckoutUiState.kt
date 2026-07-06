@@ -3,6 +3,11 @@ package com.cyryel.ui.checkout
 import com.cyryel.data.cart.CartItem
 import com.cyryel.data.user.Address
 
+object StoreCoordinates {
+    const val LATITUDE = -11.567832
+    const val LONGITUDE = -77.269716
+}
+
 enum class CheckoutStep(val step: Int, val title: String) {
     REVIEW(0, "Revisar pedido"),
     DELIVERY(1, "Direccion de entrega"),
@@ -36,8 +41,8 @@ data class CheckoutUiState(
     val deliveryMethod: String = "domicilio",
     val street: String = "",
     val city: String = "",
-    val latitude: Double = -11.56544559,
-    val longitude: Double = -77.27104991,
+    val latitude: Double = StoreCoordinates.LATITUDE,
+    val longitude: Double = StoreCoordinates.LONGITUDE,
     val reference: String = "",
     val recipientName: String = "",
     val phone: String = "",

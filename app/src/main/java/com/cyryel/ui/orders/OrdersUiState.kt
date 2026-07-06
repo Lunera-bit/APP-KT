@@ -12,6 +12,7 @@ data class OrdersUiState(
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = true,
     val lastOrderTimestamp: Long? = null,
+    val paginatedOrders: List<Order> = emptyList(),
     val filteredOrders: List<Order> = emptyList()
 ) {
     val orders: List<Order> get() = allOrders

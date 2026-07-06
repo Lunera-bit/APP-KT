@@ -155,7 +155,14 @@ class CheckoutViewModel @Inject constructor(
     }
 
     fun onDeliveryMethodChange(value: String) {
-        _uiState.update { it.copy(deliveryMethod = value, errorMessage = null) }
+        _uiState.update {
+            it.copy(
+                deliveryMethod = value,
+                latitude = if (value == "tienda") StoreCoordinates.LATITUDE else it.latitude,
+                longitude = if (value == "tienda") StoreCoordinates.LONGITUDE else it.longitude,
+                errorMessage = null
+            )
+        }
     }
 
     fun onStreetChange(value: String) {

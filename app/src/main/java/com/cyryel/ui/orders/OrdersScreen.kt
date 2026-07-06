@@ -18,6 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -43,7 +47,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -102,6 +105,18 @@ fun OrdersScreen(
     val calendar = Calendar.getInstance()
     val filters = listOf("todos", "pendiente", "confirmado", "en_camino", "entregado", "cancelado")
     val listState = rememberLazyListState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= totalItems - 3 && totalItems > 0 && uiState.hasMore
+        }
+            .distinctUntilChanged()
+            .filter { it }
+            .collect { viewModel.loadMoreOrders() }
+    }
 
     Scaffold(
         modifier = modifier,
@@ -231,7 +246,7 @@ fun OrdersScreen(
                             )
                             Spacer(modifier = Modifier.height(20.dp))
                             Button(
-                                onClick = viewModel::loadOrders,
+                                onClick = { viewModel.setFilter("todos") },
                                 colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
                             ) {
                                 Text("Reintentar")
@@ -289,7 +304,7 @@ fun OrdersScreen(
                             OrderCard(order = order, onClick = { onOrderClick(order.id) })
                         }
 
-                        if (uiState.hasMore) {
+                        if (uiState.isLoadingMore) {
                             item {
                                 Box(
                                     modifier = Modifier
@@ -297,30 +312,15 @@ fun OrdersScreen(
                                         .padding(vertical = 16.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Button(
-                                        onClick = viewModel::loadMoreOrders,
-                                        enabled = !uiState.isLoadingMore,
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = AzulRey,
-                                            contentColor = Color.White
-                                        )
-                                    ) {
-                                        if (uiState.isLoadingMore) {
-                                            CircularProgressIndicator(
-                                                strokeWidth = 2.dp,
-                                                color = Color.White,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(Modifier.width(8.dp))
-                                        }
-                                        Text(
-                                            text = if (uiState.isLoadingMore) "Cargando..." else "Ver más",
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
+                                    CircularProgressIndicator(
+                                        strokeWidth = 2.dp,
+                                        color = AzulRey,
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
                             }
                         }
+                        item { Spacer(Modifier.height(80.dp)) }
                     }
                 }
             }

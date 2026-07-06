@@ -23,34 +23,23 @@ class OrdersViewModel @Inject constructor(
     val uiState: StateFlow<OrdersUiState> = _uiState.asStateFlow()
 
     init {
-        loadOrders()
-    }
-
-    fun loadOrders() {
-        val userId = authRepository.getCurrentUserId() ?: return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null, hasMore = true) }
-            val result = orderRepository.getOrdersByUserIdPaginated(userId, null, 5)
-            if (result.isSuccess) {
-                val (orders, hasMore) = result.getOrDefault(Pair(emptyList(), false))
-                val lastTs = orders.lastOrNull()?.createdAt
-                _uiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        allOrders = orders,
-                        hasMore = hasMore,
-                        lastOrderTimestamp = lastTs,
-                        filteredOrders = orders.applyFilters(state.selectedFilter, state.startDate, state.endDate)
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Error al cargar pedidos"
-                    )
+        val userId = authRepository.getCurrentUserId()
+        if (userId != null) {
+            viewModelScope.launch {
+                orderRepository.observeOrdersByUserId(userId).collect { recent ->
+                    _uiState.update { state ->
+                        val recentIds = recent.map { it.id }.toSet()
+                        val merged = recent + state.paginatedOrders.filter { it.id !in recentIds }
+                        state.copy(
+                            isLoading = false,
+                            allOrders = merged,
+                            filteredOrders = merged.applyFilters(state.selectedFilter, state.startDate, state.endDate)
+                        )
+                    }
                 }
             }
+        } else {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Usuario no autenticado") }
         }
     }
 
@@ -67,13 +56,16 @@ class OrdersViewModel @Inject constructor(
                 val (newOrders, hasMore) = result.getOrDefault(Pair(emptyList(), false))
                 val lastTs = newOrders.lastOrNull()?.createdAt
                 _uiState.update { st ->
-                    val updated = st.allOrders + newOrders
+                    val updatedPaginated = st.paginatedOrders + newOrders
+                    val recentIds = st.allOrders.map { it.id }.toSet()
+                    val merged = st.allOrders + updatedPaginated.filter { it.id !in recentIds }
                     st.copy(
                         isLoadingMore = false,
-                        allOrders = updated,
+                        paginatedOrders = updatedPaginated,
+                        allOrders = merged,
                         hasMore = hasMore,
                         lastOrderTimestamp = lastTs ?: st.lastOrderTimestamp,
-                        filteredOrders = updated.applyFilters(st.selectedFilter, st.startDate, st.endDate)
+                        filteredOrders = merged.applyFilters(st.selectedFilter, st.startDate, st.endDate)
                     )
                 }
             } else {

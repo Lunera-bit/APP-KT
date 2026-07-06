@@ -24,32 +24,35 @@ class ProductDetailViewModel @Inject constructor(
     val uiState: StateFlow<ProductDetailUiState> = _uiState.asStateFlow()
 
     fun loadProduct(productId: String) {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, product = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = productRepository.getProductById(productId)
-            if (result.isSuccess) {
-                val product = result.getOrNull()
-                val forcedPackSize = product?.let(ForcedPackConfig::getPackSize)
-                val initialQty = if (forcedPackSize != null) {
-                    val maxStock = product?.availableStock ?: 0
-                    val raw = maxOf(forcedPackSize, 1)
-                    if (raw <= maxStock) raw else forcedPackSize
-                } else 1
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        product = product,
-                        quantity = initialQty,
-                        selectedVariantIndex = -1,
-                        forcedPackSize = forcedPackSize
-                    )
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Error al cargar producto"
-                    )
+            productRepository.observeProduct(productId).collect { result ->
+                if (result.isSuccess) {
+                    val product = result.getOrNull()
+                    val forcedPackSize = product?.let(ForcedPackConfig::getPackSize)
+                    val cartQty = cartManager.items.value.filter { it.productId == productId }.sumOf { it.quantity }
+                    val initialQty = if (forcedPackSize != null) {
+                        val remaining = (product?.availableStock ?: 0) - cartQty
+                        val raw = maxOf(forcedPackSize, 1)
+                        if (raw <= remaining) raw else forcedPackSize
+                    } else 1
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            product = product,
+                            quantity = initialQty,
+                            selectedVariantIndex = -1,
+                            forcedPackSize = forcedPackSize,
+                            cartQuantity = cartQty
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Error al cargar producto"
+                        )
+                    }
                 }
             }
         }

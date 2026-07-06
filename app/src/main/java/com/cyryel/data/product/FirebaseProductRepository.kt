@@ -7,6 +7,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.text.Normalizer
 import javax.inject.Inject
@@ -70,6 +73,22 @@ class FirebaseProductRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun observeProduct(productId: String): Flow<Result<Product>> = callbackFlow {
+        val listener = firestore.collection("products").document(productId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+                if (snapshot != null && snapshot.exists()) {
+                    trySend(Result.success(productFromDocument(snapshot)))
+                } else {
+                    trySend(Result.failure(Exception("Producto no encontrado")))
+                }
+            }
+        awaitClose { listener.remove() }
     }
 
     override suspend fun getProductsByCategory(category: String, limit: Int): Result<List<Product>> {

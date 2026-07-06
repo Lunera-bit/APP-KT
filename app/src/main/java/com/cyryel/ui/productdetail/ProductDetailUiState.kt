@@ -9,7 +9,8 @@ data class ProductDetailUiState(
     val selectedVariantIndex: Int = -1,
     val quantity: Int = 1,
     val forcedPackSize: Int? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val cartQuantity: Int = 0
 ) {
     val displayPrice: Double
         get() = if (selectedVariantIndex >= 0 && product != null) {
@@ -21,7 +22,7 @@ data class ProductDetailUiState(
     val displayStock: Int
         get() {
             val p = product ?: return 0
-            val real = p.availableStock
+            val real = maxOf(0, p.availableStock - cartQuantity)
             if (forcedPackSize != null) {
                 val groups = real / forcedPackSize
                 return groups * forcedPackSize

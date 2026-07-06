@@ -132,8 +132,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.animation.animateContentSize
 import com.google.android.gms.location.LocationServices
 
-private const val STORE_LATITUDE = -11.56545313746308
-private const val STORE_LONGITUDE = -77.27110282305334
+private const val STORE_LATITUDE = -11.567832
+private const val STORE_LONGITUDE = -77.269716
 
 private val stepIcons = listOf(
     Icons.Filled.ShoppingCart,

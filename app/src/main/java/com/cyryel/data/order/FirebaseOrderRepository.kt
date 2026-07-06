@@ -4,6 +4,9 @@ import com.cyryel.data.product.ProductVariant
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -122,6 +125,23 @@ class FirebaseOrderRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun observeOrdersByUserId(userId: String): Flow<List<Order>> = callbackFlow {
+        val query = firestore.collection("orders")
+            .whereEqualTo("userId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(50)
+
+        val listener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+            val orders = snapshot?.documents?.mapNotNull { orderFromDocument(it) } ?: emptyList()
+            trySend(orders)
+        }
+        awaitClose { listener.remove() }
     }
 
     override suspend fun getOrderById(orderId: String): Result<Order> {
