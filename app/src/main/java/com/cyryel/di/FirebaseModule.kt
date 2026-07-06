@@ -7,6 +7,10 @@ import com.cyryel.data.auth.FirebaseAuthRepository
 import com.cyryel.data.cart.CartManager
 import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.category.FirebaseCategoryRepository
+import com.cyryel.data.config.ConfigRepository
+import com.cyryel.data.config.FirebaseConfigRepository
+import com.cyryel.data.notificacion.FirebaseNotificacionRepository
+import com.cyryel.data.notificacion.NotificacionRepository
 import com.cyryel.data.local.AppDatabase
 import com.cyryel.data.local.ProductDao
 import com.cyryel.data.order.FirebaseOrderRepository
@@ -98,5 +102,17 @@ object FirebaseModule {
     @Singleton
     fun provideCategoryRepository(firestore: FirebaseFirestore): CategoryRepository {
         return FirebaseCategoryRepository(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideConfigRepository(firestore: FirebaseFirestore): ConfigRepository {
+        return FirebaseConfigRepository(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificacionRepository(firestore: FirebaseFirestore): NotificacionRepository {
+        return FirebaseNotificacionRepository(firestore)
     }
 }

@@ -17,7 +17,7 @@ import com.cyryel.ui.categoryproducts.CategoryProductsScreen
 import com.cyryel.ui.cart.CartScreen
 import com.cyryel.ui.checkout.CheckoutScreen
 import com.cyryel.ui.home.MainScreen
-import com.cyryel.ui.notifications.NotificationScreen
+import com.cyryel.ui.notifications.BandejaNotificacionesScreen
 import com.cyryel.ui.orders.OrderDetailScreen
 import com.cyryel.ui.productdetail.ProductDetailScreen
 import com.cyryel.ui.search.SearchScreen
@@ -212,8 +212,18 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
         }
 
         composable(Routes.NOTIFICATIONS) {
-            NotificationScreen(
-                onBack = rememberBackHandler { navController.popBackStack() }
+            BandejaNotificacionesScreen(
+                onBack = rememberBackHandler { navController.popBackStack() },
+                onNotificationClick = { link ->
+                    if (link != null) {
+                        // Deep links: cyryel://shop/pedidos/{orderId}, cyryel://delivery/pedidos/{orderId}, etc.
+                        val uri = android.net.Uri.parse(link)
+                        val path = uri.pathSegments
+                        if (path.size >= 2 && path[0] == "pedidos") {
+                            navController.navigate(Routes.orderDetail(path[1]))
+                        }
+                    }
+                }
             )
         }
 

@@ -69,7 +69,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
 import coil.compose.AsyncImage
 import com.cyryel.R
 import com.cyryel.data.category.Category
@@ -148,6 +152,17 @@ fun MainScreen(
         if (selectedTab == 0) {
             homeViewModel.refreshQuickProducts()
         }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                homeViewModel.cargarNotifCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val tabs = listOf(
@@ -231,13 +246,31 @@ fun MainScreen(
                     }
                     val notifInteractionSource = remember { MutableInteractionSource() }
                     val notifPressed by notifInteractionSource.collectIsPressedAsState()
+                    val notifUnread = homeState.unreadNotifCount
                     Box(modifier = Modifier.clickable(interactionSource = notifInteractionSource, indication = null, onClick = onNavigateToNotifications)) {
-                        Icon(
-                            Icons.Filled.Notifications,
-                            contentDescription = "Notificaciones",
-                            tint = if (notifPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(8.dp)
-                        )
+                        BadgedBox(
+                            badge = {
+                                if (notifUnread > 0) {
+                                    Badge(
+                                        modifier = Modifier.offset(x = (-10).dp, y = 2.dp),
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ) {
+                                        Text(
+                                            text = if (notifUnread > 99) "99+" else notifUnread.toString(),
+                                            color = MaterialTheme.colorScheme.onError,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Filled.Notifications,
+                                contentDescription = "Notificaciones",
+                                tint = if (notifPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
                     }
                 }
                 Row(

@@ -3,8 +3,10 @@ package com.cyryel.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.ForcedPackConfig
+import com.cyryel.data.auth.AuthRepository
 import com.cyryel.data.category.Category
 import com.cyryel.data.category.CategoryRepository
+import com.cyryel.data.notificacion.NotificacionRepository
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductRepository
 import com.cyryel.data.product.availableStock
@@ -24,14 +26,17 @@ data class HomeUiState(
     val promotions: List<Promotion> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
-    val agregarTodoUsado: Boolean = false
+    val agregarTodoUsado: Boolean = false,
+    val unreadNotifCount: Int = 0
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
-    private val promotionRepository: PromotionRepository
+    private val promotionRepository: PromotionRepository,
+    private val notificacionRepository: NotificacionRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
@@ -39,6 +44,20 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadData()
+        cargarNotifCount()
+    }
+
+    private var notifCountJob: kotlinx.coroutines.Job? = null
+
+    fun cargarNotifCount() {
+        notifCountJob?.cancel()
+        val userId = authRepository.getCurrentUserId() ?: return
+        notifCountJob = viewModelScope.launch {
+            notificacionRepository.getNotificaciones(userId).collect { notis ->
+                val unread = notis.count { !it.read }
+                _uiState.update { it.copy(unreadNotifCount = unread) }
+            }
+        }
     }
 
     fun marcarAgregarTodoUsado() {
