@@ -74,6 +74,7 @@ class FirebaseNotificacionRepository @Inject constructor(
             val snapshot = firestore.collection("notificaciones")
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("read", false)
+                .limit(50)
                 .get()
                 .await()
             Result.success(snapshot.size())

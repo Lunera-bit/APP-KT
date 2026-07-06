@@ -81,6 +81,8 @@ class BilleteraViewModel @Inject constructor(
             val snapshot = firestore.collection("users")
                 .document(userId)
                 .collection("pointsHistory")
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(50)
                 .get()
                 .await()
 

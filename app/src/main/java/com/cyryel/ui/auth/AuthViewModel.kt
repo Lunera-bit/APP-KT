@@ -16,6 +16,8 @@ class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
+    val authStateFlow = authRepository.authStateFlow()
+
     private val _uiState = MutableStateFlow(
         AuthUiState(isAuthenticated = authRepository.isLoggedIn())
     )

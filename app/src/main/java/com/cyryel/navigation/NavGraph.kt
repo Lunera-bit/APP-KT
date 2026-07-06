@@ -1,6 +1,7 @@
 package com.cyryel.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -9,6 +10,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.cyryel.ui.auth.AuthRoute
@@ -68,6 +70,22 @@ private fun rememberBackHandler(onBack: () -> Unit): () -> Unit {
 
 @Composable
 fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier) {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val currentRoute by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(Unit) {
+        var wasLoggedIn = authViewModel.uiState.value.isAuthenticated
+        authViewModel.authStateFlow.collect { user ->
+            val isLoggedIn = user != null
+            if (wasLoggedIn && !isLoggedIn && currentRoute?.destination?.route != Routes.AUTH) {
+                navController.navigate(Routes.AUTH) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            wasLoggedIn = isLoggedIn
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Routes.AUTH,
