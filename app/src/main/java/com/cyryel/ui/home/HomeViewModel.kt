@@ -44,6 +44,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadData()
+        observePromotions()
         cargarNotifCount()
     }
 
@@ -84,17 +85,23 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun observePromotions() {
+        viewModelScope.launch {
+            promotionRepository.getActivePromotions().collect { promotions ->
+                _uiState.update { it.copy(promotions = promotions) }
+            }
+        }
+    }
+
     fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val productsResult = productRepository.getRandomProducts(limit = 10)
             val categoriesResult = categoryRepository.getCategories()
-            val promotionsResult = promotionRepository.getActivePromotions()
 
             val products = productsResult.getOrDefault(emptyList())
             val categories = categoriesResult.getOrDefault(emptyList())
-            val promotions = promotionsResult.getOrDefault(emptyList())
             val inStockProducts = products.filter { it.availableStock > 5 && !ForcedPackConfig.isForcedPackProduct(it) }
 
             if (productsResult.isFailure) {
@@ -103,7 +110,6 @@ class HomeViewModel @Inject constructor(
                         isLoading = false,
                         quickProducts = inStockProducts.take(6),
                         categories = categories,
-                        promotions = promotions,
                         errorMessage = productsResult.exceptionOrNull()?.localizedMessage
                     )
                 }
@@ -113,7 +119,6 @@ class HomeViewModel @Inject constructor(
                         isLoading = false,
                         quickProducts = inStockProducts.take(6),
                         categories = categories,
-                        promotions = promotions,
                         errorMessage = null
                     )
                 }

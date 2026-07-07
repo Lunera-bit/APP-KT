@@ -86,9 +86,11 @@ class CyryelMessagingService : FirebaseMessagingService() {
         }
 
         val orderId = message.data["orderId"] ?: ""
+        val promotionId = message.data["promotionId"] ?: ""
         val intent = Intent(this, com.cyryel.MainActivity::class.java)
-        if (orderId.isNotBlank()) {
-            intent.data = android.net.Uri.parse("cyryel://order/$orderId")
+        when {
+            orderId.isNotBlank() -> intent.data = android.net.Uri.parse("cyryel://order/$orderId")
+            promotionId.isNotBlank() -> intent.data = android.net.Uri.parse("cyryel://promotion/$promotionId")
         }
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         val pendingIntent = PendingIntent.getActivity(

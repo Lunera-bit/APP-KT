@@ -633,7 +633,7 @@ private fun DeliveryTrackMapCard(
                                 val pinBitmap = vectorToBitmap(ctx, R.drawable.ic_pin)
                                 if (pinBitmap != null) style.addImage("pin-icon", pinBitmap)
 
-                                val truckBitmap = vectorToBitmap(ctx, R.drawable.ic_delivery_truck)
+                                val truckBitmap = emojiToBitmap(ctx, "\uD83D\uDE97")
                                 if (truckBitmap != null) style.addImage("delivery-icon", truckBitmap)
 
                                 val annotations = annotations
@@ -746,6 +746,19 @@ private suspend fun fetchRoute(
     } catch (_: Exception) {
         null
     }
+}
+
+private fun emojiToBitmap(context: android.content.Context, emoji: String): Bitmap? {
+    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 72f
+        textAlign = android.graphics.Paint.Align.CENTER
+        color = android.graphics.Color.BLACK
+    }
+    val size = (paint.fontMetrics.descent - paint.fontMetrics.ascent).toInt()
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    canvas.drawText(emoji, (size / 2).toFloat(), -paint.fontMetrics.ascent, paint)
+    return bitmap
 }
 
 private fun vectorToBitmap(context: android.content.Context, drawableRes: Int): Bitmap? {

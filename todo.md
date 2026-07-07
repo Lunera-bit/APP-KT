@@ -120,7 +120,7 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ---
 
-## Fase 9: Delivery App (integrada en mismo APK) 🟡
+## Fase 9: Delivery App (integrada en mismo APK) ✅
 
 | # | Tarea | Estado |
 |---|---|---|
@@ -143,9 +143,32 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 
 ---
 
-## Pendiente para producción
+## Fase 10: Promociones — Detalle y Deep Links ✅
 
-- [ ] Category picker modal (bottom sheet) con búsqueda
+| # | Tarea | Estado |
+|---|---|---|
+| 10.1 | PromotionDetailScreen (imagen, precios, descuento %, lista productos, agregar al carrito) | ✅ |
+| 10.2 | PromotionDetailViewModel (carga por ID desde Firestore, addToCart via CartManager) | ✅ |
+| 10.3 | getPromotionById en PromotionRepository + FirebasePromotionRepository | ✅ |
+| 10.4 | Deep link `cyryel://promotion/{promotionId}` en FCM + manifest + NavGraph | ✅ |
+| 10.5 | Notificación in-app → promoción: manejo de `promociones` links en Bandeja | ✅ |
+| 10.6 | Reemplazar diálogo de promoción en MainScreen por navegación a PromotionDetailScreen | ✅ |
+| 10.7 | Compatibilidad carrito: addPromotionProducts en CartManager (mismo método que antes) | ✅ |
+
+---
+
+## Fase 11: SearchScreen rediseñada ✅
+
+| # | Tarea | Estado |
+|---|---|---|
+| 11.1 | SearchScreen muestra grid de categorías cuando no hay query | ✅ |
+| 11.2 | SearchViewModel carga categorías desde CategoryRepository en init | ✅ |
+| 11.3 | Tap categoría → navega a CategoryProductsScreen (con su propio buscador interno) | ✅ |
+| 11.4 | Search field busca en todos los productos (comportamiento original) | ✅ |
+
+---
+
+## Pendiente para producción
 - [x] Deep links externos: `intent-filter` en `AndroidManifest.xml` para `cyryel://order/{id}`
 - [x] Agregar `.limit()` faltantes a queries Firestore en repositorios
 - [x] R8/ProGuard habilitado para release

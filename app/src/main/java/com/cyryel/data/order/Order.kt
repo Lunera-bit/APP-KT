@@ -38,7 +38,8 @@ data class OrderItem(
     val subtotal: Double,
     val variant: ProductVariant? = null,
     val redeemedByPoints: Boolean = false,
-    val pointsUsed: Int = 0
+    val pointsUsed: Int = 0,
+    val promotionId: String? = null
 )
 
 data class DeliveryAddress(

@@ -80,7 +80,7 @@ fun PromotionsScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(text = uiState.errorMessage ?: "", color = MaterialTheme.colorScheme.error)
-                    Button(onClick = viewModel::loadPromotions, modifier = Modifier.padding(top = 16.dp)) {
+                    Button(onClick = viewModel::retryPromotions, modifier = Modifier.padding(top = 16.dp)) {
                         Text("Reintentar")
                     }
                 }

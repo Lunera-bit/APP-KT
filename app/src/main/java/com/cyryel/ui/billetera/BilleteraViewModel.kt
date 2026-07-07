@@ -35,7 +35,16 @@ class BilleteraViewModel @Inject constructor(
     val pointsRules = PointsRules()
 
     init {
+        observeOffers()
         loadBilletera()
+    }
+
+    private fun observeOffers() {
+        viewModelScope.launch {
+            promotionRepository.getActivePromotions().collect { offers ->
+                _uiState.update { it.copy(offers = offers) }
+            }
+        }
     }
 
     fun loadBilletera() {
@@ -44,7 +53,6 @@ class BilleteraViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val userResult = userRepository.getUser(userId)
-            val offersResult = promotionRepository.getActivePromotions()
             val redeemableResult = productRepository.getRedeemableProducts()
 
             if (userResult.isSuccess) {
@@ -52,7 +60,6 @@ class BilleteraViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         user = userResult.getOrNull(),
-                        offers = offersResult.getOrDefault(emptyList()),
                         redeemableProducts = redeemableResult.getOrDefault(emptyList())
                     )
                 }

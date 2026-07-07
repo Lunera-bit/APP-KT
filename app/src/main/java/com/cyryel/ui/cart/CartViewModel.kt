@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cyryel.data.cart.CartManager
 import com.cyryel.data.product.Product
+import com.cyryel.data.promotion.Promotion
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +39,10 @@ class CartViewModel @Inject constructor(
 
     fun removeProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
         cartManager.removeProduct(productId, variantName, redeemedByPoints)
+    }
+
+    fun addPromotionToCart(promotion: Promotion) {
+        cartManager.addPromotionProducts(promotion)
     }
 
     fun clearCart() {

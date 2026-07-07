@@ -20,25 +20,22 @@ class PromotionsViewModel @Inject constructor(
     val uiState: StateFlow<PromotionsUiState> = _uiState.asStateFlow()
 
     init {
-        loadPromotions()
+        observePromotions()
     }
 
-    fun loadPromotions() {
-        viewModelScope.launch {
+    private var observeJob: kotlinx.coroutines.Job? = null
+
+    private fun observePromotions() {
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val result = promotionRepository.getActivePromotions()
-            if (result.isSuccess) {
-                _uiState.update {
-                    it.copy(isLoading = false, promotions = result.getOrDefault(emptyList()))
-                }
-            } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = result.exceptionOrNull()?.localizedMessage ?: "Error al cargar promociones"
-                    )
-                }
+            promotionRepository.getActivePromotions().collect { promotions ->
+                _uiState.update { it.copy(isLoading = false, promotions = promotions, errorMessage = null) }
             }
         }
+    }
+
+    fun retryPromotions() {
+        observePromotions()
     }
 }

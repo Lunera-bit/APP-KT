@@ -10,5 +10,6 @@ data class CartItem(
     val subtotal: Double,
     val product: Product,
     val variantName: String? = null,
-    val redeemedByPoints: Boolean = false
+    val redeemedByPoints: Boolean = false,
+    val promotionId: String? = null
 )

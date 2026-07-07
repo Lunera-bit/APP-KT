@@ -35,6 +35,9 @@ class FirebaseOrderRepository @Inject constructor(
                     itemMap["redeemedByPoints"] = true
                     itemMap["pointsUsed"] = item.product.pointsToRedeem * item.quantity
                 }
+                if (!item.promotionId.isNullOrBlank()) {
+                    itemMap["promotionId"] = item.promotionId
+                }
                 itemMap
             }
 
@@ -183,7 +186,8 @@ class FirebaseOrderRepository @Inject constructor(
                                 )
                             },
                             redeemedByPoints = (item["redeemedByPoints"] as? Boolean) ?: false,
-                            pointsUsed = (item["pointsUsed"] as? Number)?.toInt() ?: 0
+                            pointsUsed = (item["pointsUsed"] as? Number)?.toInt() ?: 0,
+                            promotionId = item["promotionId"] as? String
                         )
                     }
                     else -> null

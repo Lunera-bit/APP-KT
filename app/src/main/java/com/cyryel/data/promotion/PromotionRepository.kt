@@ -1,5 +1,8 @@
 package com.cyryel.data.promotion
 
+import kotlinx.coroutines.flow.Flow
+
 interface PromotionRepository {
-    suspend fun getActivePromotions(): Result<List<Promotion>>
+    fun getActivePromotions(): Flow<List<Promotion>>
+    suspend fun getPromotionById(id: String): Promotion?
 }

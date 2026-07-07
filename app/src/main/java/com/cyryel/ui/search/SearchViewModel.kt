@@ -2,6 +2,7 @@ package com.cyryel.ui.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyryel.data.category.CategoryRepository
 import com.cyryel.data.product.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -23,10 +25,21 @@ class SearchViewModel @Inject constructor(
 
     private var searchJob: Job? = null
 
+    init {
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewModelScope.launch {
+            val result = categoryRepository.getCategories()
+            _uiState.update { it.copy(categories = result.getOrDefault(emptyList())) }
+        }
+    }
+
     fun onQueryChange(query: String) {
         searchJob?.cancel()
         if (query.isBlank()) {
-            _uiState.update { SearchUiState() }
+            _uiState.update { SearchUiState(categories = _uiState.value.categories) }
             return
         }
         _uiState.update { it.copy(query = query, isLoading = true, errorMessage = null) }

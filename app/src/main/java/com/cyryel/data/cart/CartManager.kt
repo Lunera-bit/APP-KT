@@ -3,6 +3,7 @@ package com.cyryel.data.cart
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.ProductVariant
 import com.cyryel.data.product.availableStock
+import com.cyryel.data.promotion.Promotion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -94,6 +95,41 @@ class CartManager @Inject constructor() {
                     }
                 }
             }
+        }
+    }
+
+    fun addPromotionProducts(promotion: Promotion) {
+        if (_items.value.any { it.promotionId == promotion.id }) return
+        if (promotion.stockRemaining <= 0) return
+        val ratio = if (promotion.originalPrice > 0) promotion.finalPrice / promotion.originalPrice else 1.0
+        val promoItems = promotion.products.map { promoProduct ->
+            val unitPrice = kotlin.math.round(promoProduct.originalPrice * ratio * 100) / 100
+            CartItem(
+                productId = promoProduct.productId,
+                productName = promoProduct.productName,
+                quantity = promoProduct.quantity,
+                price = unitPrice,
+                subtotal = kotlin.math.round(unitPrice * promoProduct.quantity * 100) / 100,
+                product = Product(
+                    id = promoProduct.productId,
+                    nombre = promoProduct.productName,
+                    precio = unitPrice,
+                    stock = Int.MAX_VALUE
+                ),
+                promotionId = promotion.id
+            )
+        }
+        val computedSum = promoItems.sumOf { it.subtotal }
+        val diff = kotlin.math.round((promotion.finalPrice - computedSum) * 100) / 100
+        if (kotlin.math.abs(diff) > 0.001) {
+            val adjusted = promoItems.toMutableList()
+            val lastIndex = adjusted.size - 1
+            adjusted[lastIndex] = adjusted[lastIndex].copy(
+                subtotal = adjusted[lastIndex].subtotal + diff
+            )
+            _items.update { current -> current + adjusted }
+        } else {
+            _items.update { current -> current + promoItems }
         }
     }
 

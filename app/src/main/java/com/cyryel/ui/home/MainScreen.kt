@@ -2,6 +2,7 @@ package com.cyryel.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,10 +33,12 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Search
+
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,6 +57,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -66,6 +70,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -126,6 +132,7 @@ fun MainScreen(
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onNavigateToAddresses: () -> Unit = {},
+    onNavigateToPromotion: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     cartViewModel: CartViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
@@ -197,11 +204,14 @@ fun MainScreen(
                             .background(AmarilloVibrante),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "C",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = AzulRey
+                        Image(
+                            painter = painterResource(R.drawable.logo),
+                            contentDescription = "Logo CYRYEL",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(6.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Fit
                         )
                     }
                     Spacer(Modifier.width(10.dp))
@@ -345,7 +355,8 @@ fun MainScreen(
                         context.showToast("Productos agregados al carrito")
                     },
                     onProductClick = onNavigateToProduct,
-                    onCategoryClick = onNavigateToCategory
+                    onCategoryClick = onNavigateToCategory,
+                    onPromotionClick = { promo -> onNavigateToPromotion(promo.id) }
                 )
                 1 -> PedidosTab(
                     modifier = Modifier.padding(innerPadding),
@@ -364,6 +375,7 @@ fun MainScreen(
             }
         }
     }
+
 }
 
 @Composable
@@ -373,7 +385,8 @@ private fun InicioTab(
     cartViewModel: CartViewModel,
     onAgregarTodo: () -> Unit,
     onProductClick: (String) -> Unit,
-    onCategoryClick: (String) -> Unit
+    onCategoryClick: (String) -> Unit,
+    onPromotionClick: (Promotion) -> Unit = {}
 ) {
     when {
         homeState.isLoading -> {
@@ -393,7 +406,7 @@ private fun InicioTab(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PromocionesSection(homeState.promotions)
+                PromocionesSection(homeState.promotions, onPromotionClick = onPromotionClick)
                 PedidoRapidoSection(
                     products = homeState.quickProducts,
                     agregarTodoUsado = homeState.agregarTodoUsado,
@@ -411,31 +424,102 @@ private fun InicioTab(
 }
 
 @Composable
-private fun PromocionesSection(promotions: List<Promotion>) {
+private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (Promotion) -> Unit) {
     Text(
         text = "Promociones",
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         color = AzulReyClaro
     )
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
-            contentAlignment = Alignment.Center
+    if (promotions.isEmpty()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            if (promotions.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
                     text = "No hay promociones de momento",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            } else {
-                promotions.forEach { promo ->
-                    Text(text = promo.name, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            promotions.forEach { promo ->
+                Card(
+                    modifier = Modifier.fillMaxWidth().clickable { onPromotionClick(promo) },
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (promo.imageUrl.isNotBlank()) {
+                            AsyncImage(
+                                model = promo.imageUrl,
+                                contentDescription = promo.name,
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Spacer(Modifier.width(12.dp))
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = promo.name,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (promo.description.isNotBlank()) {
+                                Text(
+                                    text = promo.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "S/ ${"%.2f".format(promo.finalPrice)}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (promo.savings > 0) {
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "S/ ${"%.2f".format(promo.originalPrice)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textDecoration = TextDecoration.LineThrough,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        if (promo.savings > 0) {
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
+                                Text(
+                                    text = "-${promo.discountPercent.toInt()}%",
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

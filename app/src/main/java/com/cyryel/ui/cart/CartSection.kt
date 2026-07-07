@@ -127,8 +127,9 @@ fun CartScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                items(uiState.items, key = { "${it.productId}|${it.variantName.orEmpty()}|${it.redeemedByPoints}" }) { item ->
+                items(uiState.items, key = { "${it.productId}|${it.variantName.orEmpty()}|${it.redeemedByPoints}|${it.promotionId.orEmpty()}" }) { item ->
                     val forcedPackSize = ForcedPackConfig.getPackSize(item.product)
+                    val isPromoItem = item.promotionId != null
                     CartItemCard(
                         imageUrl = item.product.foto,
                         name = item.productName,
@@ -140,9 +141,10 @@ fun CartScreen(
                         productId = item.productId,
                         redeemedByPoints = item.redeemedByPoints,
                         pointsToRedeem = item.product.pointsToRedeem,
+                        isPromoItem = isPromoItem,
                         onProductClick = onProductClick,
-                        onIncrease = { if (!item.redeemedByPoints) viewModel.addProduct(item.product, item.variantName) },
-                        onDecrease = { if (!item.redeemedByPoints) viewModel.decreaseProduct(item.productId, item.variantName, false) },
+                        onIncrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.addProduct(item.product, item.variantName) },
+                        onDecrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.decreaseProduct(item.productId, item.variantName, false) },
                         onRemove = { viewModel.removeProduct(item.productId, item.variantName, item.redeemedByPoints) }
                     )
                 }
@@ -230,6 +232,7 @@ private fun CartItemCard(
     productId: String = "",
     redeemedByPoints: Boolean = false,
     pointsToRedeem: Int = 0,
+    isPromoItem: Boolean = false,
     onProductClick: (String) -> Unit = {},
     onIncrease: () -> Unit,
     onDecrease: () -> Unit,
@@ -316,20 +319,27 @@ private fun CartItemCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (!redeemedByPoints) {
+                    if (redeemedByPoints) {
+                        Text(
+                            text = "Canjeado con puntos",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AmarilloVibrante,
+                            fontWeight = FontWeight.Medium
+                        )
+                    } else if (isPromoItem) {
+                        Text(
+                            text = "${quantity} ${if (quantity == 1) "unidad" else "unidades"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = FontWeight.Medium
+                        )
+                    } else {
                         QuantitySelector(
                             quantity = quantity,
                             onIncrease = onIncrease,
                             onDecrease = onDecrease,
                             hasVariants = hasVariants,
                             forcedPackSize = forcedPackSize
-                        )
-                    } else {
-                        Text(
-                            text = "Canjeado con puntos",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AmarilloVibrante,
-                            fontWeight = FontWeight.Medium
                         )
                     }
                     if (!redeemedByPoints) {

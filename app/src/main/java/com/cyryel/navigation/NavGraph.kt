@@ -23,6 +23,7 @@ import com.cyryel.ui.home.MainScreen
 import com.cyryel.ui.notifications.BandejaNotificacionesScreen
 import com.cyryel.ui.orders.OrderDetailScreen
 import com.cyryel.ui.productdetail.ProductDetailScreen
+import com.cyryel.ui.promotiondetail.PromotionDetailScreen
 import com.cyryel.ui.search.SearchScreen
 import com.cyryel.ui.auth.AuthViewModel
 import com.cyryel.ui.profile.AddressScreen
@@ -47,10 +48,12 @@ object Routes {
     const val ADDRESSES = "addresses"
     const val BILLETERA_OFFERS = "billetera/offers"
     const val BILLETERA_HISTORIAL = "billetera/historial"
+    const val PROMOTION_DETAIL = "promotion/{promotionId}"
 
     fun productDetail(id: String) = "product/$id"
     fun orderDetail(id: String) = "order/$id"
     fun categoryProducts(name: String) = "category/$name"
+    fun promotionDetail(id: String) = "promotion/$id"
 }
 
 /**
@@ -136,6 +139,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 },
                 onNavigateToAddresses = {
                     navController.navigate(Routes.ADDRESSES)
+                },
+                onNavigateToPromotion = { promotionId ->
+                    navController.navigate(Routes.promotionDetail(promotionId))
                 }
             )
         }
@@ -212,6 +218,20 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
         }
 
         composable(
+            route = Routes.PROMOTION_DETAIL,
+            arguments = listOf(navArgument("promotionId") { type = NavType.StringType }),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "cyryel://promotion/{promotionId}" }
+            )
+        ) { backStackEntry ->
+            val promotionId = backStackEntry.arguments?.getString("promotionId") ?: ""
+            PromotionDetailScreen(
+                promotionId = promotionId,
+                onBack = rememberBackHandler { navController.popBackStack() }
+            )
+        }
+
+        composable(
             route = Routes.CATEGORY_PRODUCTS,
             arguments = listOf(navArgument("categoryName") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -247,6 +267,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onBack = rememberBackHandler { navController.popBackStack() },
                 onProductClick = { productId ->
                     navController.navigate(Routes.productDetail(productId))
+                },
+                onCategoryClick = { categoryName ->
+                    navController.navigate(Routes.categoryProducts(categoryName))
                 }
             )
         }
@@ -256,11 +279,13 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 onBack = rememberBackHandler { navController.popBackStack() },
                 onNotificationClick = { link ->
                     if (link != null) {
-                        // Deep links: cyryel://shop/pedidos/{orderId}, cyryel://delivery/pedidos/{orderId}, etc.
                         val uri = android.net.Uri.parse(link)
                         val path = uri.pathSegments
-                        if (path.size >= 2 && path[0] == "pedidos") {
-                            navController.navigate(Routes.orderDetail(path[1]))
+                        when {
+                            path.size >= 2 && path[0] == "pedidos" ->
+                                navController.navigate(Routes.orderDetail(path[1]))
+                            path.size >= 1 && uri.host == "promotion" ->
+                                navController.navigate(Routes.promotionDetail(path[0]))
                         }
                     }
                 }
