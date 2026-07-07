@@ -52,7 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.data.delivery.DeliveryAssignment
 import com.cyryel.data.order.Order
 import com.cyryel.ui.theme.AmarilloVibrante

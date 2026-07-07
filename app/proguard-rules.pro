@@ -18,9 +18,7 @@
 -dontwarn com.google.gson.**
 -keep class com.google.gson.** { *; }
 
-# Firebase
--keep class com.google.firebase.** { *; }
--dontwarn com.google.firebase.**
+# Firebase (reglas manejadas por las propias dependencias)
 
 # Services
 -keep class com.cyryel.service.** { *; }
@@ -43,4 +41,4 @@
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 
 # Keep BuildConfig
--keep class com.cyryel.BuildConfig { *; }
+-keep class com.CYRYEL.com.BuildConfig { *; }

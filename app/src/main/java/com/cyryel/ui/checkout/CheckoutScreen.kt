@@ -118,8 +118,8 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.cyryel.BuildConfig
-import com.cyryel.R
+import com.CYRYEL.com.BuildConfig
+import com.CYRYEL.com.R
 import com.cyryel.data.config.BankAccountData
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey

@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import java.text.SimpleDateFormat

@@ -53,7 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.cyryel.data.ForcedPackConfig
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import com.cyryel.ui.theme.AzulReyClaro

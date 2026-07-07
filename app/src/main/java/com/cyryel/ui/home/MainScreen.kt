@@ -88,7 +88,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.runtime.DisposableEffect
 import coil.compose.AsyncImage
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.data.category.Category
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.availableStock

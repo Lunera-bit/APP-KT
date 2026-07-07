@@ -43,7 +43,7 @@ import com.mapbox.common.MapboxOptions
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.appcompat.content.res.AppCompatResources
-import com.cyryel.BuildConfig
+import com.CYRYEL.com.BuildConfig
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.ui.theme.AmarilloVibrante
 import com.cyryel.ui.theme.AzulRey
 import androidx.hilt.navigation.compose.hiltViewModel

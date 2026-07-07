@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.data.product.Product
 import com.cyryel.data.product.availableStock
 import com.cyryel.ui.theme.AmarilloVibrante

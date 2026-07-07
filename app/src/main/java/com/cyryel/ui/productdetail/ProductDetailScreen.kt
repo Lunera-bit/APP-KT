@@ -57,7 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.cyryel.ui.util.showToast
-import com.cyryel.R
+import com.CYRYEL.com.R
 import com.cyryel.ui.theme.AzulRey
 
 @OptIn(ExperimentalMaterial3Api::class)

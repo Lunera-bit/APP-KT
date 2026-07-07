@@ -81,8 +81,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.appcompat.content.res.AppCompatResources
-import com.cyryel.BuildConfig
-import com.cyryel.R
+import com.CYRYEL.com.BuildConfig
+import com.CYRYEL.com.R
 import com.cyryel.data.auth.AuthRepository
 import com.cyryel.data.user.Address
 import com.cyryel.data.user.UserRepository

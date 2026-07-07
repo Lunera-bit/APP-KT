@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.Toast
-import com.cyryel.R
+import com.CYRYEL.com.R
 
 fun Context.showToast(message: String) {
     val layout = LayoutInflater.from(this).inflate(R.layout.toast_copied, null)
