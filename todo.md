@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-Build: ✅ **Compila sin errores** (05/07/2026)
+Build: ✅ **Compila sin errores** (07/07/2026)
 Checkout: ✅ **5 pasos completos con animaciones Lottie, dark theme, mapa 3D**
 Mapbox: ✅ **Click-to-place con CircleAnnotation, GPS FAB, toggle 3D/plano, zoom +/-**
 Autenticación: ✅ **Usuario creado en Firestore tras Google Sign-In + auto-fill checkout**
@@ -165,6 +165,39 @@ Iconos app: ✅ **Iconos desde Ionic en webp para mipmap**
 | 11.2 | SearchViewModel carga categorías desde CategoryRepository en init | ✅ |
 | 11.3 | Tap categoría → navega a CategoryProductsScreen (con su propio buscador interno) | ✅ |
 | 11.4 | Search field busca en todos los productos (comportamiento original) | ✅ |
+
+---
+
+## Fase 12: Mejoras Delivery y Carrito ✅
+
+| # | Tarea | Estado |
+|---|---|---|
+| 12.1 | DeliveryMainScreen y DeliveryDetailScreen: mostrar notas del pedido (`order.notes`) | ✅ |
+| 12.2 | OrderDetailScreen: agrupar items por promoción con nombre y cantidad de bundles | ✅ |
+| 12.3 | CartManager: no mezclar items de promoción con productos regulares del mismo ID (`promotionId == null`) | ✅ |
+| 12.4 | `removeProduct` acepta `promotionId` para eliminar item correcto | ✅ |
+
+---
+
+## Fase 13: Configuración Android — Namespace y App Check ✅
+
+| # | Tarea | Estado |
+|---|---|---|
+| 13.1 | Namespace unificado: `com.cyryel` → `com.CYRYEL.com` (coincide con applicationId) | ✅ |
+| 13.2 | `firebase-appcheck-debug` cambiado a `debugImplementation` | ✅ |
+| 13.3 | Regla ProGuard genérica de Firebase eliminada (la manejan las dependencias) | ✅ |
+| 13.4 | Actualizados todos los imports de `R` y `BuildConfig` al nuevo namespace (15 archivos) | ✅ |
+
+---
+
+## Admin Dashboard (web) — https://tienda-leon-6b457.web.app
+
+| # | Tarea | Estado |
+|---|---|---|
+| Dashboard-1 | App Check corregido: usar `appId` y `apiKey` de la web (no Android) | ✅ |
+| Dashboard-2 | `.replace()` seguros contra undefined en OrdersPage (evita crash en filtro fecha) | ✅ |
+| Dashboard-3 | Configuración Bot: documento `config/bot_config`, campo `token_expires_at` con datetime-local, `updatedAt` al guardar | ✅ |
+| Dashboard-4 | CI/CD: GitHub Actions despliega automáticamente al pushear en `main` | ✅ |
 
 ---
 
