@@ -449,29 +449,47 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
             }
         }
     } else {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            promotions.forEach { promo ->
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(promotions, key = { it.id }) { promo ->
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { onPromotionClick(promo) },
+                    modifier = Modifier
+                        .width(280.dp)
+                        .clickable { onPromotionClick(promo) },
                     shape = RoundedCornerShape(12.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (promo.imageUrl.isNotBlank()) {
-                            AsyncImage(
-                                model = promo.imageUrl,
-                                contentDescription = promo.name,
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(Modifier.width(12.dp))
+                    Column {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            if (promo.imageUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = promo.imageUrl,
+                                    contentDescription = promo.name,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(140.dp)
+                                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                            if (promo.savings > 0) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(6.dp)
+                                ) {
+                                    Text(
+                                        text = "-${promo.discountPercent.toInt()}%",
+                                        color = MaterialTheme.colorScheme.onTertiary,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
                         }
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(10.dp)) {
                             Text(
                                 text = promo.name,
                                 style = MaterialTheme.typography.titleSmall,
@@ -480,6 +498,7 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
                                 overflow = TextOverflow.Ellipsis
                             )
                             if (promo.description.isNotBlank()) {
+                                Spacer(Modifier.height(2.dp))
                                 Text(
                                     text = promo.description,
                                     style = MaterialTheme.typography.bodySmall,
@@ -505,18 +524,6 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                            }
-                        }
-                        if (promo.savings > 0) {
-                            Badge(
-                                containerColor = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.padding(start = 8.dp)
-                            ) {
-                                Text(
-                                    text = "-${promo.discountPercent.toInt()}%",
-                                    color = MaterialTheme.colorScheme.onTertiary,
-                                    fontSize = 11.sp
-                                )
                             }
                         }
                     }
