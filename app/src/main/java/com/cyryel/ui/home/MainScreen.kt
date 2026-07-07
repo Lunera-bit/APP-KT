@@ -23,6 +23,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -66,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -449,6 +455,16 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
             }
         }
     } else {
+        val pulseTransition = rememberInfiniteTransition(label = "pulse")
+        val pulseScale by pulseTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.03f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "pulseScale"
+        )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 4.dp)
@@ -456,10 +472,12 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
             items(promotions, key = { it.id }) { promo ->
                 Card(
                     modifier = Modifier
-                        .width(280.dp)
+                        .width(300.dp)
+                        .graphicsLayer(scaleX = pulseScale, scaleY = pulseScale)
                         .clickable { onPromotionClick(promo) },
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Column {
                         Box(modifier = Modifier.fillMaxWidth()) {
@@ -469,8 +487,8 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
                                     contentDescription = promo.name,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(140.dp)
-                                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)),
                                     contentScale = ContentScale.Crop
                                 )
                             }
@@ -479,26 +497,27 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
                                     containerColor = MaterialTheme.colorScheme.tertiary,
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
-                                        .padding(6.dp)
+                                        .padding(8.dp)
                                 ) {
                                     Text(
                                         text = "-${promo.discountPercent.toInt()}%",
                                         color = MaterialTheme.colorScheme.onTertiary,
-                                        fontSize = 11.sp
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
                         }
-                        Column(modifier = Modifier.padding(10.dp)) {
+                        Column(modifier = Modifier.padding(12.dp)) {
                             Text(
                                 text = promo.name,
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             if (promo.description.isNotBlank()) {
-                                Spacer(Modifier.height(2.dp))
+                                Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = promo.description,
                                     style = MaterialTheme.typography.bodySmall,
@@ -507,7 +526,7 @@ private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (P
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
-                            Spacer(Modifier.height(4.dp))
+                            Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "S/ ${"%.2f".format(promo.finalPrice)}",
