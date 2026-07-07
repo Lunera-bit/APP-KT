@@ -41,7 +41,8 @@ service cloud.firestore {
      * Verifica si el usuario es delivery y el orderId coincide con la request
      */
     function isDeliveryForOrder(orderId) {
-      return isDelivery() && isSignedIn();
+      return isDelivery() && 
+             get(/databases/$(database)/documents/orders/$(orderId)).data.assignedDeliveryId == request.auth.uid;
     }
     
     /**
@@ -86,8 +87,7 @@ service cloud.firestore {
      * - Delete: Solo admin
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin() || 
-                    (isDelivery() && resource.data.role == 'delivery');
+      allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if request.auth != null && request.auth.uid == userId &&
                        hasRequiredFields(['email', 'name', 'role']);
@@ -171,8 +171,14 @@ service cloud.firestore {
                      (isSignedIn() && resource.data.userId == request.auth.uid);
       allow create: if isSignedIn() &&
                        hasRequiredFields(['userId', 'items', 'total', 'status', 'deliveryAddress', 'paymentMethod', 'paymentStatus']) &&
-                       request.resource.data.userId == request.auth.uid;
-      allow update: if (isOwner(resource.data.userId) && !('assignedDeliveryId' in request.resource.data.diff.delta)) ||
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.total > 0 &&
+                       request.resource.data.items.size() > 0 &&
+                       request.resource.data.status in ['pendiente', 'confirmado'];
+      allow update: if
+                       (isOwner(resource.data.userId) &&
+                        request.resource.data.diff.affectedKeys().hasOnly(['status', 'notes', 'fcmToken', 'customerEmail']) &&
+                        (!('status' in request.resource.data.diff.delta) || request.resource.data.diff.delta.status == 'cancelado')) ||
                        (isDelivery() && (request.auth.uid == resource.data.assignedDeliveryId || !('assignedDeliveryId' in resource.data))) ||
                        isAdmin();
       allow delete: if isAdmin();
@@ -229,9 +235,7 @@ service cloud.firestore {
     match /notificaciones/{notificationId} {
       allow get: if isOwner(resource.data.userId);
       allow list: if isOwner(resource.data.userId);
-      allow create: if isSignedIn() && 
-                       request.resource.data.userId == request.auth.uid &&
-                       hasRequiredFields(['userId', 'titulo', 'mensaje', 'tipo', 'fecha']);
+      allow create: if false; // Solo Cloud Functions mediante Admin SDK
       allow update: if isOwner(resource.data.userId);
       allow delete: if isOwner(resource.data.userId) || isAdmin();
     }
