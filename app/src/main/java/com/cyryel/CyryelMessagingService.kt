@@ -99,7 +99,7 @@ class CyryelMessagingService : FirebaseMessagingService() {
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(com.cyryel.R.drawable.ic_stat_4081896)
+            .setSmallIcon(com.CYRYEL.com.R.drawable.ic_stat_4081896)
             .setContentTitle(title)
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

@@ -56,7 +56,7 @@ fun AuthRoute(
 
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(com.cyryel.R.string.default_web_client_id))
+            .requestIdToken(context.getString(com.CYRYEL.com.R.string.default_web_client_id))
             .requestEmail()
             .build()
         GoogleSignIn.getClient(context, gso)

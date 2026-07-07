@@ -757,7 +757,7 @@ private suspend fun fetchRoute(
     toLat: Double, toLng: Double
 ): com.mapbox.geojson.LineString? {
     return try {
-        val token = com.cyryel.BuildConfig.MAPBOX_ACCESS_TOKEN
+        val token = com.CYRYEL.com.BuildConfig.MAPBOX_ACCESS_TOKEN
         val url = "https://api.mapbox.com/directions/v5/mapbox/driving/$fromLng,$fromLat;$toLng,$toLat?geometries=geojson&access_token=$token&overview=full&steps=false"
         val result = java.net.URL(url).readText()
         val obj = com.google.gson.Gson().fromJson(result, com.google.gson.JsonObject::class.java)

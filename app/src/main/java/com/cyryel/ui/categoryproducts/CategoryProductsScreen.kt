@@ -221,7 +221,7 @@ private fun ProductGridItem(
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = product.foto.ifBlank { com.cyryel.R.drawable.ic_placeholder_image },
+                        model = product.foto.ifBlank { com.CYRYEL.com.R.drawable.ic_placeholder_image },
                         contentDescription = product.nombre,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit
