@@ -1,11 +1,11 @@
 # Datos Firestore - mantener serialización con toObject()/set()
--keep class com.cyryel.data.** { *; }
+-keep class com.CYRYEL.com.data.** { *; }
 
 # Room entities
--keep class com.cyryel.data.local.ProductEntity { *; }
+-keep class com.CYRYEL.com.data.local.ProductEntity { *; }
 
 # Deliveries
--keep class com.cyryel.data.delivery.** { *; }
+-keep class com.CYRYEL.com.data.delivery.** { *; }
 
 # Mapbox geometry
 -dontwarn com.mapbox.**
@@ -21,7 +21,7 @@
 # Firebase (reglas manejadas por las propias dependencias)
 
 # Services
--keep class com.cyryel.service.** { *; }
+-keep class com.CYRYEL.com.service.** { *; }
 
 # Hilt/Dagger (generado en compilación, mantener por si hay reflection)
 -keep class dagger.** { *; }
