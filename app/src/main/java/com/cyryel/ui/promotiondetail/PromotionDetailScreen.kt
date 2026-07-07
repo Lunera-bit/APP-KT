@@ -87,12 +87,14 @@ fun PromotionDetailScreen(
                         .navigationBarsPadding(),
                     shadowElevation = 8.dp
                 ) {
+                    val isSoldOut = uiState.promotion!!.stockRemaining <= 0
                     Button(
                         onClick = {
                             viewModel.addToCart()
                             context.showToast("Productos agregados al carrito")
                             onBack()
                         },
+                        enabled = !isSoldOut,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 12.dp)
@@ -102,7 +104,10 @@ fun PromotionDetailScreen(
                             containerColor = AzulRey
                         )
                     ) {
-                        Text("Agregar al carrito", fontWeight = FontWeight.Bold)
+                        Text(
+                            if (isSoldOut) "Agotado" else "Agregar al carrito",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

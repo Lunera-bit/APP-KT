@@ -34,6 +34,7 @@ class OrderDetailViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = false, order = order) }
                 if (order != null) {
                     startWatchingDeliveryLocation(orderId)
+                    loadPromotionNames(order)
                 }
             } else {
                 _uiState.update {
@@ -44,6 +45,33 @@ class OrderDetailViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private suspend fun loadPromotionNames(order: Order) {
+        val promoIds = order.items.mapNotNull { it.promotionId?.takeIf { id -> id.isNotBlank() } }.distinct()
+        if (promoIds.isEmpty()) return
+        val data = mutableMapOf<String, PromotionBrief>()
+        for (id in promoIds) {
+            try {
+                val doc = firestore.collection("promotions").document(id).get().await()
+                val name = doc.getString("name") ?: doc.getString("nombre") ?: id.take(8)
+                val productsRaw = doc.get("products")
+                val productQuantities = if (productsRaw is List<*>) {
+                    productsRaw
+                        .filterIsInstance<Map<*, *>>()
+                        .mapNotNull { m ->
+                            val pid = m["productId"] as? String
+                            val qty = (m["quantity"] as? Number)?.toInt()
+                            if (pid != null && qty != null) pid to qty else null
+                        }
+                        .toMap()
+                } else emptyMap()
+                data[id] = PromotionBrief(name = name, productQuantities = productQuantities)
+            } catch (_: Exception) {
+                data[id] = PromotionBrief(name = id.take(8))
+            }
+        }
+        _uiState.update { it.copy(promotionData = data) }
     }
 
     private fun startWatchingDeliveryLocation(orderId: String) {

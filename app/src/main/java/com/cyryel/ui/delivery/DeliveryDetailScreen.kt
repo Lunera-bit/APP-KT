@@ -8,6 +8,7 @@ import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
@@ -345,6 +346,7 @@ fun DeliveryDetailScreen(
 private fun OrderInfoCard(order: Order) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         colors = CardDefaults.cardColors(containerColor = AzulRey.copy(alpha = 0.08f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -372,7 +374,11 @@ private fun OrderInfoCard(order: Order) {
 
 @Composable
 private fun DeliveryAddressCard(order: Order, context: android.content.Context) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Direccion de entrega",
@@ -433,6 +439,21 @@ private fun DeliveryAddressCard(order: Order, context: android.content.Context) 
                     )
                 }
             }
+            if (order.notes.isNotBlank()) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "Notas del pedido",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulRey
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = order.notes,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -444,7 +465,11 @@ private fun MapCard(order: Order, context: android.content.Context) {
 
     if (lat == 0.0 && lng == 0.0) return
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Ubicacion",
@@ -515,7 +540,11 @@ private fun MapCard(order: Order, context: android.content.Context) {
 
 @Composable
 private fun PaymentInfoCard(order: Order) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Metodo de pago",
@@ -560,7 +589,11 @@ private fun PaymentInfoCard(order: Order) {
 
 @Composable
 private fun ItemsCard(order: Order) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Productos",
@@ -647,7 +680,11 @@ private fun DeliveryTimelineCard(assignment: DeliveryAssignment) {
 
     if (items.size <= 1) return
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Estado del delivery",

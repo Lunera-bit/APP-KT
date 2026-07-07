@@ -180,74 +180,97 @@ fun OrderDetailScreen(
                         fontWeight = FontWeight.Bold
                     )
 
+                    val promoGroups = order.items.groupBy { it.promotionId }
+
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            order.items.forEachIndexed { index, item ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = item.productName,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier.weight(1f)
-                                            )
-                                            if (item.redeemedByPoints) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .padding(start = 6.dp)
-                                                        .clip(RoundedCornerShape(4.dp))
-                                                        .background(AmarilloVibrante.copy(alpha = 0.15f))
-                                                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "pts",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = AmarilloVibrante
-                                                    )
+                            var globalIndex = 0
+                            promoGroups.forEach { (promotionId, items) ->
+                                if (promotionId != null) {
+                                    val promoBrief = uiState.promotionData[promotionId]
+                                    val promoName = promoBrief?.name ?: "Promocion"
+                                    val bundleCount = if (promoBrief != null && promoBrief.productQuantities.isNotEmpty()) {
+                                        items.firstNotNullOfOrNull { item ->
+                                            val qtyPerBundle = promoBrief.productQuantities[item.productId]
+                                            if (qtyPerBundle != null && qtyPerBundle > 0) item.quantity / qtyPerBundle else null
+                                        } ?: 1
+                                    } else 1
+                                    Text(
+                                        text = "$promoName (x$bundleCount)",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AzulRey,
+                                        modifier = Modifier.padding(vertical = 6.dp)
+                                    )
+                                }
+                                items.forEach { item ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = item.productName,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    maxLines = 2,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                if (item.redeemedByPoints) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .padding(start = 6.dp)
+                                                            .clip(RoundedCornerShape(4.dp))
+                                                            .background(AmarilloVibrante.copy(alpha = 0.15f))
+                                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "pts",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = AmarilloVibrante
+                                                        )
+                                                    }
                                                 }
+                                            }
+                                            if (item.redeemedByPoints) {
+                                                Text(
+                                                    text = "${item.quantity} × ${item.pointsUsed} pts",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = AmarilloVibrante,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
                                             }
                                         }
                                         if (item.redeemedByPoints) {
                                             Text(
-                                                text = "${item.quantity} × ${item.pointsUsed} pts",
-                                                style = MaterialTheme.typography.bodySmall,
+                                                text = "${item.pointsUsed} pts",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium,
                                                 color = AmarilloVibrante,
-                                                fontWeight = FontWeight.Medium
+                                                modifier = Modifier.padding(start = 12.dp)
                                             )
                                         } else {
                                             Text(
-                                                text = "${item.quantity} × S/ ${"%.2f".format(item.price)}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                text = "S/ ${"%.2f".format(item.subtotal)}",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium,
+                                                modifier = Modifier.padding(start = 12.dp)
                                             )
                                         }
                                     }
-                                    if (item.redeemedByPoints) {
-                                        Text(
-                                            text = "${item.pointsUsed} pts",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.Medium,
-                                            color = AmarilloVibrante,
-                                            modifier = Modifier.padding(start = 12.dp)
-                                        )
-                                    } else {
-                                        Text(
-                                            text = "S/ ${"%.2f".format(item.subtotal)}",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.Medium,
-                                            modifier = Modifier.padding(start = 12.dp)
-                                        )
+                                    if (globalIndex < order.items.lastIndex) {
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                                     }
-                                }
-                                if (index < order.items.lastIndex) {
-                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                    globalIndex++
                                 }
                             }
                         }
