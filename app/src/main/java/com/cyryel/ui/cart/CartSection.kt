@@ -150,7 +150,7 @@ fun CartScreen(
                         },
                         onIncrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.addProduct(item.product, item.variantName) },
                         onDecrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.decreaseProduct(item.productId, item.variantName, false) },
-                        onRemove = { viewModel.removeProduct(item.productId, item.variantName, item.redeemedByPoints) }
+                        onRemove = { viewModel.removeProduct(item.productId, item.variantName, item.redeemedByPoints, item.promotionId) }
                     )
                 }
                 item {

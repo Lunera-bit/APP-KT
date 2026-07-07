@@ -18,7 +18,7 @@ class CartManager @Inject constructor() {
     val items: StateFlow<List<CartItem>> = _items.asStateFlow()
 
     private fun totalProductQuantity(items: List<CartItem>, productId: String): Int {
-        return items.filter { it.productId == productId }.sumOf { it.quantity }
+        return items.filter { it.productId == productId && it.promotionId == null }.sumOf { it.quantity }
     }
 
     fun addProduct(product: Product, variantName: String? = null, variantPrice: Double? = null) {
@@ -26,7 +26,7 @@ class CartManager @Inject constructor() {
         val price = variantPrice ?: product.precio
         _items.update { current ->
             if (totalProductQuantity(current, product.id) + 1 > product.availableStock) return@update current
-            val existing = current.find { it.productId == product.id && it.variantName == variantName && !it.redeemedByPoints }
+            val existing = current.find { it.productId == product.id && it.variantName == variantName && !it.redeemedByPoints && it.promotionId == null }
             if (existing == null) {
                 current + CartItem(
                     productId = product.id,
@@ -39,7 +39,7 @@ class CartManager @Inject constructor() {
                 )
             } else {
                 current.map { item ->
-                    if (item.productId == product.id && item.variantName == variantName && !item.redeemedByPoints) {
+                    if (item.productId == product.id && item.variantName == variantName && !it.redeemedByPoints && item.promotionId == null) {
                         val qty = item.quantity + 1
                         item.copy(quantity = qty, subtotal = item.price * qty)
                     } else {
@@ -64,9 +64,13 @@ class CartManager @Inject constructor() {
         }
     }
 
-    fun removeProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false) {
+    fun removeProduct(productId: String, variantName: String? = null, redeemedByPoints: Boolean = false, promotionId: String? = null) {
         _items.update { current ->
-            current.filterNot { it.productId == productId && it.variantName == variantName && it.redeemedByPoints == redeemedByPoints }
+            current.filterNot {
+                it.productId == productId && it.variantName == variantName
+                    && it.redeemedByPoints == redeemedByPoints
+                    && it.promotionId == promotionId
+            }
         }
     }
 
