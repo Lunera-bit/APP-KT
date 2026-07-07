@@ -114,7 +114,8 @@ class CartManager @Inject constructor() {
                     id = promoProduct.productId,
                     nombre = promoProduct.productName,
                     precio = unitPrice,
-                    stock = Int.MAX_VALUE
+                    stock = Int.MAX_VALUE,
+                    foto = promotion.imageUrl
                 ),
                 promotionId = promotion.id
             )
