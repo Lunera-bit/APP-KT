@@ -119,7 +119,7 @@ class LocationUploaderService : Service() {
         return NotificationCompat.Builder(this, LOCATION_CHANNEL_ID)
             .setContentTitle("CYRYEL Delivery")
             .setContentText("Compartiendo ubicacion en tiempo real")
-            .setSmallIcon(R.drawable.ic_stat_4081896)
+            .setSmallIcon(com.CYRYEL.com.R.drawable.ic_stat_4081896)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)

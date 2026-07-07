@@ -2,6 +2,7 @@ package com.cyryel.ui.orders
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cyryel.data.order.Order
 import com.cyryel.data.order.OrderRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions

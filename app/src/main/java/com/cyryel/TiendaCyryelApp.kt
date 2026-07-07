@@ -7,6 +7,7 @@ import android.os.Build
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.CYRYEL.com.BuildConfig
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
