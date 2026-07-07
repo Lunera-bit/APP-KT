@@ -39,7 +39,7 @@ class CartManager @Inject constructor() {
                 )
             } else {
                 current.map { item ->
-                    if (item.productId == product.id && item.variantName == variantName && !it.redeemedByPoints && item.promotionId == null) {
+                    if (item.productId == product.id && item.variantName == variantName && !item.redeemedByPoints && item.promotionId == null) {
                         val qty = item.quantity + 1
                         item.copy(quantity = qty, subtotal = item.price * qty)
                     } else {
