@@ -181,6 +181,9 @@ fun AppNavGraph(navController: NavHostController, modifier: androidx.compose.ui.
                 },
                 onProductClick = { productId ->
                     navController.navigate(Routes.productDetail(productId))
+                },
+                onPromotionClick = { promotionId ->
+                    navController.navigate(Routes.promotionDetail(promotionId))
                 }
             )
         }

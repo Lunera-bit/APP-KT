@@ -64,6 +64,7 @@ fun CartScreen(
     onBack: () -> Unit,
     onCheckout: () -> Unit,
     onProductClick: (String) -> Unit = {},
+    onPromotionClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: CartViewModel = hiltViewModel()
 ) {
@@ -142,7 +143,11 @@ fun CartScreen(
                         redeemedByPoints = item.redeemedByPoints,
                         pointsToRedeem = item.product.pointsToRedeem,
                         isPromoItem = isPromoItem,
-                        onProductClick = onProductClick,
+                        onProductClick = if (isPromoItem && onPromotionClick != null) {
+                            { onPromotionClick(item.promotionId ?: "") }
+                        } else {
+                            onProductClick
+                        },
                         onIncrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.addProduct(item.product, item.variantName) },
                         onDecrease = { if (!item.redeemedByPoints && !isPromoItem) viewModel.decreaseProduct(item.productId, item.variantName, false) },
                         onRemove = { viewModel.removeProduct(item.productId, item.variantName, item.redeemedByPoints) }
