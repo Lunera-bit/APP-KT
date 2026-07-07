@@ -4,12 +4,21 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class TiendaCyryelApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        val appCheck = FirebaseAppCheck.getInstance()
+        if (BuildConfig.DEBUG) {
+            appCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance())
+        } else {
+            appCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance())
+        }
         createNotificationChannels()
     }
 
