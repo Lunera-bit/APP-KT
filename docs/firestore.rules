@@ -194,7 +194,7 @@ service cloud.firestore {
      * - Write: Solo admin
      */
     match /config/{configId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn() || configId == "version";
       allow write: if isAdmin();
     }
 
