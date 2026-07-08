@@ -14,10 +14,8 @@ import com.CYRYEL.com.data.delivery.DeliveryRepository
 import com.CYRYEL.com.data.order.Order
 import com.CYRYEL.com.data.user.UserRepository
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
-import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -340,41 +338,6 @@ class DeliveryViewModel @Inject constructor(
                     }
                 }
             }
-    }
-
-    fun releaseDelivery(deliveryId: String, orderId: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, loadingMessage = "Soltando pedido...", errorMessage = null) }
-
-            val uid = authRepository.getCurrentUserId() ?: run {
-                _uiState.update { it.copy(isLoading = false, loadingMessage = null, errorMessage = "Usuario no autenticado") }
-                return@launch
-            }
-
-            try {
-                FirebaseAuth.getInstance().currentUser?.getIdToken(true)?.await()
-
-                val functions = FirebaseFunctions.getInstance()
-                val result = functions.getHttpsCallable("releaseDelivery")
-                    .call(mapOf("deliveryId" to deliveryId, "orderId" to orderId))
-                    .await()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false, loadingMessage = null,
-                        successMessage = "Pedido liberado correctamente",
-                        selectedDelivery = null
-                    )
-                }
-                loadDeliveries()
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false, loadingMessage = null,
-                        errorMessage = e.localizedMessage ?: "Error al liberar pedido"
-                    )
-                }
-            }
-        }
     }
 
     fun clearMessages() {
