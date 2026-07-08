@@ -286,6 +286,39 @@ fun DeliveryDetailScreen(
                         ) {
                             Text("Recogi el pedido", fontWeight = FontWeight.Bold)
                         }
+                        Spacer(Modifier.height(8.dp))
+                        var showReleaseDialog by remember { mutableStateOf(false) }
+                        OutlinedButton(
+                            onClick = { showReleaseDialog = true },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red),
+                            border = BorderStroke(1.dp, Color.Red)
+                        ) {
+                            Text("Soltar pedido", fontWeight = FontWeight.Medium)
+                        }
+                        if (showReleaseDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showReleaseDialog = false },
+                                title = { Text("Soltar pedido") },
+                                text = { Text("¿Estás seguro? El pedido volverá a estar disponible para otro repartidor.") },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            showReleaseDialog = false
+                                            viewModel.releaseDelivery(assignment.id, order.id)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                    ) {
+                                        Text("Sí, soltar", color = Color.White)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showReleaseDialog = false }) {
+                                        Text("Cancelar")
+                                    }
+                                }
+                            )
+                        }
                     }
                     "en_camino" -> {
                         Spacer(Modifier.height(4.dp))

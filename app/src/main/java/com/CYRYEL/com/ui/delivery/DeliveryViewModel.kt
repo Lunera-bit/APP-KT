@@ -16,6 +16,7 @@ import com.CYRYEL.com.data.user.UserRepository
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +58,7 @@ class DeliveryViewModel @Inject constructor(
     val uiState: StateFlow<DeliveryUiState> = _uiState.asStateFlow()
 
     private var deliverySnapshotRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+    private var orderSnapshotRegistration: com.google.firebase.firestore.ListenerRegistration? = null
 
     init {
         loadDeliveries()
@@ -209,10 +211,8 @@ class DeliveryViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, loadingMessage = "Verificando codigo...", errorMessage = null) }
 
             deliveryRepository.verifyConfirmationCode(deliveryId, confirmationCode).onSuccess {
-                val order = _uiState.value.selectedDelivery?.second
-
-                val showDialog = order?.paymentMethod == "contra_entrega" ||
-                    (order?.paymentMethod == "codigo" && order.paymentStatus == "pendiente")
+                val paymentStatus = _uiState.value.selectedDelivery?.second?.paymentStatus ?: "pendiente"
+                val showDialog = paymentStatus != "completado"
 
                 if (showDialog) {
                     _uiState.update {
@@ -298,11 +298,14 @@ class DeliveryViewModel @Inject constructor(
             )
         }
         startWatchingDelivery(assignment.id)
+        startWatchingOrder(order.id)
     }
 
     fun clearSelection() {
         deliverySnapshotRegistration?.remove()
         deliverySnapshotRegistration = null
+        orderSnapshotRegistration?.remove()
+        orderSnapshotRegistration = null
         _uiState.update { it.copy(selectedDelivery = null, liveDeliveryLatitude = null, liveDeliveryLongitude = null) }
     }
 
@@ -321,6 +324,48 @@ class DeliveryViewModel @Inject constructor(
                     }
                 }
             }
+    }
+
+    private fun startWatchingOrder(orderId: String) {
+        orderSnapshotRegistration?.remove()
+        orderSnapshotRegistration = firestore.collection("orders").document(orderId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
+                val newPaymentStatus = snapshot.getString("paymentStatus")
+                val current = _uiState.value.selectedDelivery ?: return@addSnapshotListener
+                if (newPaymentStatus != null && newPaymentStatus != current.second.paymentStatus) {
+                    _uiState.update {
+                        it.copy(selectedDelivery = Pair(current.first, current.second.copy(paymentStatus = newPaymentStatus)))
+                    }
+                }
+            }
+    }
+
+    fun releaseDelivery(deliveryId: String, orderId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, loadingMessage = "Soltando pedido...", errorMessage = null) }
+            try {
+                val functions = FirebaseFunctions.getInstance()
+                val result = functions.getHttpsCallable("releaseDelivery")
+                    .call(mapOf("deliveryId" to deliveryId, "orderId" to orderId))
+                    .await()
+                _uiState.update {
+                    it.copy(
+                        isLoading = false, loadingMessage = null,
+                        successMessage = "Pedido liberado correctamente",
+                        selectedDelivery = null
+                    )
+                }
+                loadDeliveries()
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false, loadingMessage = null,
+                        errorMessage = e.localizedMessage ?: "Error al liberar pedido"
+                    )
+                }
+            }
+        }
     }
 
     fun clearMessages() {

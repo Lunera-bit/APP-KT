@@ -199,7 +199,7 @@ private fun DeliveryPedidosTab(
                 onDeliveryClick = onDeliveryClick
             )
             1 -> MisPedidosContent(
-                deliveries = uiState.myDeliveries.filter { it.first.status != "entregado" },
+                deliveries = uiState.myDeliveries.filter { it.first.status != "entregado" && it.first.status != "cancelado" },
                 isLoading = uiState.isLoading,
                 onDeliveryClick = onDeliveryClick
             )

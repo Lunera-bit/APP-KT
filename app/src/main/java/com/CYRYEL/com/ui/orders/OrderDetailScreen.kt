@@ -330,7 +330,7 @@ fun OrderDetailScreen(
                         }
                     }
 
-                    if (order.deliveryMethod == "domicilio") {
+                    if (order.deliveryMethod == "domicilio" && order.deliveryAcceptedAt != null) {
                         val distMeters = distanceInMeters(
                             -11.567832, -77.269716,
                             order.deliveryAddress.latitude, order.deliveryAddress.longitude
