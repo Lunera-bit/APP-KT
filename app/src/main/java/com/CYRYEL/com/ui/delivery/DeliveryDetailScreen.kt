@@ -339,6 +339,29 @@ fun DeliveryDetailScreen(
                 }
             }
         }
+
+        if (uiState.showPaymentDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.confirmPayment(false) },
+                title = { Text("Confirmar pago", fontWeight = FontWeight.Bold) },
+                text = {
+                    Text("¿El cliente realizo el pago de S/ ${"%.2f".format(order.total)}?")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.confirmPayment(true) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AzulRey)
+                    ) {
+                        Text("Si, pago completado")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { viewModel.confirmPayment(false) }) {
+                        Text("No, no pago")
+                    }
+                }
+            )
+        }
     }
 }
 

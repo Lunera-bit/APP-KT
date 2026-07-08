@@ -78,20 +78,22 @@ private val dateTimeFormat = SimpleDateFormat("dd/MM/yy HH:mm", Locale("es", "PE
 private val StatusColorMap = mapOf(
     "pendiente" to Color(0xFFFF9800),
     "confirmado" to AzulRey,
-    "en_reparto" to AmarilloVibrante,
     "en_camino" to AmarilloVibrante,
+    "listo_para_recoger" to Color(0xFF8BC34A),
     "entregado" to Color(0xFF4CAF50),
-    "cancelado" to Color(0xFFE53935)
+    "cancelado" to Color(0xFFE53935),
+    "devuelto" to Color(0xFF9C27B0)
 )
 
 private val StatusDisplayName = mapOf(
     "todos" to "Todos",
     "pendiente" to "Pendiente",
     "confirmado" to "Confirmado",
-    "en_reparto" to "En Reparto",
     "en_camino" to "En Camino",
+    "listo_para_recoger" to "Listo para Recoger",
     "entregado" to "Entregado",
-    "cancelado" to "Cancelado"
+    "cancelado" to "Cancelado",
+    "devuelto" to "Devuelto"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +107,7 @@ fun OrdersScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    val filters = listOf("todos", "pendiente", "confirmado", "en_reparto", "en_camino", "entregado", "cancelado")
+    val filters = listOf("todos", "pendiente", "confirmado", "en_camino", "entregado", "cancelado")
     val listState = rememberLazyListState()
 
     LaunchedEffect(listState) {

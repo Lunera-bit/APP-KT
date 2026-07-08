@@ -36,7 +36,11 @@ data class DeliveryUiState(
     val successMessage: String? = null,
     val selectedDelivery: Pair<DeliveryAssignment, Order>? = null,
     val liveDeliveryLatitude: Double? = null,
-    val liveDeliveryLongitude: Double? = null
+    val liveDeliveryLongitude: Double? = null,
+    val showPaymentDialog: Boolean = false,
+    val pendingDeliveryId: String? = null,
+    val pendingOrderId: String? = null,
+    val pendingConfirmationCode: String? = null
 )
 
 @HiltViewModel
@@ -204,7 +208,68 @@ class DeliveryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, loadingMessage = "Verificando codigo...", errorMessage = null) }
 
-            deliveryRepository.completeDelivery(deliveryId, orderId, confirmationCode).onSuccess {
+            deliveryRepository.verifyConfirmationCode(deliveryId, confirmationCode).onSuccess {
+                val order = _uiState.value.selectedDelivery?.second
+
+                val showDialog = order?.paymentMethod == "contra_entrega" ||
+                    (order?.paymentMethod == "codigo" && order.paymentStatus == "pendiente")
+
+                if (showDialog) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false, loadingMessage = null,
+                            showPaymentDialog = true,
+                            pendingDeliveryId = deliveryId,
+                            pendingOrderId = orderId,
+                            pendingConfirmationCode = confirmationCode
+                        )
+                    }
+                } else {
+                    deliveryRepository.completeDelivery(deliveryId, orderId, confirmationCode, paymentCompleted = true).onSuccess {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false, loadingMessage = null,
+                                successMessage = "Pedido entregado con exito",
+                                selectedDelivery = null
+                            )
+                        }
+                        loadDeliveries()
+                    }.onFailure { e ->
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false, loadingMessage = null,
+                                errorMessage = e.localizedMessage ?: "Error al completar delivery"
+                            )
+                        }
+                    }
+                }
+            }.onFailure { e ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false, loadingMessage = null,
+                        errorMessage = e.localizedMessage ?: "Error al completar delivery"
+                    )
+                }
+            }
+        }
+    }
+
+    fun confirmPayment(completed: Boolean) {
+        val deliveryId = _uiState.value.pendingDeliveryId
+        val orderId = _uiState.value.pendingOrderId
+        val code = _uiState.value.pendingConfirmationCode
+
+        _uiState.update { it.copy(showPaymentDialog = false, pendingDeliveryId = null, pendingOrderId = null, pendingConfirmationCode = null) }
+
+        if (!completed || deliveryId == null || orderId == null || code == null) {
+            _uiState.update { it.copy(errorMessage = "Pago no confirmado por el repartidor. Vuelve a intentar cuando el cliente realice el pago.") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, loadingMessage = "Completando entrega...") }
+
+            deliveryRepository.completeDelivery(deliveryId, orderId, code, paymentCompleted = true).onSuccess {
                 _uiState.update {
                     it.copy(
                         isLoading = false, loadingMessage = null,

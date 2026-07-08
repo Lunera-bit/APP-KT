@@ -31,9 +31,14 @@ interface DeliveryRepository {
         fcmToken: String
     ): Result<Unit>
     suspend fun startDelivery(deliveryId: String, orderId: String): Result<Unit>
+    suspend fun verifyConfirmationCode(
+        deliveryId: String,
+        confirmationCode: String
+    ): Result<Unit>
     suspend fun completeDelivery(
         deliveryId: String,
         orderId: String,
-        confirmationCode: String
+        confirmationCode: String,
+        paymentCompleted: Boolean = false
     ): Result<Unit>
 }

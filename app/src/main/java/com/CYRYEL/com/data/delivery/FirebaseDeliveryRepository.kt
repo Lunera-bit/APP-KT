@@ -78,7 +78,7 @@ class FirebaseDeliveryRepository @Inject constructor(
                 transaction.update(deliveryRef, "acceptedAt", now)
 
                 val orderRef = firestore.collection("orders").document(orderId)
-                transaction.update(orderRef, "status", OrderStatus.IN_DELIVERY.value)
+                transaction.update(orderRef, "status", OrderStatus.CONFIRMED.value)
                 transaction.update(orderRef, "assignedDeliveryId", deliveryPersonId)
                 transaction.update(orderRef, "deliveryPersonName", deliveryPersonName)
                 transaction.update(orderRef, "deliveryAcceptedAt", now)
@@ -117,10 +117,36 @@ class FirebaseDeliveryRepository @Inject constructor(
         }
     }
 
+    override suspend fun verifyConfirmationCode(
+        deliveryId: String,
+        confirmationCode: String
+    ): Result<Unit> {
+        return try {
+            firestore.runTransaction { transaction ->
+                val deliveryRef = firestore.collection("deliveries").document(deliveryId)
+                val deliveryDoc = transaction.get(deliveryRef)
+                val currentStatus = deliveryDoc.getString("status") ?: ""
+                val storedCode = deliveryDoc.getString("confirmationCode") ?: ""
+
+                if (currentStatus != "en_camino") {
+                    throw IllegalStateException("El pedido debe estar en camino para completarlo")
+                }
+
+                if (storedCode != confirmationCode) {
+                    throw IllegalStateException("Codigo de confirmacion incorrecto")
+                }
+            }.await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun completeDelivery(
         deliveryId: String,
         orderId: String,
-        confirmationCode: String
+        confirmationCode: String,
+        paymentCompleted: Boolean
     ): Result<Unit> {
         return try {
             firestore.runTransaction { transaction ->
@@ -145,6 +171,9 @@ class FirebaseDeliveryRepository @Inject constructor(
                 transaction.update(orderRef, "status", OrderStatus.DELIVERED.value)
                 transaction.update(orderRef, "deliveredAt", now)
                 transaction.update(orderRef, "updatedAt", now)
+                if (paymentCompleted) {
+                    transaction.update(orderRef, "paymentStatus", "completado")
+                }
             }.await()
             Result.success(Unit)
         } catch (e: Exception) {
