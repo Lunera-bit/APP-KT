@@ -17,10 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.CYRYEL.com.navigation.AppNavGraph
+import com.CYRYEL.com.ui.splash.ForceUpdateScreen
 import com.CYRYEL.com.ui.splash.SplashScreen
 import com.CYRYEL.com.ui.theme.TiendaCyryelTheme
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,8 +47,16 @@ class MainActivity : ComponentActivity() {
 private fun MainContent() {
     var isReady by remember { mutableStateOf(false) }
     var showSplash by remember { mutableStateOf(true) }
+    var requiresUpdate by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
+        try {
+            val doc = FirebaseFirestore.getInstance().collection("config").document("version").get().await()
+            val minVersionCode = doc.getLong("minVersionCode") ?: 0L
+            requiresUpdate = BuildConfig.VERSION_CODE < minVersionCode
+        } catch (_: Exception) {
+            requiresUpdate = false
+        }
         delay(2000)
         isReady = true
     }
@@ -55,6 +66,8 @@ private fun MainContent() {
             isReady = isReady,
             onReady = { showSplash = false }
         )
+    } else if (requiresUpdate == true) {
+        ForceUpdateScreen()
     } else {
         Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
             val navController = rememberNavController()
