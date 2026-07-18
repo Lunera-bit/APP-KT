@@ -144,10 +144,10 @@ kapt {
 }
 
 dependencyCheck {
-    failOnCVSS = 7.0f
+    failBuildOnCVSS = 7.0f
     formats = listOf("HTML", "JSON")
-    outputDirectory = file("${rootProject.buildDir}/reports/dependency-check")
-    suppressionFile = file("${rootProject.projectDir}/owasp-suppressions.xml")
+    outputDirectory = layout.buildDirectory.dir("reports/dependency-check").get().asFile.absolutePath
+    suppressionFile = rootProject.file("owasp-suppressions.xml").absolutePath
     analyzers {
         assemblyEnabled = false
         nugetconfEnabled = false
