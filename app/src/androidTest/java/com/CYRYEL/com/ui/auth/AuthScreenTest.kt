@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.CYRYEL.com.data.auth.AuthRepository
 import com.CYRYEL.com.data.user.UserRepository
+import com.CYRYEL.com.data.user.User
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,7 +35,9 @@ class AuthScreenTest {
             every { isLoggedIn() } returns isLoggedIn
             every { authStateFlow() } returns emptyFlow()
         }
-        val userRepo = mockk<UserRepository>(relaxed = true)
+        val userRepo = mockk<UserRepository>(relaxed = true) {
+            coEvery { getUser(any()) } returns Result.success(User(id = "test", role = "user"))
+        }
         val vm = AuthViewModel(authRepo, userRepo)
         if (errorMessage != null) vm.showError(errorMessage)
         if (termsAccepted) vm.onTermsAcceptedChange(true)
