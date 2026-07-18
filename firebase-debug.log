@@ -1,0 +1,238 @@
+[debug] [2026-07-18T20:39:31.690Z] ----------------------------------------------------------------------
+[debug] [2026-07-18T20:39:31.693Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\USER\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start
+[debug] [2026-07-18T20:39:31.693Z] CLI Version:   15.11.0
+[debug] [2026-07-18T20:39:31.693Z] Platform:      win32
+[debug] [2026-07-18T20:39:31.693Z] Node Version:  v24.14.0
+[debug] [2026-07-18T20:39:31.693Z] Time:          Sat Jul 18 2026 15:39:31 GMT-0500 (hora estándar de Perú)
+[debug] [2026-07-18T20:39:31.693Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-18T20:39:33.246Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-18T20:39:33.246Z] > authorizing via signed-in user (victormanuellunalopez31@gmail.com)
+[debug] [2026-07-18T20:39:33.306Z] java version "21.0.10" 2026-01-20 LTS
+Java(TM) SE Runtime Environment (build 21.0.10+8-LTS-217)
+
+[debug] [2026-07-18T20:39:33.307Z] Java HotSpot(TM) 64-Bit Server VM (build 21.0.10+8-LTS-217, mixed mode, sharing)
+
+[debug] [2026-07-18T20:39:33.314Z] Parsed Java major version: 21
+[info] i  emulators: Starting emulators: auth, functions, firestore, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, extensions"}}
+[debug] [2026-07-18T20:39:33.317Z] Checked if tokens are valid: true, expires at: 1784410234872
+[debug] [2026-07-18T20:39:33.317Z] Checked if tokens are valid: true, expires at: 1784410234872
+[debug] [2026-07-18T20:39:33.318Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/tienda-leon-6b457 [none]
+[debug] [2026-07-18T20:39:34.518Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/tienda-leon-6b457 200
+[debug] [2026-07-18T20:39:34.519Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/tienda-leon-6b457 {"projectNumber":"757900222752","projectId":"tienda-leon-6b457","lifecycleState":"ACTIVE","name":"Tienda CYRYEL","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-12-18T16:54:21.464258Z"}
+[debug] [2026-07-18T20:39:34.529Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.529Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.529Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.529Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.529Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-07-18T20:39:34.536Z] Found emulator hub locator: {"version":"15.11.0","origins":["http://127.0.0.1:4400","http://[::1]:4400"],"pid":18320}
+[debug] [2026-07-18T20:39:34.536Z] Write emulator hub locator at C:\Users\USER\AppData\Local\Temp\hub-tienda-leon-6b457.json
+[debug] [2026-07-18T20:39:34.542Z] [Extensions] Started Extensions emulator, this is a noop.
+[debug] [2026-07-18T20:39:34.547Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.547Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.547Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-07-18T20:39:34.547Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2026-07-18T20:39:34.559Z] defaultcredentials: writing to file C:\Users\USER\AppData\Roaming\firebase\victormanuellunalopez31_gmail_com_application_default_credentials.json
+[debug] [2026-07-18T20:39:34.560Z] Setting GAC to C:\Users\USER\AppData\Roaming\firebase\victormanuellunalopez31_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\USER\\AppData\\Roaming\\firebase\\victormanuellunalopez31_gmail_com_application_default_credentials.json"}}
+[debug] [2026-07-18T20:39:34.561Z] Checked if tokens are valid: true, expires at: 1784410234872
+[debug] [2026-07-18T20:39:34.561Z] Checked if tokens are valid: true, expires at: 1784410234872
+[debug] [2026-07-18T20:39:34.561Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/tienda-leon-6b457/adminSdkConfig [none]
+[debug] [2026-07-18T20:39:35.120Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/tienda-leon-6b457/adminSdkConfig 200
+[debug] [2026-07-18T20:39:35.120Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/tienda-leon-6b457/adminSdkConfig {"projectId":"tienda-leon-6b457","storageBucket":"tienda-leon-6b457.firebasestorage.app"}
+[debug] [2026-07-18T20:39:35.134Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-07-18T20:39:35.135Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2026-07-18T20:39:35.135Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","C:\\Users\\USER\\.cache\\firebase\\emulators\\cloud-firestore-emulator-v1.20.4.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","tienda-leon-6b457","--rules","D:\\_Proyectos\\android-native-kotlin\\firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"C:\\\\Users\\\\USER\\\\.cache\\\\firebase\\\\emulators\\\\cloud-firestore-emulator-v1.20.4.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"tienda-leon-6b457\",\"--rules\",\"D:\\\\_Proyectos\\\\android-native-kotlin\\\\firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
+[debug] [2026-07-18T20:39:36.321Z] Jul 18, 2026 3:39:36 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+INFO: Started WebSocket server on ws://127.0.0.1:9150
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:39:36 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\r\nINFO: Started WebSocket server on ws://127.0.0.1:9150\r\n"}}
+[debug] [2026-07-18T20:39:36.379Z] 
+API endpoint: http:// {"metadata":{"emulator":{"name":"firestore"},"message":"\nAPI endpoint: http://"}}
+[debug] [2026-07-18T20:39:36.380Z] 127.0.0.1:8080
+Database Edition: STANDARD
+Database Mode: CLOUD_FIRESTORE
+
+If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
+
+   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+
+If you are running a Firestore in Datastore Mode project, run:
+
+   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
+
+Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
+Dev App Server is now running.
+
+ {"metadata":{"emulator":{"name":"firestore"},"message":"127.0.0.1:8080\nDatabase Edition: STANDARD\nDatabase Mode: CLOUD_FIRESTORE\n\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\r\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\r\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\r\nDev App Server is now running.\n\r\n"}}
+[info] +  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
+[debug] [2026-07-18T20:39:41.122Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[info] i  functions: Watching "D:\_Proyectos\android-native-kotlin\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"D:\\_Proyectos\\android-native-kotlin\\functions\" for Cloud Functions..."}}
+[debug] [2026-07-18T20:39:41.135Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] !  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-07-18T20:39:42.863Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase - Cyryel",
+  "scripts": {
+    "lint": "eslint --ext .js,.ts .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.9.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "typescript": "^4.9.0"
+  },
+  "private": true
+}
+[debug] [2026-07-18T20:39:42.864Z] Building nodejs source
+[debug] [2026-07-18T20:39:42.864Z] Failed to find version of module node: reached end of search path D:\_Proyectos\android-native-kotlin\functions\node_modules
+[warn] !  functions: Your requested "node" version "20" doesn't match your global version "24". Using node@24 from host. 
+[debug] [2026-07-18T20:39:42.866Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-07-18T20:39:42.875Z] Found firebase-functions binary at 'D:\_Proyectos\android-native-kotlin\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8803
+
+[debug] [2026-07-18T20:39:46.818Z] Got response from /__/functions.yaml {"endpoints":{"syncUserRoleToClaims":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.write","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/users/{uid}"},"retry":false},"labels":{},"entryPoint":"syncUserRoleToClaims"},"onOrderPointsReverted":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderPointsReverted"},"onPromotionCreated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/promotions/{promotionId}"},"retry":false},"labels":{},"entryPoint":"onPromotionCreated"},"onOrderCreatedNotifyAdmins":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderCreatedNotifyAdmins"},"sendTestNotification":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"sendTestNotification"},"sendIndividualNotification":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"sendIndividualNotification"},"cleanInvalidTokens":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"scheduleTrigger":{"schedule":"0 3 * * *","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":"America/Lima"},"labels":{},"entryPoint":"cleanInvalidTokens"},"deactivateExpiredPromotions":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"scheduleTrigger":{"schedule":"0 0 * * *","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":"America/Lima"},"labels":{},"entryPoint":"deactivateExpiredPromotions"},"onOrderPaymentCompleted":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.write","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderPaymentCompleted"},"setUserRole":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"setUserRole"},"addFunds":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"addFunds"},"withdrawFunds":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"withdrawFunds"},"redeemReward":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"redeemReward"},"releaseDelivery":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"releaseDelivery"},"updateOrderStatus":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"updateOrderStatus"},"confirmPayment":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"confirmPayment"},"validateDeliveryZone":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"validateDeliveryZone"},"onOrderCreatedNotification":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderCreatedNotification"},"onUserCreated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/users/{userId}"},"retry":false},"labels":{},"entryPoint":"onUserCreated"},"sendBroadcastMessage":{"platform":"gcfv1","labels":{},"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"callableTrigger":{},"entryPoint":"sendBroadcastMessage"},"onOrderCreated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.create","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderCreated"},"onOrderUpdated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderUpdated"},"checkPaymentTimeouts":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"scheduleTrigger":{"schedule":"every 10 minutes","retryConfig":{"retryCount":null,"maxDoublings":null,"maxRetryDuration":null,"maxBackoffDuration":null,"minBackoffDuration":null},"timeZone":null},"labels":{},"entryPoint":"checkPaymentTimeouts"},"onOrderPaymentUpdated":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderPaymentUpdated"},"onOrderReadyForDelivery":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.write","eventFilters":{"resource":"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}"},"retry":false},"labels":{},"entryPoint":"onOrderReadyForDelivery"}},"specVersion":"v1alpha1","requiredAPIs":[{"api":"cloudscheduler.googleapis.com","reason":"Needed for scheduled functions."}],"extensions":{}}
+[debug] [2026-07-18T20:39:50.217Z] Jul 18, 2026 3:39:50 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:39:50 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\r\nINFO: Connected to new websocket client\r\n"}}
+[debug] [2026-07-18T20:39:50.870Z] defaultcredentials: writing to file C:\Users\USER\AppData\Roaming\firebase\victormanuellunalopez31_gmail_com_application_default_credentials.json
+[debug] [2026-07-18T20:39:50.871Z] Setting GAC to C:\Users\USER\AppData\Roaming\firebase\victormanuellunalopez31_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\USER\\AppData\\Roaming\\firebase\\victormanuellunalopez31_gmail_com_application_default_credentials.json"}}
+[info] +  functions: Loaded functions definitions from source: syncUserRoleToClaims, onOrderPointsReverted, onPromotionCreated, onOrderCreatedNotifyAdmins, sendTestNotification, sendIndividualNotification, cleanInvalidTokens, deactivateExpiredPromotions, onOrderPaymentCompleted, setUserRole, addFunds, withdrawFunds, redeemReward, releaseDelivery, updateOrderStatus, confirmPayment, validateDeliveryZone, onOrderCreatedNotification, onUserCreated, sendBroadcastMessage, onOrderCreated, onOrderUpdated, checkPaymentTimeouts, onOrderPaymentUpdated, onOrderReadyForDelivery. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: syncUserRoleToClaims, onOrderPointsReverted, onPromotionCreated, onOrderCreatedNotifyAdmins, sendTestNotification, sendIndividualNotification, cleanInvalidTokens, deactivateExpiredPromotions, onOrderPaymentCompleted, setUserRole, addFunds, withdrawFunds, redeemReward, releaseDelivery, updateOrderStatus, confirmPayment, validateDeliveryZone, onOrderCreatedNotification, onUserCreated, sendBroadcastMessage, onOrderCreated, onOrderUpdated, checkPaymentTimeouts, onOrderPaymentUpdated, onOrderReadyForDelivery."}}
+[debug] [2026-07-18T20:39:50.875Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/users/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:50.876Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-syncUserRoleToClaims-0 [none]
+[debug] [2026-07-18T20:39:50.876Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-syncUserRoleToClaims-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/users/{uid}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:50.882Z] Jul 18, 2026 3:39:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:39:50 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-07-18T20:39:51.067Z] Jul 18, 2026 3:39:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:39:51 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected HTTP/2 connection.\r\n"}}
+[debug] [2026-07-18T20:39:51.703Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-syncUserRoleToClaims-0 200
+[debug] [2026-07-18T20:39:51.704Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-syncUserRoleToClaims-0 {}
+[info] +  functions[us-central1-syncUserRoleToClaims]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.704Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.705Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPointsReverted-0 [none]
+[debug] [2026-07-18T20:39:51.705Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPointsReverted-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.715Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPointsReverted-0 200
+[debug] [2026-07-18T20:39:51.715Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPointsReverted-0 {}
+[info] +  functions[us-central1-onOrderPointsReverted]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.715Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/promotions/{promotionId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.715Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onPromotionCreated-0 [none]
+[debug] [2026-07-18T20:39:51.716Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onPromotionCreated-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/promotions/{promotionId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.722Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onPromotionCreated-0 200
+[debug] [2026-07-18T20:39:51.722Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onPromotionCreated-0 {}
+[info] +  functions[us-central1-onPromotionCreated]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.723Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.723Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotifyAdmins-0 [none]
+[debug] [2026-07-18T20:39:51.723Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotifyAdmins-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.729Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotifyAdmins-0 200
+[debug] [2026-07-18T20:39:51.729Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotifyAdmins-0 {}
+[info] +  functions[us-central1-onOrderCreatedNotifyAdmins]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] +  functions[us-central1-sendTestNotification]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendTestNotification). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendTestNotification)."}}
+[info] +  functions[us-central1-sendIndividualNotification]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendIndividualNotification). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendIndividualNotification)."}}
+[info] i  functions[us-central1-cleanInvalidTokens]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[info] i  functions[us-central1-deactivateExpiredPromotions]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[debug] [2026-07-18T20:39:51.731Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.731Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentCompleted-0 [none]
+[debug] [2026-07-18T20:39:51.731Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentCompleted-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.738Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentCompleted-0 200
+[debug] [2026-07-18T20:39:51.738Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentCompleted-0 {}
+[info] +  functions[us-central1-onOrderPaymentCompleted]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] +  functions[us-central1-setUserRole]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/setUserRole). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/setUserRole)."}}
+[info] +  functions[us-central1-addFunds]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/addFunds). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/addFunds)."}}
+[info] +  functions[us-central1-withdrawFunds]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/withdrawFunds). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/withdrawFunds)."}}
+[info] +  functions[us-central1-redeemReward]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/redeemReward). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/redeemReward)."}}
+[info] +  functions[us-central1-releaseDelivery]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/releaseDelivery). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/releaseDelivery)."}}
+[info] +  functions[us-central1-updateOrderStatus]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/updateOrderStatus). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/updateOrderStatus)."}}
+[info] +  functions[us-central1-confirmPayment]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/confirmPayment). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/confirmPayment)."}}
+[info] +  functions[us-central1-validateDeliveryZone]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/validateDeliveryZone). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/validateDeliveryZone)."}}
+[debug] [2026-07-18T20:39:51.740Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.740Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotification-0 [none]
+[debug] [2026-07-18T20:39:51.740Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotification-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.747Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotification-0 200
+[debug] [2026-07-18T20:39:51.748Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreatedNotification-0 {}
+[info] +  functions[us-central1-onOrderCreatedNotification]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.748Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/users/{userId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.748Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onUserCreated-0 [none]
+[debug] [2026-07-18T20:39:51.749Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onUserCreated-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/users/{userId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.756Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onUserCreated-0 200
+[debug] [2026-07-18T20:39:51.756Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onUserCreated-0 {}
+[info] +  functions[us-central1-onUserCreated]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] +  functions[us-central1-sendBroadcastMessage]: http function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendBroadcastMessage). {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mhttp\u001b[22m function initialized (http://127.0.0.1:5001/tienda-leon-6b457/us-central1/sendBroadcastMessage)."}}
+[debug] [2026-07-18T20:39:51.757Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.757Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreated-0 [none]
+[debug] [2026-07-18T20:39:51.757Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreated-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.create\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.764Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreated-0 200
+[debug] [2026-07-18T20:39:51.764Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderCreated-0 {}
+[info] +  functions[us-central1-onOrderCreated]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.764Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.764Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderUpdated-0 [none]
+[debug] [2026-07-18T20:39:51.764Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderUpdated-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.771Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderUpdated-0 200
+[debug] [2026-07-18T20:39:51.771Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderUpdated-0 {}
+[info] +  functions[us-central1-onOrderUpdated]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[info] i  functions[us-central1-checkPaymentTimeouts]: function ignored because the pubsub emulator does not exist or is not running. {"metadata":{"emulator":{"name":"functions"},"message":"function ignored because the pubsub emulator does not exist or is not running."}}
+[debug] [2026-07-18T20:39:51.772Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.772Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentUpdated-0 [none]
+[debug] [2026-07-18T20:39:51.772Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentUpdated-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.778Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentUpdated-0 200
+[debug] [2026-07-18T20:39:51.778Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderPaymentUpdated-0 {}
+[info] +  functions[us-central1-onOrderPaymentUpdated]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.779Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.779Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderReadyForDelivery-0 [none]
+[debug] [2026-07-18T20:39:51.779Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderReadyForDelivery-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.write\",\"resource\":\"projects/tienda-leon-6b457/databases/(default)/documents/orders/{orderId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2026-07-18T20:39:51.785Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderReadyForDelivery-0 200
+[debug] [2026-07-18T20:39:51.786Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/tienda-leon-6b457/triggers/us-central1-onOrderReadyForDelivery-0 {}
+[info] +  functions[us-central1-onOrderReadyForDelivery]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2026-07-18T20:39:51.791Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────────┬────────────────┬──────────────────────────────────┐
+│ Emulator       │ Host:Port      │ View in Emulator UI              │
+├────────────────┼────────────────┼──────────────────────────────────┤
+│ Authentication │ 127.0.0.1:9099 │ http://127.0.0.1:4000/auth       │
+├────────────────┼────────────────┼──────────────────────────────────┤
+│ Functions      │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions  │
+├────────────────┼────────────────┼──────────────────────────────────┤
+│ Firestore      │ 127.0.0.1:8080 │ http://127.0.0.1:4000/firestore  │
+├────────────────┼────────────────┼──────────────────────────────────┤
+│ Extensions     │ 127.0.0.1:5001 │ http://127.0.0.1:4000/extensions │
+└────────────────┴────────────────┴──────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500, 9150
+┌─────────────────────────┬───────────────┬─────────────────────┐
+│ Extension Instance Name │ Extension Ref │ View in Emulator UI │
+└─────────────────────────┴───────────────┴─────────────────────┘
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
+[debug] [2026-07-18T20:40:43.463Z] Jul 18, 2026 3:40:43 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:40:43 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\r\nINFO: Connected to new websocket client\r\n"}}
+[debug] [2026-07-18T20:44:18.650Z] Jul 18, 2026 3:44:18 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:44:18 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\r\nINFO: Websocket client disconnected\r\n"}}
+[debug] [2026-07-18T20:51:34.014Z] Jul 18, 2026 3:51:33 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jul 18, 2026 3:51:33 PM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\r\nINFO: Websocket client disconnected\r\n"}}

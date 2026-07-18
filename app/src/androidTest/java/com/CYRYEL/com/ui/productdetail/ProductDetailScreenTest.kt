@@ -27,7 +27,7 @@ class ProductDetailScreenTest {
     @Test
     fun productDetailScreen_showsLoading() {
         val productRepo = mockk<ProductRepository>(relaxed = true) {
-            coEvery { observeProduct(any()) } returns flowOf(Result.success(null))
+            coEvery { observeProduct(any()) } returns flowOf(Result.failure(Exception("loading")))
         }
         val cartManager = mockk<CartManager>(relaxed = true) {
             every { items } returns MutableStateFlow(emptyList())
@@ -38,7 +38,7 @@ class ProductDetailScreenTest {
             ProductDetailScreen(
                 productId = "p1",
                 onBack = {},
-                onNavigateToCart = {},
+                onAddToCart = {},
                 viewModel = vm
             )
         }
@@ -59,7 +59,7 @@ class ProductDetailScreenTest {
             ProductDetailScreen(
                 productId = "p1",
                 onBack = {},
-                onNavigateToCart = {},
+                onAddToCart = {},
                 viewModel = vm
             )
         }

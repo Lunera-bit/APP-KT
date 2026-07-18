@@ -78,15 +78,22 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/NOTICE"
+        }
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 
     testOptions {
         managedDevices {
             devices {
-                create("pixel4Api24", com.android.build.api.dsl.ManagedVirtualDevice::class) {
+                create("pixel4Api27", com.android.build.api.dsl.ManagedVirtualDevice::class) {
                     device = "Pixel 4"
-                    apiLevel = 24
+                    apiLevel = 27
                     systemImageSource = "google"
                 }
                 create("pixel4Api35", com.android.build.api.dsl.ManagedVirtualDevice::class) {
@@ -151,7 +158,10 @@ dependencies {
     androidTestImplementation("io.mockk:mockk-android:1.13.13")
     androidTestImplementation("app.cash.turbine:turbine:1.2.0")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-    androidTestImplementation("androidx.room:room-testing:2.6.1")
+    androidTestImplementation("androidx.room:room-testing:2.6.1") {
+        exclude(group = "org.junit.jupiter")
+        exclude(group = "org.junit.platform")
+    }
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

@@ -1,3 +1,28 @@
+# Compiled JavaScript files
+lib/
+*.js
+*.js.map
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Node.js dependencies
 node_modules/
+
+# Firebase cache
 .firebase/
+
+# Firebase config
+.runtimeconfig.json
+
+# Environment variables
+.env
+.env.*
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

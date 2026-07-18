@@ -49,7 +49,7 @@ class BilleteraScreenTest {
         composeTestRule.setContent {
             BilleteraScreen(
                 onNavigateToOffers = {},
-                onNavigateToHistory = {},
+                onNavigateToHistorial = {},
                 viewModel = vm
             )
         }
@@ -79,7 +79,7 @@ class BilleteraScreenTest {
         composeTestRule.setContent {
             BilleteraScreen(
                 onNavigateToOffers = {},
-                onNavigateToHistory = {},
+                onNavigateToHistorial = {},
                 viewModel = vm
             )
         }
@@ -107,7 +107,7 @@ class BilleteraScreenTest {
         composeTestRule.setContent {
             BilleteraScreen(
                 onNavigateToOffers = {},
-                onNavigateToHistory = {},
+                onNavigateToHistorial = {},
                 viewModel = vm
             )
         }

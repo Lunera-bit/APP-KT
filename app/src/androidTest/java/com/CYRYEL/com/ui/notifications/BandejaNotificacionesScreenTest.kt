@@ -35,7 +35,7 @@ class BandejaNotificacionesScreenTest {
         composeTestRule.setContent {
             BandejaNotificacionesScreen(
                 onBack = {},
-                onNavigateToHome = {},
+                onNotificationClick = {},
                 viewModel = vm
             )
         }
@@ -60,7 +60,7 @@ class BandejaNotificacionesScreenTest {
         composeTestRule.setContent {
             BandejaNotificacionesScreen(
                 onBack = {},
-                onNavigateToHome = {},
+                onNotificationClick = {},
                 viewModel = vm
             )
         }
@@ -83,7 +83,7 @@ class BandejaNotificacionesScreenTest {
         composeTestRule.setContent {
             BandejaNotificacionesScreen(
                 onBack = {},
-                onNavigateToHome = {},
+                onNotificationClick = {},
                 viewModel = vm
             )
         }

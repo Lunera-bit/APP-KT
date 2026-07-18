@@ -25,12 +25,12 @@ class CartScreenTest {
     @Test
     fun cartScreen_showsEmptyCart() {
         val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(emptyList())
+            every { items } answers { MutableStateFlow(emptyList()) }
         }
         val vm = CartViewModel(cartManager)
 
         composeTestRule.setContent {
-            CartSection(
+            CartScreen(
                 onBack = {},
                 onCheckout = {},
                 onProductClick = {},
@@ -44,16 +44,16 @@ class CartScreenTest {
     @Test
     fun cartScreen_showsCartItems() {
         val product = Product(id = "p1", nombre = "Producto Test", precio = 25.0, stock = 10)
-        val items = listOf(
+        val cartItems = listOf(
             CartItem(productId = "p1", productName = "Producto Test", quantity = 2, price = 25.0, subtotal = 50.0, product = product)
         )
         val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(items)
+            every { items } answers { MutableStateFlow(cartItems) }
         }
         val vm = CartViewModel(cartManager)
 
         composeTestRule.setContent {
-            CartSection(
+            CartScreen(
                 onBack = {},
                 onCheckout = {},
                 onProductClick = {},
@@ -67,16 +67,16 @@ class CartScreenTest {
     @Test
     fun cartScreen_showsTotal() {
         val product = Product(id = "p1", nombre = "Producto Test", precio = 25.0, stock = 10)
-        val items = listOf(
+        val cartItems = listOf(
             CartItem(productId = "p1", productName = "Producto Test", quantity = 2, price = 25.0, subtotal = 50.0, product = product)
         )
         val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(items)
+            every { items } answers { MutableStateFlow(cartItems) }
         }
         val vm = CartViewModel(cartManager)
 
         composeTestRule.setContent {
-            CartSection(
+            CartScreen(
                 onBack = {},
                 onCheckout = {},
                 onProductClick = {},
@@ -88,12 +88,12 @@ class CartScreenTest {
     @Test
     fun cartScreen_showsCheckoutButton() {
         val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(emptyList())
+            every { items } answers { MutableStateFlow(emptyList()) }
         }
         val vm = CartViewModel(cartManager)
 
         composeTestRule.setContent {
-            CartSection(
+            CartScreen(
                 onBack = {},
                 onCheckout = {},
                 onProductClick = {},

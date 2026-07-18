@@ -6,3 +6,7 @@ local.properties
 *.aab
 .DS_Store
 app/google-services.json
+
+# Firebase emulator logs
+firebase-debug.log
+firestore-debug.log
