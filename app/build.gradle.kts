@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    id("org.owasp.dependencycheck")
 }
 
 import java.util.Properties
@@ -140,4 +141,16 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+}
+
+dependencyCheck {
+    failOnCVSS = 7.0f
+    formats = listOf("HTML", "JSON")
+    outputDirectory = file("${rootProject.buildDir}/reports/dependency-check")
+    suppressionFile = file("${rootProject.projectDir}/owasp-suppressions.xml")
+    analyzers {
+        assemblyEnabled = false
+        nugetconfEnabled = false
+        nodeEnabled = false
+    }
 }
