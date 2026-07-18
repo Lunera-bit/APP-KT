@@ -80,6 +80,23 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        managedDevices {
+            devices {
+                create("pixel4Api24", com.android.build.api.dsl.ManagedVirtualDevice::class) {
+                    device = "Pixel 4"
+                    apiLevel = 24
+                    systemImageSource = "google"
+                }
+                create("pixel4Api35", com.android.build.api.dsl.ManagedVirtualDevice::class) {
+                    device = "Pixel 4"
+                    apiLevel = 35
+                    systemImageSource = "google"
+                }
+            }
+        }
+    }
 }
 
 dependencies {
