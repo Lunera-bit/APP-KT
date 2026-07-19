@@ -7,8 +7,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.CYRYEL.com.data.auth.AuthRepository
-import com.CYRYEL.com.data.user.UserRepository
 import com.CYRYEL.com.data.user.User
+import com.CYRYEL.com.data.user.UserRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -34,13 +34,29 @@ class AuthScreenTest {
         val authRepo = mockk<AuthRepository>(relaxed = true) {
             every { isLoggedIn() } returns isLoggedIn
             every { authStateFlow() } returns emptyFlow()
+            every { getCurrentUserId() } returns if (isLoggedIn) "test_uid" else null
+            if (isLoading) {
+                coEvery { signIn(any(), any()) } coAnswers {
+                    kotlinx.coroutines.awaitCancellation()
+                }
+            }
         }
-        val userRepo = mockk<UserRepository>(relaxed = true) {
-            coEvery { getUser(any()) } returns Result.success(User(id = "test", role = "user"))
+        val userRepo = object : UserRepository {
+            override suspend fun getUser(userId: String): Result<User> =
+                Result.success(User(id = userId, role = "user"))
+            override suspend fun saveUser(user: User): Result<Unit> = Result.success(Unit)
+            override suspend fun updateUser(userId: String, updates: Map<String, Any>): Result<Unit> =
+                Result.success(Unit)
+            override fun getCurrentUserId(): String? = null
         }
         val vm = AuthViewModel(authRepo, userRepo)
         if (errorMessage != null) vm.showError(errorMessage)
         if (termsAccepted) vm.onTermsAcceptedChange(true)
+        if (isLoading) {
+            vm.onEmailChange("test@test.com")
+            vm.onPasswordChange("secret123")
+            vm.signIn()
+        }
         return vm
     }
 

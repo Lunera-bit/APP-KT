@@ -5,9 +5,9 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.CYRYEL.com.data.auth.AuthRepository
+import com.CYRYEL.com.data.order.CreateOrderRequest
 import com.CYRYEL.com.data.order.Order
 import com.CYRYEL.com.data.order.OrderRepository
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,13 +49,18 @@ class OrdersScreenTest {
         val orders = listOf(
             Order(id = "o1", userId = "u1", items = emptyList(), subtotal = 100.0, total = 100.0, status = "pendiente", createdAt = 1000L)
         )
-        val orderRepo = mockk<OrderRepository>(relaxed = true) {
-            every { observeOrdersByUserId(any()) } returns flowOf(orders)
+        val orderRepo = object : OrderRepository {
+            override suspend fun createOrder(request: CreateOrderRequest) = error("not called")
+            override suspend fun getOrdersByUserId(userId: String) = error("not called")
+            override suspend fun getOrderById(orderId: String) = error("not called")
+            override suspend fun getOrdersByUserIdPaginated(
+                userId: String, lastTimestamp: Long?, pageSize: Int
+            ) = Result.success(Pair(emptyList<Order>(), false))
+            override fun observeOrdersByUserId(userId: String) = flowOf(orders)
         }
         val authRepo = mockk<AuthRepository>(relaxed = true) {
             every { getCurrentUserId() } returns "user-123"
         }
-        coEvery { orderRepo.getOrdersByUserIdPaginated(any(), any(), any()) } returns Result.success(Pair(emptyList(), false))
 
         val vm = OrdersViewModel(orderRepo, authRepo)
 

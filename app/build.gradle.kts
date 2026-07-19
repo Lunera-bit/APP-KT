@@ -99,7 +99,7 @@ android {
                 create("pixel4Api35", com.android.build.api.dsl.ManagedVirtualDevice::class) {
                     device = "Pixel 4"
                     apiLevel = 35
-                    systemImageSource = "google"
+                    systemImageSource = "aosp"
                 }
             }
         }

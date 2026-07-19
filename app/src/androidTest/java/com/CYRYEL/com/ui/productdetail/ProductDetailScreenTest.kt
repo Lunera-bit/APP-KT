@@ -8,10 +8,8 @@ import com.CYRYEL.com.data.cart.CartManager
 import com.CYRYEL.com.data.product.Product
 import com.CYRYEL.com.data.product.ProductRepository
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Rule
 import org.junit.Test
@@ -29,9 +27,7 @@ class ProductDetailScreenTest {
         val productRepo = mockk<ProductRepository>(relaxed = true) {
             coEvery { observeProduct(any()) } returns flowOf(Result.failure(Exception("loading")))
         }
-        val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(emptyList())
-        }
+        val cartManager = CartManager()
         val vm = ProductDetailViewModel(productRepo, cartManager)
 
         composeTestRule.setContent {
@@ -50,9 +46,7 @@ class ProductDetailScreenTest {
         val productRepo = mockk<ProductRepository>(relaxed = true) {
             coEvery { observeProduct(any()) } returns flowOf(Result.success(product))
         }
-        val cartManager = mockk<CartManager>(relaxed = true) {
-            every { items } returns MutableStateFlow(emptyList())
-        }
+        val cartManager = CartManager()
         val vm = ProductDetailViewModel(productRepo, cartManager)
 
         composeTestRule.setContent {

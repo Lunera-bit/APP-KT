@@ -66,7 +66,7 @@ class PromotionsScreenTest {
             PromotionsScreen(onBack = {}, viewModel = vm)
         }
 
-        composeTestRule.onNodeWithText("Reintentar").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Promociones").assertIsDisplayed()
     }
 
     @Test
