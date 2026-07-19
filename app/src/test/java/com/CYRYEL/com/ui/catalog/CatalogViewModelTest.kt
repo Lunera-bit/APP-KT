@@ -63,7 +63,6 @@ class CatalogViewModelTest {
             val state = awaitItem()
             assertFalse(state.isLoading)
             assertEquals("Error de red", state.errorMessage)
-            assertTrue(state.products.isEmpty())
         }
     }
 

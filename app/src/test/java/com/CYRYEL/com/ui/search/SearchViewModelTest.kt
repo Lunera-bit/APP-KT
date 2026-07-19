@@ -87,9 +87,10 @@ class SearchViewModelTest {
     @Test
     fun `search returns results`() = runTest {
         viewModel.onQueryChange("leche")
+        coroutineRule.testDispatcher.scheduler.advanceTimeBy(500)
 
         viewModel.uiState.test {
-            val state = awaitItem()
+            val state = expectMostRecentItem()
             assertEquals(2, state.results.size)
             assertEquals("Leche Gloria", state.results[0].nombre)
             assertFalse(state.isLoading)

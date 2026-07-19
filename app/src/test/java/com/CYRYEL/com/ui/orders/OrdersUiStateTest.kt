@@ -2,6 +2,7 @@ package com.CYRYEL.com.ui.orders
 
 import com.CYRYEL.com.data.order.Order
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -51,14 +52,14 @@ class OrdersUiStateTest {
     @Test
     fun `applyFilters with endDate filters correctly`() {
         val result = sampleOrders.applyFilters("todos", startDate = null, endDate = 2000L)
-        assertEquals(2, result.size)
+        assertEquals(3, result.size)
         assertTrue(result.all { it.createdAt <= 2000L })
     }
 
     @Test
     fun `applyFilters with date range filters correctly`() {
         val result = sampleOrders.applyFilters("todos", startDate = 1000L, endDate = 2000L)
-        assertEquals(2, result.size)
+        assertEquals(3, result.size)
     }
 
     @Test

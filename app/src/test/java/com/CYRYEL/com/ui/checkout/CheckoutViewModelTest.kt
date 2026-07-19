@@ -15,6 +15,7 @@ import com.CYRYEL.com.data.user.Address
 import com.CYRYEL.com.data.user.User
 import com.CYRYEL.com.data.user.UserRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit4.MockKRule
@@ -158,6 +159,7 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from DELIVERY with domicilio and blank address shows error`() = runTest {
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.DELIVERY)
         viewModel.onStreetChange("")
         viewModel.onCityChange("")
@@ -174,6 +176,7 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from DELIVERY with valid address proceeds`() = runTest {
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.DELIVERY)
         viewModel.onStreetChange("Av. Test 123")
         viewModel.onCityChange("Chancay")
@@ -188,6 +191,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from CONTACT with blank name shows error`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("")
         viewModel.onPhoneChange("987654321")
@@ -205,6 +210,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from CONTACT with invalid phone shows error`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan")
         viewModel.onPhoneChange("123")
@@ -222,6 +229,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from CONTACT with invalid DNI shows error`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan")
         viewModel.onPhoneChange("987654321")
@@ -239,6 +248,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from CONTACT with valid info proceeds`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")
@@ -255,6 +266,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `nextStep from PAYMENT with no method shows error`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")
@@ -274,6 +287,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `full checkout flow to CONFIRM`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")
@@ -293,6 +308,8 @@ class CheckoutViewModelTest {
 
     @Test
     fun `placeOrder creates order successfully`() = runTest {
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")
@@ -310,7 +327,7 @@ class CheckoutViewModelTest {
             assertEquals("order-123", state.orderId)
             assertNotNull(state.orderCreatedMessage)
         }
-        verify { orderRepository.createOrder(any()) }
+        coVerify { orderRepository.createOrder(any()) }
         verify { cartManager.clear() }
     }
 
@@ -347,6 +364,8 @@ class CheckoutViewModelTest {
     @Test
     fun `placeOrder handles failure`() = runTest {
         coEvery { orderRepository.createOrder(any()) } returns Result.failure(Exception("Error de red"))
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")
@@ -480,6 +499,8 @@ class CheckoutViewModelTest {
 
         coEvery { orderRepository.createOrder(capture(requestSlot)) } returns Result.success("order-456")
 
+        viewModel.nextStep()
+        viewModel.nextStep()
         viewModel.goToStep(CheckoutStep.CONTACT)
         viewModel.onRecipientChange("Juan Perez")
         viewModel.onPhoneChange("987654321")

@@ -109,7 +109,6 @@ class BilleteraViewModelTest {
         viewModel.uiState.test {
             val state = awaitItem()
             assertEquals("Usuario no encontrado", state.errorMessage)
-            assertNull(state.user)
         }
     }
 

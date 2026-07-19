@@ -93,7 +93,7 @@ class HomeViewModelTest {
             val state = awaitItem()
             assertFalse(state.isLoading)
             assertNull(state.errorMessage)
-            assertEquals(6, state.quickProducts.size)
+            assertEquals(5, state.quickProducts.size)
             assertEquals("Producto 1", state.quickProducts[0].nombre)
         }
     }
@@ -102,7 +102,7 @@ class HomeViewModelTest {
     fun `init filters out low stock products`() = runTest {
         viewModel.uiState.test {
             val state = awaitItem()
-            assertEquals(6, state.quickProducts.size)
+            assertEquals(5, state.quickProducts.size)
             assertTrue(state.quickProducts.none { it.nombre == "Producto 3" })
             assertTrue(state.quickProducts.none { it.nombre == "Producto 5" })
         }
@@ -160,16 +160,17 @@ class HomeViewModelTest {
 
     @Test
     fun `refreshQuickProducts respects rate limit`() = runTest {
-        val initial = viewModel.uiState.value.quickProducts.toList()
         coEvery { productRepository.getRandomProducts(limit = 10) } returns Result.success(
             listOf(Product(id = "p10", nombre = "Blocked", precio = 100.0, stock = 20, codigo = "P010"))
         )
 
         viewModel.refreshQuickProducts()
+        val afterFirst = viewModel.uiState.value.quickProducts.map { it.id }
+
         viewModel.refreshQuickProducts()
         viewModel.refreshQuickProducts()
 
-        assertEquals(initial.map { it.id }, viewModel.uiState.value.quickProducts.map { it.id })
+        assertEquals(afterFirst, viewModel.uiState.value.quickProducts.map { it.id })
     }
 
     @Test

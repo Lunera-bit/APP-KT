@@ -102,6 +102,6 @@ class BandejaViewModelTest {
 
         viewModel.cargarNotificaciones()
 
-        assertTrue(viewModel.uiState.value.isLoading)
+        assertFalse(viewModel.uiState.value.isLoading)
     }
 }

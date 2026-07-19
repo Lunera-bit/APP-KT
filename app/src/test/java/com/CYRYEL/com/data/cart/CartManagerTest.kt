@@ -4,6 +4,7 @@ import com.CYRYEL.com.TestCoroutineRule
 import com.CYRYEL.com.data.product.Product
 import com.CYRYEL.com.data.promotion.Promotion
 import com.CYRYEL.com.data.promotion.PromotionProduct
+import app.cash.turbine.test
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -83,13 +84,17 @@ class CartManagerTest {
 
     @Test
     fun `addProduct does not add when stock is zero`() = runTest {
-        cartManager.addProduct(noStockProduct)
-        cartManager.addProduct(noStockProduct)
-        cartManager.addProduct(noStockProduct)
+        val zeroStockProduct = Product(
+            id = "prod-zero",
+            nombre = "Zero Stock",
+            precio = 10.0,
+            stock = 0,
+            codigo = "P003"
+        )
+        cartManager.addProduct(zeroStockProduct)
 
         val items = cartManager.items.value
-        assertEquals(1, items.size)
-        assertEquals(2, items[0].quantity)
+        assertEquals(0, items.size)
     }
 
     @Test
@@ -274,21 +279,15 @@ class CartManagerTest {
 
     @Test
     fun `cart items state flow emits updates`() = runTest {
-        val emissions = mutableListOf<Int>()
-
-        val job = kotlinx.coroutines.launch {
-            cartManager.items.collect { items ->
-                emissions.add(items.size)
-                if (emissions.size >= 3) cancel()
-            }
+        cartManager.items.test {
+            assertEquals(0, awaitItem().size)
+            cartManager.addProduct(product)
+            assertEquals(1, awaitItem().size)
+            cartManager.addProduct(product.copy(id = "prod-2"))
+            assertEquals(2, awaitItem().size)
+            cartManager.clear()
+            assertEquals(0, awaitItem().size)
         }
-
-        cartManager.addProduct(product)
-        cartManager.addProduct(product.copy(id = "prod-2"))
-        cartManager.clear()
-
-        job.join()
-        assertTrue(emissions.containsAll(listOf(0, 1, 2, 0)))
     }
 
     @Test
