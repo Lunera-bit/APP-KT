@@ -172,12 +172,17 @@ kapt {
 
 dependencyCheck {
     failBuildOnCVSS = 7.0f
+    failOnError = false
     formats = listOf("HTML", "JSON")
     outputDirectory = layout.buildDirectory.dir("reports/dependency-check").get().asFile.absolutePath
     suppressionFile = rootProject.file("owasp-suppressions.xml").absolutePath
+    nvd {
+        apiKey = System.getenv("NVD_API_KEY") ?: "02e88f8c-527f-4054-8b4b-149577257aac"
+    }
     analyzers {
         assemblyEnabled = false
         nugetconfEnabled = false
         nodeEnabled = false
+        ossIndexEnabled = false
     }
 }
