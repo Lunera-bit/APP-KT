@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
-    <!-- Netty 4.1.93.Final - transitive via Firebase/gRPC, managed by Firebase BOM 33.7.0 -->
+    <!-- Netty 4.1.93.Final - transitive via Firebase/gRPC, managed by Firebase BOM -->
     <suppress>
-        <notes>Netty 4.1.93 is a transitive dependency of Firebase gRPC. Upgrade blocked until Firebase BOM updates. See: https://github.com/firebase/firebase-android-sdk/issues</notes>
+        <notes>Netty 4.1.93 is a transitive dependency of Firebase gRPC. Upgrade blocked until Firebase BOM updates the gRPC/Netty transitives.</notes>
         <filePath regex="true">.*netty.*4\.1\.93\.Final\.jar</filePath>
         <cve>CVE-2026-45674</cve>
         <cve>CVE-2026-47691</cve>
@@ -48,26 +48,19 @@
         <cve>CVE-2026-45536</cve>
     </suppress>
 
-    <!-- gRPC - transitive via Firebase, managed by Firebase BOM 33.7.0 -->
+    <!-- gRPC 1.57.2 / 1.62.2 - transitive via Firebase, managed by BOM -->
     <suppress>
-        <notes>gRPC libraries are transitive dependencies of Firebase. Upgrade blocked until Firebase BOM updates.</notes>
-        <filePath regex="true">.*grpc-.*\.jar</filePath>
+        <notes>gRPC libraries are transitive dependencies of Firebase. Version locked by Firebase BOM.</notes>
+        <filePath regex="true">.*grpc-.*</filePath>
         <cve>CVE-2026-33186</cve>
         <cve>CVE-2024-11407</cve>
         <cve>CVE-2024-7246</cve>
         <cve>CVE-2023-44487</cve>
     </suppress>
-    <suppress>
-        <notes>gRPC Android AAR - transitive via Firebase.</notes>
-        <filePath regex="true">.*grpc-android.*\.aar</filePath>
-        <cve>CVE-2026-33186</cve>
-        <cve>CVE-2024-11407</cve>
-        <cve>CVE-2024-7246</cve>
-    </suppress>
 
-    <!-- SQLite - transitive via AndroidX Room 2.6.1, managed by AndroidX -->
+    <!-- SQLite - transitive via AndroidX Room and Android framework -->
     <suppress>
-        <notes>SQLite is bundled within AndroidX Room and android framework classes.jar. These CVEs affect the native SQLite library embedded in the Android OS and Room. Room 2.6.1 is the latest stable. CVEs are mitigated by Android OS patches on supported API levels.</notes>
+        <notes>SQLite bundled in AndroidX Room and Android framework. CVEs mitigated by Android OS patches on supported API levels.</notes>
         <filePath regex="true">.*sqlite.*</filePath>
         <cve>CVE-2017-10989</cve>
         <cve>CVE-2019-19646</cve>
@@ -99,9 +92,9 @@
         <cve>CVE-2020-15358</cve>
     </suppress>
 
-    <!-- classes.jar - Android framework bundled SQLite + other libs -->
+    <!-- classes.jar - Android framework bundled libraries -->
     <suppress>
-        <notes>Android framework classes.jar contains bundled SQLite and other system libraries. CVEs are mitigated by Android OS security patches. Not directly updatable by the app.</notes>
+        <notes>Android framework classes.jar contains bundled system libraries. CVEs mitigated by Android OS security patches.</notes>
         <filePath regex="true">.*classes\.jar</filePath>
         <cve>CVE-2017-10989</cve>
         <cve>CVE-2019-19646</cve>
@@ -145,9 +138,9 @@
         <cve>CVE-2019-0201</cve>
     </suppress>
 
-    <!-- Protobuf - transitive via Firebase/gRPC, managed by BOM -->
+    <!-- Protobuf - transitive via Firebase/gRPC -->
     <suppress>
-        <notes>Protobuf libraries are transitive dependencies of Firebase/gRPC. Upgrade blocked until Firebase BOM updates.</notes>
+        <notes>Protobuf libraries are transitive dependencies of Firebase/gRPC. Version locked by Firebase BOM.</notes>
         <filePath regex="true">.*protobuf.*\.jar</filePath>
         <cve>CVE-2024-7254</cve>
         <cve>CVE-2026-0994</cve>
@@ -158,7 +151,7 @@
 
     <!-- Kotlin stdlib and compiler - build-time only, not shipped in APK -->
     <suppress>
-        <notes>Kotlin stdlib and compiler dependencies. CVE-2026-53914 and CVE-2020-29582 affect the compiler/IDE plugin, not the runtime. CVE-2025-29903 affects parcelize plugin. Build-time only, not shipped in production APK.</notes>
+        <notes>Kotlin stdlib and compiler dependencies. CVE-2026-53914 and CVE-2020-29582 affect the compiler/IDE plugin, not the runtime. CVE-2025-29903 affects parcelize plugin. Build-time only.</notes>
         <filePath regex="true">.*kotlin-.*\.jar</filePath>
         <cve>CVE-2026-53914</cve>
         <cve>CVE-2020-29582</cve>
@@ -167,15 +160,15 @@
 
     <!-- Guava - transitive via Firebase/gRPC -->
     <suppress>
-        <notes>Guava is a transitive dependency of Firebase/gRPC. CVE-2023-2976 is about temp directory permissions (low risk on Android). CVE-2020-8908 is about File.createTempFile (CVSS 3.3).</notes>
+        <notes>Guava is a transitive dependency of Firebase/gRPC. CVE-2023-2976 and CVE-2020-8908 are low risk on Android.</notes>
         <filePath regex="true">.*guava.*\.jar</filePath>
         <cve>CVE-2023-2976</cve>
         <cve>CVE-2020-8908</cve>
     </suppress>
 
-    <!-- kotlinx-coroutines-play-services - build-time/runtime bridge -->
+    <!-- kotlinx-coroutines-play-services -->
     <suppress>
-        <notes>kotlinx-coroutines-play-services is a coroutine wrapper for Play Services Tasks. CVE-2020-22475 and CVE-2022-39349 affect older coroutines internals, mitigated by version 1.8.1.</notes>
+        <notes>kotlinx-coroutines-play-services. CVEs mitigated by version 1.9.0.</notes>
         <filePath regex="true">.*kotlinx-coroutines-play-services.*\.jar</filePath>
         <cve>CVE-2020-22475</cve>
         <cve>CVE-2022-39349</cve>
@@ -183,14 +176,14 @@
 
     <!-- room-compiler-processing - kapt build-time only -->
     <suppress>
-        <notes>Room compiler processing is a build-time annotation processor, not included in the APK. CVE-2018-1000840 affects JAR archive handling in build tools.</notes>
+        <notes>Room compiler processing is a build-time annotation processor, not included in the APK.</notes>
         <filePath regex="true">.*room-compiler-processing.*\.jar</filePath>
         <cve>CVE-2018-1000840</cve>
     </suppress>
 
     <!-- symbol-processing-api - Kotlin compiler plugin, build-time only -->
     <suppress>
-        <notes>KSP symbol-processing-api is a build-time Kotlin compiler plugin, not included in the APK. CVE-2018-1000840 affects JAR archive handling.</notes>
+        <notes>KSP symbol-processing-api is a build-time Kotlin compiler plugin, not included in the APK.</notes>
         <filePath regex="true">.*symbol-processing-api.*\.jar</filePath>
         <cve>CVE-2018-1000840</cve>
     </suppress>
