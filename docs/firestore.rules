@@ -1,0 +1,272 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================================================
+    // HELPER FUNCTIONS / FUNCIONES AUXILIARES
+    // ============================================================================
+    
+    /**
+     * Verifica si el usuario está autenticado
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Verifica si el usuario actual es dueño del documento
+     * (requiere que el documento tenga campo 'userId')
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    /**
+     * Verifica si el usuario actual tiene rol de admin
+     */
+    function isAdmin() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    /**
+     * Verifica si el usuario actual tiene rol de delivery
+     */
+    function isDelivery() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'delivery';
+    }
+    
+    /**
+     * Verifica si el usuario es delivery y el orderId coincide con la request
+     */
+    function isDeliveryForOrder(orderId) {
+      return isDelivery() && 
+             get(/databases/$(database)/documents/orders/$(orderId)).data.assignedDeliveryId == request.auth.uid;
+    }
+    
+    /**
+     * Valida que los datos cumplan con estructura mínima
+     */
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    /**
+     * Valida que el timestamp sea válido (no en el futuro)
+     */
+    function isValidTimestamp() {
+      return request.resource.data.createdAt <= now || 
+             !request.resource.data.keys().hasAny(['createdAt']);
+    }
+    
+    /**
+     * Verifica si el usuario es dueño de la orden asociada al delivery
+     */
+    function isDeliveryOrderOwner(orderId) {
+      return isSignedIn() &&
+             get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid;
+    }
+    
+    /**
+     * Verifica si el delivery está asignado a este documento de delivery
+     */
+    function isAssignedDelivery() {
+      return isDelivery() && resource.data.deliveryPersonId == request.auth.uid;
+    }
+
+    // ============================================================================
+    // USUARIOS / USERS COLLECTION
+    // ============================================================================
+    /**
+     * Almacena datos de usuario: email, nombre, teléfono, dirección, rol
+     * Permisos:
+     * - Read: El usuario sobre sí mismo, admin, y delivery (para ubicaciones)
+     * - Create: Solo el usuario autenticado sobre sí mismo
+     * - Update: El usuario sobre sí mismo o admin
+     * - Delete: Solo admin
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if request.auth != null && request.auth.uid == userId &&
+                       hasRequiredFields(['email', 'name', 'role']);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+      
+      // Subcolección: savedLocations (ubicaciones guardadas por usuario)
+      match /savedLocations/{locationId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+      // Subcolección: pointsHistory (historial de puntos)
+      // Solo lectura para el owner y admins. Escrituras desde cliente solo permitidas a admins.
+      // Las Cloud Functions que usan Admin SDK pueden escribir ignorando estas reglas.
+      match /pointsHistory/{entryId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow list: if isOwner(userId) || isAdmin();
+        allow create: if isAdmin();
+        allow update, delete: if isAdmin();
+      }
+    }
+    
+    // ============================================================================
+    // CATEGORÍAS / CATEGORIES COLLECTION
+    // ============================================================================
+    /**
+     * Catálogo de categorías de productos
+     * Permisos:
+     * - Read: Pública (todos)
+     * - Write: Solo admin
+     */
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // ============================================================================
+    // PRODUCTOS / PRODUCTS COLLECTION
+    // ============================================================================
+    /**
+     * Catálogo de productos disponibles
+     * Permisos:
+     * - Read: Pública (todos)
+     * - Write: Solo admin
+     */
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // PROMOCIONES / PROMOTIONS COLLECTION
+    // ============================================================================
+    /**
+     * Promociones y ofertas especiales
+     * Permisos:
+     * - Read: Pública (todos)
+     * - Write: Solo admin (creadas por Cloud Functions)
+     */
+    match /promotions/{promotionId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // ÓRDENES / ORDERS COLLECTION
+    // ============================================================================
+    /**
+     * Pedidos/órdenes de compra de usuarios
+     * Permisos:
+     * - Read: El usuario dueño, delivery, admin
+     * - Create: Cualquier usuario autenticado
+     * - Update: El dueño o delivery o admin
+     * - Delete: Solo admin
+     */
+    match /orders/{orderId} {
+      allow get: if isOwner(resource.data.userId) || isDelivery() || isAdmin();
+      allow list: if isAdmin() || 
+                     isDelivery() ||
+                     (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() &&
+                       hasRequiredFields(['userId', 'items', 'total', 'status', 'deliveryAddress', 'paymentMethod', 'paymentStatus']) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.total > 0 &&
+                       request.resource.data.items.size() > 0 &&
+                       request.resource.data.status in ['pendiente', 'confirmado'];
+      allow update: if
+                       (isOwner(resource.data.userId) &&
+                        request.resource.data.diff.affectedKeys().hasOnly(['status', 'notes', 'fcmToken', 'customerEmail']) &&
+                        (!('status' in request.resource.data.diff.delta) || request.resource.data.diff.delta.status == 'cancelado')) ||
+                       (isDelivery() && (request.auth.uid == resource.data.assignedDeliveryId || !('assignedDeliveryId' in resource.data))) ||
+                       isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================================================
+    // CONFIG / CONFIGURACION
+    // ============================================================================
+    /**
+     * Configuraciones generales de la app: precios, cuentas bancarias, etc.
+     * Permisos:
+     * - Read: Cualquier usuario autenticado (precios delivery, cuentas bancarias)
+     * - Write: Solo admin
+     */
+    match /config/{configId} {
+      allow read: if isSignedIn() || configId == "version";
+      allow write: if isAdmin();
+    }
+
+    // ============================================================================
+    // DELIVERIES / REPARTOS COLLECTION
+    // ============================================================================
+    /**
+     * Asignaciones de delivery para repartidores
+     * Permisos:
+     * - Read: Delivery (disponibles y propios), admin, y el usuario dueño de la orden
+     * - Create: Cloud Functions (al confirmar pedido)
+     * - Update: Delivery que acepta, admin
+     * - Delete: Solo admin
+     */
+    match /deliveries/{deliveryId} {
+      allow read: if isDelivery() || isAdmin() || isDeliveryOrderOwner(resource.data.orderId);
+      allow create: if isAdmin();
+      allow update: if isAdmin() ||
+                       (isDelivery() && (
+                         resource.data.deliveryPersonId == request.auth.uid ||
+                         !('deliveryPersonId' in resource.data) ||
+                         resource.data.deliveryPersonId == null
+                       ));
+      allow delete: if isAdmin();
+    }
+
+    // ============================================================================
+    // NOTIFICACIONES / NOTIFICACIONES COLLECTION
+    // ============================================================================
+    /**
+     * Notificaciones para usuarios (órdenes, promociones, etc)
+     * Permisos:
+     * - Read: El usuario sobre sus propias notificaciones
+     * - Create: Cloud Functions y usuarios autenticados
+     * - Update: El usuario sobre sus propias notificaciones
+     * - Delete: El usuario sobre sus propias notificaciones
+     */
+    match /notificaciones/{notificationId} {
+      allow get: if isOwner(resource.data.userId);
+      allow list: if isOwner(resource.data.userId);
+      allow create: if false; // Solo Cloud Functions mediante Admin SDK
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // ============================================================================
+    // AUDIT LOGS / AUDIT LOGS COLLECTION
+    // ============================================================================
+    /**
+     * Logs de auditoría para acciones administrativas
+     * Permisos:
+     * - Read: Solo admin
+     * - Write: Solo Cloud Functions / Admin SDK
+     */
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Solo Cloud Functions mediante Admin SDK
+    }
+    
+    // ============================================================================
+    // PAYMENT TIMEOUTS / PAYMENT TIMEOUTS COLLECTION
+    // ============================================================================
+    /**
+     * Timeouts de pago para órdenes
+     * Almacena información sobre pagos pendientes con timeout
+     * Permisos:
+     * - Read: Solo admin
+     * - Write: Solo Cloud Functions / Admin SDK
+     */
+    match /paymentTimeouts/{timeoutId} {
+      allow read: if isAdmin();
+      allow write: if false; // Solo Cloud Functions mediante Admin SDK
+    }
+  }
+}

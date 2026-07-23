@@ -5,32 +5,68 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
     <application
-        android:name="com.cyryel.TiendaCyryelApp"
+        android:name="com.CYRYEL.com.TiendaCyryelApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Tienda CYRYEL"
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TiendaCyryel">
         <meta-data
-            android:name="com.mapbox.android.ACCESS_TOKEN"
+            android:name="com.mapbox.maps.token"
             android:value="${MAPBOX_ACCESS_TOKEN}" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_4081896" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notificationColor" />
         <service
-            android:name="com.cyryel.CyryelMessagingService"
+            android:name="com.CYRYEL.com.CyryelMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+        <service
+            android:name="com.CYRYEL.com.LocationUploaderService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
         <activity
-            android:name="com.cyryel.MainActivity"
-            android:exported="true">
+            android:name="com.CYRYEL.com.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cyryel" android:host="order" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cyryel" android:host="shop" android:pathPrefix="/pedidos/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cyryel" android:host="delivery" android:pathPrefix="/pedidos/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="cyryel" android:host="promotion" />
             </intent-filter>
         </activity>
     </application>

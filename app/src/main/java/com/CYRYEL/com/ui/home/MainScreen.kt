@@ -1,0 +1,893 @@
+package com.CYRYEL.com.ui.home
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Search
+
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
+import coil.compose.AsyncImage
+import com.CYRYEL.com.R
+import com.CYRYEL.com.data.category.Category
+import com.CYRYEL.com.data.product.Product
+import com.CYRYEL.com.data.product.availableStock
+import com.CYRYEL.com.data.promotion.Promotion
+import com.CYRYEL.com.ui.billetera.BilleteraScreen
+import com.CYRYEL.com.ui.cart.CartViewModel
+import com.CYRYEL.com.ui.orders.OrdersScreen
+import com.CYRYEL.com.ui.profile.AddressCard
+import com.CYRYEL.com.ui.profile.ProfileInfoCard
+import com.CYRYEL.com.ui.profile.ProfileViewModel
+import com.CYRYEL.com.ui.profile.UserAvatar
+import com.CYRYEL.com.ui.theme.AmarilloVibrante
+import com.CYRYEL.com.ui.theme.AzulRey
+import com.CYRYEL.com.ui.theme.AzulReyClaro
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.core.content.PermissionChecker
+import androidx.compose.ui.platform.LocalContext
+import com.CYRYEL.com.ui.util.showToast
+
+private data class Tab(val label: String, val iconRes: Int)
+
+private fun parseHexColor(hex: String): Color {
+    return try {
+        val clean = hex.removePrefix("#")
+        Color(("FF$clean").toLong(radix = 16))
+    } catch (_: Exception) {
+        AzulRey
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen(
+    onNavigateToProduct: (String) -> Unit = {},
+    onNavigateToOrderDetail: (String) -> Unit = {},
+    onNavigateToCategory: (String) -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToSearch: () -> Unit = {},
+    onNavigateToOffers: () -> Unit = {},
+    onNavigateToHistorial: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToCart: () -> Unit = {},
+    onNavigateToAddresses: () -> Unit = {},
+    onNavigateToPromotion: (String) -> Unit = {},
+    modifier: Modifier = Modifier,
+    cartViewModel: CartViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel()
+) {
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val cartState by cartViewModel.uiState.collectAsStateWithLifecycle()
+    val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (PermissionChecker.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PermissionChecker.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 0) {
+            homeViewModel.refreshQuickProducts()
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                homeViewModel.cargarNotifCount()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val tabs = listOf(
+        Tab("Inicio", R.drawable.ic_home),
+        Tab("Pedidos", R.drawable.ic_list),
+        Tab("Billetera", R.drawable.ic_cash),
+        Tab("Perfil", R.drawable.ic_profile)
+    )
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            if (selectedTab == 0) {
+                Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primary)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 8.dp, top = 12.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(AmarilloVibrante),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.logo),
+                            contentDescription = "Logo CYRYEL",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(6.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "CYRYEL STORE",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        Text(
+                            text = "Mas stock \u2022 Mejor precio",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    val cartCount = cartState.items.sumOf { it.quantity }
+                    val cartInteractionSource = remember { MutableInteractionSource() }
+                    val cartPressed by cartInteractionSource.collectIsPressedAsState()
+                    Box(modifier = Modifier.clickable(interactionSource = cartInteractionSource, indication = null, onClick = onNavigateToCart)) {
+                        BadgedBox(
+                            badge = {
+                                if (cartCount > 0) {
+                                    Badge(
+                                        modifier = Modifier.offset(x = (-10).dp, y = 2.dp),
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ) {
+                                        Text(
+                                            text = if (cartCount > 99) "99+" else cartCount.toString(),
+                                            color = MaterialTheme.colorScheme.onError,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Filled.ShoppingCart,
+                                contentDescription = "Carrito",
+                                tint = if (cartPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                    val notifInteractionSource = remember { MutableInteractionSource() }
+                    val notifPressed by notifInteractionSource.collectIsPressedAsState()
+                    val notifUnread = homeState.unreadNotifCount
+                    Box(modifier = Modifier.clickable(interactionSource = notifInteractionSource, indication = null, onClick = onNavigateToNotifications)) {
+                        BadgedBox(
+                            badge = {
+                                if (notifUnread > 0) {
+                                    Badge(
+                                        modifier = Modifier.offset(x = (-10).dp, y = 2.dp),
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ) {
+                                        Text(
+                                            text = if (notifUnread > 99) "99+" else notifUnread.toString(),
+                                            color = MaterialTheme.colorScheme.onError,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Filled.Notifications,
+                                contentDescription = "Notificaciones",
+                                tint = if (notifPressed) AmarilloVibrante else MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToSearch() }
+                        .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 12.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = "Buscar",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Buscar productos...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            }
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                tabs.forEachIndexed { index, tab ->
+                    NavigationBarItem(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        icon = {
+                            Icon(
+                                painterResource(tab.iconRes),
+                                contentDescription = tab.label
+                            )
+                        },
+                        label = { Text(tab.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = AmarilloVibrante,
+                            selectedTextColor = AzulRey,
+                            indicatorColor = AzulRey.copy(alpha = 0.1f)
+                        )
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        AnimatedContent(
+            targetState = selectedTab,
+            transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(150)) },
+            label = "tab_content"
+        ) { tab ->
+            when (tab) {
+                0 -> InicioTab(
+                    modifier = Modifier.padding(innerPadding),
+                    homeState = homeState,
+                    cartViewModel = cartViewModel,
+                    onAgregarTodo = {
+                        homeViewModel.marcarAgregarTodoUsado()
+                        homeState.quickProducts.forEach(cartViewModel::addProduct)
+                        context.showToast("Productos agregados al carrito")
+                    },
+                    onProductClick = onNavigateToProduct,
+                    onCategoryClick = onNavigateToCategory,
+                    onPromotionClick = { promo -> onNavigateToPromotion(promo.id) }
+                )
+                1 -> PedidosTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onOrderClick = onNavigateToOrderDetail
+                )
+                2 -> BilleteraTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onNavigateToOffers = onNavigateToOffers,
+                    onNavigateToHistorial = onNavigateToHistorial
+                )
+                3 -> PerfilTab(
+                    modifier = Modifier.padding(innerPadding),
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToAddresses = onNavigateToAddresses
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun InicioTab(
+    modifier: Modifier = Modifier,
+    homeState: HomeUiState,
+    cartViewModel: CartViewModel,
+    onAgregarTodo: () -> Unit,
+    onProductClick: (String) -> Unit,
+    onCategoryClick: (String) -> Unit,
+    onPromotionClick: (Promotion) -> Unit = {}
+) {
+    when {
+        homeState.isLoading -> {
+            Row(
+                modifier = modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        else -> {
+            Column(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                PromocionesSection(homeState.promotions, onPromotionClick = onPromotionClick)
+                PedidoRapidoSection(
+                    products = homeState.quickProducts,
+                    agregarTodoUsado = homeState.agregarTodoUsado,
+                    onAgregarTodo = onAgregarTodo,
+                    onProductClick = onProductClick
+                )
+                CategoriasSection(
+                    categories = homeState.categories,
+                    onCategoryClick = onCategoryClick
+                )
+                Spacer(Modifier.height(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PromocionesSection(promotions: List<Promotion>, onPromotionClick: (Promotion) -> Unit) {
+    Text(
+        text = "Promociones",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = AzulReyClaro
+    )
+    if (promotions.isEmpty()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No hay promociones de momento",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    } else {
+        val pulseTransition = rememberInfiniteTransition(label = "pulse")
+        val pulseScale by pulseTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.03f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "pulseScale"
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(promotions, key = { it.id }) { promo ->
+                Card(
+                    modifier = Modifier
+                        .width(300.dp)
+                        .graphicsLayer(scaleX = pulseScale, scaleY = pulseScale)
+                        .clickable { onPromotionClick(promo) },
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            if (promo.imageUrl.isNotBlank()) {
+                                AsyncImage(
+                                    model = promo.imageUrl,
+                                    contentDescription = promo.name,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                            if (promo.savings > 0) {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(8.dp)
+                                ) {
+                                    Text(
+                                        text = "-${promo.discountPercent.toInt()}%",
+                                        color = MaterialTheme.colorScheme.onTertiary,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = promo.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (promo.description.isNotBlank()) {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = promo.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "S/ ${"%.2f".format(promo.finalPrice)}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (promo.savings > 0) {
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = "S/ ${"%.2f".format(promo.originalPrice)}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textDecoration = TextDecoration.LineThrough,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PedidoRapidoSection(
+    products: List<Product>,
+    agregarTodoUsado: Boolean,
+    onAgregarTodo: () -> Unit,
+    onProductClick: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = AzulRey)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Pedido rapido",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(Modifier.height(12.dp))
+            if (products.isEmpty()) {
+                Text(
+                    text = "No hay productos disponibles",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(horizontal = 2.dp)
+                ) {
+                    items(products, key = { it.id }) { product ->
+                        QuickProductCard(
+                            product = product,
+                            onProductClick = onProductClick
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = onAgregarTodo,
+                    enabled = !agregarTodoUsado,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AmarilloVibrante,
+                        contentColor = AzulRey
+                    )
+                ) {
+                    Text(
+                        text = if (agregarTodoUsado) "Agregado" else "Agregar todo",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickProductCard(
+    product: Product,
+    onProductClick: (String) -> Unit
+) {
+    val outOfStock = product.availableStock <= 0
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .height(155.dp)
+            .clickable { onProductClick(product.id) },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(modifier = Modifier.size(80.dp)) {
+                    AsyncImage(
+                        model = product.foto.ifBlank { R.drawable.ic_placeholder_image },
+                        contentDescription = product.nombre,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    if (outOfStock) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Gray.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Sin stock",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = product.nombre,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = AzulReyClaro
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "S/ ${"%.2f".format(product.precio)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulReyClaro
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoriasSection(
+    categories: List<Category>,
+    onCategoryClick: (String) -> Unit
+) {
+    Text(
+        text = "Categorias de productos",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = AzulReyClaro
+    )
+    if (categories.isEmpty()) {
+        Text(
+            text = "No hay categorias disponibles",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    } else {
+        categories.chunked(2).forEach { rowCats ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                rowCats.forEach { category ->
+                    CategoryCard(
+                        category = category,
+                        onClick = { onCategoryClick(category.name) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (rowCats.size == 1) {
+                    Spacer(Modifier.weight(1f))
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun CategoryCard(
+    category: Category,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(150.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (category.colorStart.isNotBlank())
+                parseHexColor(category.colorStart)
+            else AzulRey
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+            if (category.imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = category.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(90.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 4.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun PedidosTab(
+    modifier: Modifier = Modifier,
+    onOrderClick: (String) -> Unit
+) {
+    OrdersScreen(
+        onBack = {},
+        onOrderClick = onOrderClick,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun BilleteraTab(
+    modifier: Modifier = Modifier,
+    onNavigateToOffers: () -> Unit,
+    onNavigateToHistorial: () -> Unit
+) {
+    BilleteraScreen(
+        onNavigateToOffers = onNavigateToOffers,
+        onNavigateToHistorial = onNavigateToHistorial,
+        modifier = modifier
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PerfilTab(
+    modifier: Modifier = Modifier,
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToAddresses: () -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text("Mi Perfil") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(innerPadding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            when {
+                uiState.isLoading -> {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                else -> {
+                    ProfileInfoCard(
+                        uiState = uiState,
+                        onToggleEdit = viewModel::toggleEditing,
+                        onNameChange = viewModel::onEditNameChange,
+                        onPhoneChange = viewModel::onEditPhoneChange,
+                        onDniChange = viewModel::onEditDniChange,
+                        onRucChange = viewModel::onEditRucChange,
+                        onSave = viewModel::saveProfile
+                    )
+
+                    HorizontalDivider()
+
+                    Text(
+                        text = "Mis Direcciones",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AzulReyClaro
+                    )
+
+                    OutlinedButton(
+                        onClick = onNavigateToAddresses,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Gestionar direcciones")
+                    }
+
+                    HorizontalDivider()
+
+                    Button(
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AzulRey
+                        )
+                    ) {
+                        Text("Configuracion")
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("https://wa.me/51925510147?text=Hola%2C%20necesito%20ayuda")
+                            }
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF25D366)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Phone,
+                            contentDescription = null,
+                            tint = Color(0xFF25D366)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Atencion al cliente")
+                    }
+                }
+            }
+        }
+    }
+}
