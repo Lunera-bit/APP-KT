@@ -33,6 +33,7 @@ jobs:
       - name: Create local.properties for CI
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
           echo "KEYSTORE_PATH=dummy" >> local.properties
           echo "KEYSTORE_PASSWORD=dummy" >> local.properties
           echo "KEY_ALIAS=dummy" >> local.properties
@@ -74,6 +75,7 @@ jobs:
       - name: Create local.properties for CI
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
           echo "KEYSTORE_PATH=dummy" >> local.properties
           echo "KEYSTORE_PASSWORD=dummy" >> local.properties
           echo "KEY_ALIAS=dummy" >> local.properties
@@ -119,6 +121,7 @@ jobs:
       - name: Create local.properties for CI
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
           echo "KEYSTORE_PATH=dummy" >> local.properties
           echo "KEYSTORE_PASSWORD=dummy" >> local.properties
           echo "KEY_ALIAS=dummy" >> local.properties
