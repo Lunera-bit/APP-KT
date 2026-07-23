@@ -10,3 +10,8 @@ app/google-services.json
 # Firebase emulator logs
 firebase-debug.log
 firestore-debug.log
+
+# Assets de diseño / docs
+svg/
+todo.md
+docs/
