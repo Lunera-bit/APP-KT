@@ -42,7 +42,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Run unit tests
@@ -91,7 +91,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Run unit tests (regression)
@@ -139,12 +139,12 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Run OWASP Dependency-Check
         run: ./gradlew dependencyCheckAnalyze --no-daemon
-        timeout-minutes: 30
+        timeout-minutes: 60
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
@@ -192,7 +192,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Enable KVM
@@ -254,7 +254,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Enable KVM
@@ -320,7 +320,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Enable KVM
@@ -381,7 +381,7 @@ jobs:
       - name: Create dummy google-services.json for CI
         run: |
           cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"cyryel-ci","storage_bucket":"cyryel-ci.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000","android_client_info":{"package_name":"com.CYRYEL.com"}},"oauth_client":[{"client_id":"000000000000-dummy.apps.googleusercontent.com","client_type":3}],"api_key":[{"current_key":"AIzaSyDummyKeyForCI"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
 
       - name: Enable KVM
