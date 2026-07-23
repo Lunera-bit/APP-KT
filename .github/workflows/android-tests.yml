@@ -32,13 +32,11 @@ jobs:
 
       - name: Create local.properties for CI
         run: |
-          cat > local.properties << 'EOF'
-          MAPBOX_ACCESS_TOKEN=pk.dummy
-          KEYSTORE_PATH=dummy
-          KEYSTORE_PASSWORD=dummy
-          KEY_ALIAS=dummy
-          KEY_PASSWORD=dummy
-          EOF
+          echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
@@ -75,13 +73,11 @@ jobs:
 
       - name: Create local.properties for CI
         run: |
-          cat > local.properties << 'EOF'
-          MAPBOX_ACCESS_TOKEN=pk.dummy
-          KEYSTORE_PATH=dummy
-          KEYSTORE_PASSWORD=dummy
-          KEY_ALIAS=dummy
-          KEY_PASSWORD=dummy
-          EOF
+          echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Run OWASP Dependency-Check
         run: ./gradlew dependencyCheckAnalyze --no-daemon
@@ -122,13 +118,11 @@ jobs:
 
       - name: Create local.properties for CI
         run: |
-          cat > local.properties << 'EOF'
-          MAPBOX_ACCESS_TOKEN=pk.dummy
-          KEYSTORE_PATH=dummy
-          KEYSTORE_PASSWORD=dummy
-          KEY_ALIAS=dummy
-          KEY_PASSWORD=dummy
-          EOF
+          echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Enable KVM
         run: |
