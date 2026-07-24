@@ -207,7 +207,7 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -cache-size 512
-          script: ./gradlew connectedDebugAndroidTest --tests "com.CYRYEL.com.system.*" --no-daemon
+          script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.CYRYEL.com.system --no-daemon
 
       - name: Upload system test reports
         if: always()
@@ -268,7 +268,7 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -cache-size 512
-          script: ./gradlew connectedDebugAndroidTest --tests "com.CYRYEL.com.integration.*" --tests "com.CYRYEL.com.data.local.*" --no-daemon
+          script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=com.CYRYEL.com.integration --no-daemon
 
       - name: Upload integration test reports
         if: always()
@@ -333,7 +333,7 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -cache-size 512
-          script: ./gradlew connectedDebugAndroidTest --tests "com.CYRYEL.com.ui.*" --tests "com.CYRYEL.com.SmokeTest" --tests "com.CYRYEL.com.system.*" --no-daemon
+          script: ./gradlew connectedDebugAndroidTest --no-daemon
 
       - name: Upload compatibility reports (API ${{ matrix.api-level }})
         if: always()
@@ -393,7 +393,7 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -cache-size 512
-          script: ./gradlew connectedDebugAndroidTest --tests "com.CYRYEL.com.*" --no-daemon
+          script: ./gradlew connectedDebugAndroidTest --no-daemon
 
       - name: Upload API 27 reports
         if: always()
