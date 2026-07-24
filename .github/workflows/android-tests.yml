@@ -34,6 +34,10 @@ jobs:
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
           echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Create dummy google-services.json for CI
         run: |
@@ -79,6 +83,10 @@ jobs:
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
           echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Create dummy google-services.json for CI
         run: |
@@ -123,6 +131,10 @@ jobs:
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
           echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Create dummy google-services.json for CI
         run: |
@@ -172,6 +184,10 @@ jobs:
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
           echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Create dummy google-services.json for CI
         run: |
@@ -230,6 +246,10 @@ jobs:
         run: |
           echo "MAPBOX_ACCESS_TOKEN=pk.dummy" > local.properties
           echo "MAPBOX_SECRET_TOKEN=pk.dummy" >> local.properties
+          echo "KEYSTORE_PATH=dummy" >> local.properties
+          echo "KEYSTORE_PASSWORD=dummy" >> local.properties
+          echo "KEY_ALIAS=dummy" >> local.properties
+          echo "KEY_PASSWORD=dummy" >> local.properties
 
       - name: Create dummy google-services.json for CI
         run: |
